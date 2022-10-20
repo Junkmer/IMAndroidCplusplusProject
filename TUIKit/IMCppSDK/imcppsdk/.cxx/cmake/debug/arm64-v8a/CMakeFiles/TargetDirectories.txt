@@ -1,0 +1,3 @@
+C:/Users/EDY/junker_zhaofei/MyWorkApplication/AndroidStudioProjects/GitObject/IMAndroidCplusplusProject/TUIKit/IMCppSDK/imcppsdk/.cxx/cmake/debug/arm64-v8a/CMakeFiles/ImC++Demo.dir
+C:/Users/EDY/junker_zhaofei/MyWorkApplication/AndroidStudioProjects/GitObject/IMAndroidCplusplusProject/TUIKit/IMCppSDK/imcppsdk/.cxx/cmake/debug/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/EDY/junker_zhaofei/MyWorkApplication/AndroidStudioProjects/GitObject/IMAndroidCplusplusProject/TUIKit/IMCppSDK/imcppsdk/.cxx/cmake/debug/arm64-v8a/CMakeFiles/rebuild_cache.dir

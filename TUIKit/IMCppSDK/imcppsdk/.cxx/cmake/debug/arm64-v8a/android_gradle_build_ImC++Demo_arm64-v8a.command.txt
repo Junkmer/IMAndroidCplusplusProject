@@ -1,0 +1,7 @@
+Executable : C:\Users\EDY\AppData\Local\Android\Sdk\cmake\3.10.2.4988404\bin\ninja.exe
+arguments : 
+-C
+C:\Users\EDY\junker_zhaofei\MyWorkApplication\AndroidStudioProjects\GitObject\IMAndroidCplusplusProject\TUIKit\IMCppSDK\imcppsdk\.cxx\cmake\debug\arm64-v8a
+ImC++Demo
+jvmArgs : 
+
