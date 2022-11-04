@@ -174,6 +174,18 @@ public:
      * 消息内容被修改
      */
     virtual void OnRecvMessageModified(const V2TIMMessage &message) {}
+
+    /**
+     * 消息扩展信息更新
+     */
+    virtual void OnRecvMessageExtensionsChanged(const V2TIMString &msgID,
+                                                const V2TIMMessageExtensionVector &extensions) {}
+
+    /**
+     * 消息扩展信息被删除
+     */
+    virtual void OnRecvMessageExtensionsDeleted(const V2TIMString &msgID,
+                                                const V2TIMStringVector &extensionKeys) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -575,6 +587,11 @@ public:
      */
     virtual void OnInvitationTimeout(const V2TIMString &inviteID,
                                      const V2TIMStringVector &inviteeList) {}
+
+    /**
+     * 邀请被修改（6.7 及其以上版本支持）
+     */
+    virtual void OnInvitationModified(const V2TIMString &inviteID, const V2TIMString &data) {}
 };
 
 #endif /* __V2TIM_LISTENER_H__ */

@@ -297,6 +297,8 @@ enum V2TIMErrorCode {
     ERR_SVR_MSG_SHUTUP_DENY                     = 20012,  // 因禁言，禁止发送消息。
     ERR_SVR_MSG_REVOKE_TIME_LIMIT               = 20016,  // 消息撤回超过了时间限制（默认2分钟）。
     ERR_SVR_MSG_DEL_RAMBLE_INTERNAL_ERROR       = 20018,  // 删除漫游内部错误。
+    ERR_SVR_MSG_EXTENSION_CONFLICT              = 23001,  // 消息扩展操作冲突。
+    ERR_SVR_MSG_EXTENSION_NOT_EXIST             = 23004,  // 删除的消息扩展不存在。
     ERR_SVR_MSG_JSON_PARSE_FAILED               = 90001,  // JSON 格式解析失败，请检查请求包是否符合 JSON 规范。
     ERR_SVR_MSG_INVALID_JSON_BODY_FORMAT        = 90002,  // JSON 格式请求包中 MsgBody 不符合消息格式描述，或者 MsgBody 不是 Array 类型，请参考 [TIMMsgElement 对象](https://cloud.tencent.com/document/product/269/2720#.E6.B6.88.E6.81.AF.E5.85.83.E7.B4.A0timmsgelement) 的定义。
     ERR_SVR_MSG_INVALID_TO_ACCOUNT              = 90003,  // JSON 格式请求包体中缺少 To_Account 字段或者 To_Account 字段不是 Integer 类型

@@ -111,23 +111,32 @@ public:
     virtual V2TIMSignalingInfo GetSignalingInfo(const V2TIMMessage& msg) = 0;
 
     /**
-     *  添加邀请信令（可以用于群离线推送消息触发的邀请信令）
+     *  添加邀请信令
      *
-     *  在离线推送的场景下：
-     *  - 1V1邀请，被邀请者 APP 如果被 Kill，当 APP
-     * 收到离线推送再次启动后，如果邀请还没超时，用户会收到 OnReceiveNewInvitation
-     * 回调，如果邀请已经超时，用户会收到 OnInvitationTimeout 回调。
-     *  - 群邀请，被邀请者 APP 如果被 Kill，当 APP 收到离线推送再次启动后，SDK
-     * 无法自动同步到邀请信令信息，如果您想要在该场景下处理邀请，请在发送推送消息时携带信令信息（代码参考
-     * TRTCAVCallImpl -> sendOnlineMessageWithOfflinePushInfo），收到推送时候解析信令信息（代码参考
-     * OfflineMessageDispatcher -> Redirect），然后调用 AddInvitedSignaling 主动添加信令信息。
+     *  主要用于邀请者在被邀请者离线期间，发送了群聊邀请，被邀请者上线后将该信令同步给 SDK，从而正常使用信令功能。
      *
-     *  TUIKit
-     * 音视频通话离线推送功能基于这个接口实现，详细实现方法请参考文档：[集成音视频通话](https://cloud.tencent.com/document/product/269/46141)
+     *  当被邀请者点击离线推送提示，拉起 App 时：
+     *  1. 如果被邀请者离线期间，邀请者发送的是 1V1 信令，SDK 可以自动同步邀请信令。邀请未超时，回调 onReceiveNewInvitation。
      *
-     *  @note 如果添加的信令信息已存在，callback 会抛 ERR_SDK_SIGNALING_ALREADY_EXISTS 错误码。
+     *  2. 如果被邀请者离线期间，邀请者发送的是群聊信令，不同 SDK 版本表现如下：
+     *  - 6.7 以前的版本：
+     *  SDK 无法自动同步邀请信令（信令本质上就是一条自定义消息，群离线消息在程序启动后无法自动同步）。
+     *  如果被邀请者需要处理该邀请信令，可以让邀请者在发起信令时，向每个被邀请者额外发送一条 C2C 离线推送消息，消息携带 V2TIMSignalingInfo 信息。
+     *  被邀请者收到离线推送时通过 addInvitedSignaling 将 V2TIMSignalingInfo 信息告知 SDK。
+     *  - 6.7 及以后的版本：
+     *  SDK 会自动同步最近 30 秒的消息。如果其中包含了未超时的邀请信令，回调 onReceiveNewInvitation。您无需再调用本接口同步邀请信令。
+     *
+     *  @note 如果添加的信令信息已存在，fail callback 会抛 ERR_SDK_SIGNALING_ALREADY_EXISTS 错误码。
      */
     virtual void AddInvitedSignaling(const V2TIMSignalingInfo& info, V2TIMCallback* callback) = 0;
+
+    /**
+     *  修改邀请信令（6.7 及其以上版本支持）
+     *
+     *  @note 仅支持修改邀请信令的自定义字段 data。只有在线用户才能收到的邀请信令不能被修改。
+     */
+    virtual void ModifyInvitation(const V2TIMString& inviteID, const V2TIMString& data,
+                                  V2TIMCallback* callback) = 0;
 };
 
 #endif  // __V2TIM_SIGNALING_MANAGER_H__

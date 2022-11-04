@@ -104,12 +104,16 @@ namespace v2im {
             jstring jStr = nullptr;
 
             jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.title.CString());
-            env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDTitle], jStr);
-            env->DeleteLocalRef(jStr);
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDTitle], jStr);
+                env->DeleteLocalRef(jStr);
+            }
 
             jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.desc.CString());
-            env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDDesc], jStr);
-            env->DeleteLocalRef(jStr);
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDDesc], jStr);
+                env->DeleteLocalRef(jStr);
+            }
 
             jbyteArray byteArr = StringJni::Cstring2JbyteArray(env, offlinePushInfo.ext.CString());
             env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDExt], byteArr);
@@ -118,14 +122,18 @@ namespace v2im {
             env->SetBooleanField(j_pushInfoObj, j_field_array_[FieldIDDisable], offlinePushInfo.disablePush);
 
             jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.iOSSound.CString());
-            env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDIOSSound], jStr);
-            env->DeleteLocalRef(jStr);
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDIOSSound], jStr);
+                env->DeleteLocalRef(jStr);
+            }
 
             env->SetBooleanField(j_pushInfoObj, j_field_array_[FieldIDIgnoreIOSBadge], offlinePushInfo.ignoreIOSBadge);
 
             jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidOPPOChannelID.CString());
-            env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDAndroidOPPOChannelID], jStr);
-            env->DeleteLocalRef(jStr);
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDAndroidOPPOChannelID], jStr);
+                env->DeleteLocalRef(jStr);
+            }
 
             env->SetIntField(j_pushInfoObj, j_field_array_[FieldIDAndroidVIVOClassification], (jint) offlinePushInfo.AndroidVIVOClassification);
 

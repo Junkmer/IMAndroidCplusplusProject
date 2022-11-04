@@ -28,16 +28,10 @@ namespace v2im {
             auto findMessage_callback = new v2im::ValueCallbackImpl<V2TIMMessageVector>{};
             findMessage_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageVector &value) {
                 if (V2TIMErrorCode::ERR_SUCC == error_code) {
-                    V2TIMMessageVector messageVector = value;
+                    V2TIMMessageVector messageVector;
                     for (int i = 0; i < value.Size(); ++i) {
-                        bool titleFlag = false;
-                        if (!messageList[0].userID.Empty()) {
-                            titleFlag = messageList[0].userID == value[i].userID;
-                        } else {
-                            titleFlag = messageList[0].groupID == value[i].groupID;
-                        }
-                        if (value[i].status != V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_SUCC && titleFlag) {
-                            messageVector.Erase(i);
+                        if (value[i].status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_SUCC) {
+                            messageVector.PushBack(value[i]);
                         }
                     }
                     if (messageVector.Size() > 0) {
@@ -764,8 +758,8 @@ namespace v2im {
                         }
                     }
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -780,8 +774,8 @@ namespace v2im {
                     auto *soundElem = dynamic_cast<V2TIMSoundElem *>(elem);
                     soundElem->GetUrl(callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -795,8 +789,8 @@ namespace v2im {
                     auto *soundElem = dynamic_cast<V2TIMSoundElem *>(elem);
                     soundElem->DownloadSound(path, callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -811,8 +805,8 @@ namespace v2im {
                     auto *videoElem = dynamic_cast<V2TIMVideoElem *>(elem);
                     videoElem->GetVideoUrl(callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -826,8 +820,8 @@ namespace v2im {
                     auto *videoElem = dynamic_cast<V2TIMVideoElem *>(elem);
                     videoElem->GetSnapshotUrl(callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -841,8 +835,8 @@ namespace v2im {
                     auto *videoElem = dynamic_cast<V2TIMVideoElem *>(elem);
                     videoElem->DownloadVideo(path, callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -856,8 +850,8 @@ namespace v2im {
                     auto *videoElem = dynamic_cast<V2TIMVideoElem *>(elem);
                     videoElem->DownloadSnapshot(path, callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -872,8 +866,8 @@ namespace v2im {
                     auto *fileElem = dynamic_cast<V2TIMFileElem *>(elem);
                     fileElem->GetUrl(callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }
@@ -887,8 +881,8 @@ namespace v2im {
                     auto *fileElem = dynamic_cast<V2TIMFileElem *>(elem);
                     fileElem->DownloadFile(path, callback);
                 }
-            } else{
-                callback->OnError(error_code,error_message);
+            } else {
+                callback->OnError(error_code, error_message);
             }
         });
     }

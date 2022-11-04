@@ -3,6 +3,7 @@
 //
 
 #include <jni.h>
+#include <LogUtil.h>
 #include "jni_util.h"
 #include "value_callback_impl.h"
 #include "conversation_listener_jni.h"
@@ -52,9 +53,13 @@ DEFINE_NATIVE_FUNC(void, NativeGetConversationList, jlong next_seq, jint count, 
     auto nextSeq_c = (uint64_t) next_seq;
     auto count_c = (uint32_t) count;
 
+    LOGE("GetConversationList-Request, next_seq = %ld | count = %d",next_seq,count);
+
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMConversationResult>{};
     value_callback->setCallback(
             [=](const int &error_code, const V2TIMString &error_message, const V2TIMConversationResult &conversationResult) {
+                LOGE("GetConversationList-CallBack, nextSeq = %lu | isFinished = %d",conversationResult.nextSeq,conversationResult.isFinished);
+
                 v2im::jni::ScopedJEnv scopedJEnv;
                 auto _env = scopedJEnv.GetEnv();
 

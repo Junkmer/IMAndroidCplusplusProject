@@ -84,13 +84,16 @@ public:
      *
      * @note
      * attributes 的使用限制如下：
-     *  - 目前只支持 AVChatRoom
-     *  - key 最多支持16个，长度限制为32字节
-     *  - value 长度限制为4k
-     *  - 总的 attributes（包括 key 和 value）限制为16k
-     *  - InitGroupAttributes、SetGroupAttributes、DeleteGroupAttributes 接口合并计算， SDK
-     * 限制为5秒10次，超过后回调8511错误码；后台限制1秒5次，超过后返回10049错误码
-     *  - GetGroupAttributes 接口 SDK 限制5秒20次
+     *  - 6.7 及其以前版本，只支持 AVChatRoom 直播群；
+     *  - 从 6.8 版本开始，同时支持 AVChatRoom、Public、Meeting、Work 四种群类型；
+     *  - 社群和话题暂时不支持。
+     *  - key 最多支持 16 个，长度限制为 32 字节；
+     *  - value 长度限制为 4k；
+     *  - 总的 attributes（包括 key 和 value）限制为 16k；
+     *  - initGroupAttributes、setGroupAttributes、deleteGroupAttributes 接口合并计算， SDK 限制为 5 秒 10 次，超过后回调 8511 错误码；后台限制 1 秒 5 次，超过后返回 10049 错误码；
+     *  - getGroupAttributes 接口 SDK 限制 5 秒 20 次；
+     *  - 从 5.6 版本开始，当每次APP启动后初次修改群属性时，请您先调用 getGroupAttributes 拉取到最新的群属性之后，再发起修改操作；
+     *  - 从 5.6 版本开始，当多个用户同时修改同一个群属性时，只有第一个用户可以执行成功，其它用户会收到 10056 错误码；收到这个错误码之后，请您调用 getGroupAttributes 把本地保存的群属性更新到最新之后，再发起修改操作。
      */
     virtual void InitGroupAttributes(const V2TIMString& groupID,
                                      const V2TIMGroupAttributeMap& attributes,
@@ -99,7 +102,9 @@ public:
     /**
      * 2.5 设置群属性。已S有该群属性则更新其 value 值，没有该群属性则添加该属性。
      * @note
-     *  - 目前只支持 AVChatRoom；
+     *   - 6.7 及其以前版本，只支持 AVChatRoom 直播群；
+     *   - 从 6.8 版本开始，同时支持 AVChatRoom、Public、Meeting、Work 四种群类型；
+     *   - 社群和话题暂时不支持。
      */
     virtual void SetGroupAttributes(const V2TIMString& groupID,
                                     const V2TIMGroupAttributeMap& attributes,
@@ -108,7 +113,9 @@ public:
     /**
      * 2.6 删除指定群属性，keys 传大小为 0 的 V2TIMStringVector 则清空所有群属性。
      * @note
-     *  - 目前只支持 AVChatRoom；
+     *   - 6.7 及其以前版本，只支持 AVChatRoom 直播群；
+     *   - 从 6.8 版本开始，同时支持 AVChatRoom、Public、Meeting、Work 四种群类型；
+     *   - 社群和话题暂时不支持。
      */
     virtual void DeleteGroupAttributes(const V2TIMString& groupID, const V2TIMStringVector& keys,
                                        V2TIMCallback* callback) = 0;
@@ -116,7 +123,9 @@ public:
     /**
      * 2.7 获取指定群属性，keys 传 keys 传大小为 0 的 V2TIMStringVector 则获取所有群属性。
      * @note
-     *  - 目前只支持 AVChatRoom；
+     *   - 6.7 及其以前版本，只支持 AVChatRoom 直播群；
+     *   - 从 6.8 版本开始，同时支持 AVChatRoom、Public、Meeting、Work 四种群类型；
+     *   - 社群和话题暂时不支持。
      */
     virtual void GetGroupAttributes(const V2TIMString& groupID, const V2TIMStringVector& keys,
                                     V2TIMValueCallback<V2TIMGroupAttributeMap>* callback) = 0;
@@ -143,18 +152,18 @@ public:
      *                 不为零，需要分页，传入再次拉取，直至为0。
      *
      *  @note
-     *  普通群（工作群、会议群、公开群、社群）的限制：
-     *  - filter 只能设置为 V2TIMGroupMemberFilter 定义的数值，SDK 会返回指定角色的成员。
+     *  - 普通群（工作群、会议群、公开群、社群）的限制：
+     *  1. filter 只能设置为 V2TIMGroupMemberFilter 定义的数值，SDK 会返回指定角色的成员。
      *
-     *  直播群（AVChatRoom）的限制：
-     *  - 如果设置 filter 为 V2TIMGroupMemberFilter 定义的数值，SDK 返回全部成员。
+     *  - 直播群（AVChatRoom）的限制：
+     *  1. 如果设置 filter 为 V2TIMGroupMemberFilter 定义的数值，SDK 返回全部成员。
      *    返回的人数规则为：旗舰版支持拉取最近入群群成员最多 1000 人，新进来的成员排在前面（6.3 及以上版本支持，
      *    需要先在 [控制台](https://console.cloud.tencent.com/im) 开启开关；
      *    非旗舰版支持拉取最近入群群成员最多 31 人，新进来的 成员排在前面。
-     *  - 如果设置 filter 为群成员自定义标记，旗舰版支持拉取指定标记的成员列表。
+     *  2. 如果设置 filter 为群成员自定义标记，旗舰版支持拉取指定标记的成员列表。
      *    标记群成员的设置请参考 MarkGroupMemberList API。
-     *  - 程序重启后，请重新加入群组，否则拉取群成员会报 10007 错误码。
-     *  - 群成员资料信息仅支持 userID | nickName | faceURL | role 字段。
+     *  3. 程序重启后，请重新加入群组，否则拉取群成员会报 10007 错误码。
+     *  4. 群成员资料信息仅支持 userID | nickName | faceURL | role 字段。
      */
     virtual void GetGroupMemberList(const V2TIMString& groupID, uint32_t filter,
                                     uint64_t nextSeq,
@@ -186,6 +195,8 @@ public:
 
     /**
      * 3.5 禁言（只有管理员或群主能够调用）
+     *
+     * @param seconds 禁言时间长度，单位秒，表示调用该接口成功后多少秒内不允许被禁言用户再发言。
      */
     virtual void MuteGroupMember(const V2TIMString& groupID, const V2TIMString& userID,
                                  uint32_t seconds,

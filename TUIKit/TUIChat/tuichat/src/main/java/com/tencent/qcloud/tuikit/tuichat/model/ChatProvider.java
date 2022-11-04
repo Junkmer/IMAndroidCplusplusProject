@@ -84,6 +84,14 @@ public class ChatProvider {
             public void onSuccess(List<V2TIMMessage> v2TIMMessages) {
                 List<TUIMessageBean> messageInfoList = ChatMessageParser.parseMessageList(v2TIMMessages);
                 TUIChatUtils.callbackOnSuccess(callBack, messageInfoList);
+
+                for (int i = 0; i < v2TIMMessages.size(); i++) {
+//                    TUIChatLog.e("TAG-ConversationChange",
+//                              "|"+"messageID="+v2TIMMessages.get(i).getMsgID()
+//                                    +"|"+"isRead="+v2TIMMessages.get(i).isRead()
+//                                    +"|"+"isPeerRead="+v2TIMMessages.get(i).isPeerRead();
+                    TUIChatLog.e("TAG-V2TIMMessage","getC2CHistoryMessageList:"+ v2TIMMessages.get(i).toString());
+                }
             }
         });
     }
@@ -297,6 +305,23 @@ public class ChatProvider {
                         TUICore.notifyEvent(TUIConstants.TUIChat.EVENT_KEY_MESSAGE_EVENT, TUIConstants.TUIChat.EVENT_SUB_KEY_SEND_MESSAGE_SUCCESS, param);
                     }
                 });
+
+//        String msgID = V2TIMManager.getMessageManager().insertC2CMessageToLocalStorage(v2TIMMessage, userID, V2TIMManager.getInstance().getLoginUser(), new V2TIMValueCallback<V2TIMMessage>() {
+//            @Override
+//            public void onSuccess(V2TIMMessage v2TIMMessage) {
+//                        TUIChatLog.v(TAG, "sendMessage onSuccess:" + v2TIMMessage.getMsgID());
+//                        message.setV2TIMMessage(v2TIMMessage);
+//                        TUIChatUtils.callbackOnSuccess(callBack, message);
+//                        Map<String, Object> param = new HashMap<>();
+//                        param.put(TUIConstants.TUIChat.CHAT_ID, chatInfo.getId());
+//                        TUICore.notifyEvent(TUIConstants.TUIChat.EVENT_KEY_MESSAGE_EVENT, TUIConstants.TUIChat.EVENT_SUB_KEY_SEND_MESSAGE_SUCCESS, param);
+//            }
+//
+//            @Override
+//            public void onError(int code, String desc) {
+//                TUIChatUtils.callbackOnError(callBack, TAG, code, desc);
+//            }
+//        });
         return msgID;
     }
 

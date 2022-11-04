@@ -1,2 +1,3 @@
 ninja: Entering directory `C:\Users\EDY\junker_zhaofei\MyWorkApplication\AndroidStudioProjects\GitObject\IMAndroidCplusplusProject\TUIKit\IMCppSDK\imcppsdk\.cxx\cmake\debug\armeabi-v7a'
-ninja: no work to do.
+[1/2] Building CXX object CMakeFiles/ImC++Demo.dir/engine/v2_im_engine.cpp.o
+[2/2] Linking CXX shared library C:\Users\EDY\junker_zhaofei\MyWorkApplication\AndroidStudioProjects\GitObject\IMAndroidCplusplusProject\TUIKit\IMCppSDK\imcppsdk\build\intermediates\cmake\debug\obj\armeabi-v7a\libImC++Demo.so

@@ -58,7 +58,6 @@ public class V2TIMOfflinePushInfo implements Serializable {
     }
 
     public void setIOSSound(String IOSSound) {
-
         this.IOSSound = IOSSound;
     }
 

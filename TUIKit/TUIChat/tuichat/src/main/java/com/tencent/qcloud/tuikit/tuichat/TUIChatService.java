@@ -413,6 +413,7 @@ public class TUIChatService extends ServiceInitializer implements ITUIChatServic
                 if (message == null) {
                     return;
                 }
+                TUIChatLog.e("TAG-V2TIMMessage","onRecvNewMessage:"+ msg);
 
                 HashMap<String, Object> param = new HashMap<>();
                 String conversationID;

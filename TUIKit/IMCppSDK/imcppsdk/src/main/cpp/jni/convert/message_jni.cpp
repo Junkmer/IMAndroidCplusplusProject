@@ -237,8 +237,8 @@ namespace v2im {
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
                                 StringJni::Cuint8_t2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);
-            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsRead], v2TimMessage.isRead);
-            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsPeerRead], v2TimMessage.isPeerRead);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsRead], v2TimMessage.IsRead());
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsPeerRead], v2TimMessage.IsPeerRead());
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDNeedReadReceipt], v2TimMessage.needReadReceipt);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsBroadcastMessage], v2TimMessage.isBroadcastMessage);
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDPriority], (jint) v2TimMessage.priority);
@@ -362,7 +362,7 @@ namespace v2im {
             message->priority = V2TIMMessagePriority(env->GetIntField(messageObj, j_filed_id_array[FieldIDPriority]));
 
             jobject offlinePushObj = env->GetObjectField(messageObj, j_filed_id_array[FieldIDOfflinePushInfo]);
-            if (nullptr != offlinePushObj) {
+            if (offlinePushObj) {
                 OfflinePushInfoJni::Convert2CoreObject(offlinePushObj, message->offlinePushInfo);
                 env->DeleteLocalRef(offlinePushObj);
             }

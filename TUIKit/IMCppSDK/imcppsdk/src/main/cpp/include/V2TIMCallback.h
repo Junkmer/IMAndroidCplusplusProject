@@ -65,7 +65,7 @@ public:
      */
     virtual void OnSuccess(const T &value) = 0;
 
-    /**
+        /**
      * 出错时回调
      *
      * @param error_code 错误码，详细描述请参见错误码表

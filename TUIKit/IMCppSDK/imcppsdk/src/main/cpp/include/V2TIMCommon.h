@@ -60,6 +60,7 @@ DEFINE_MAP(V2TIMString, V2TIMBuffer)
 typedef TXV2TIMStringToV2TIMBufferMap V2TIMCustomInfo;
 
 DEFINE_MAP(V2TIMString, V2TIMString)
+typedef TXV2TIMStringToV2TIMStringMap V2TIMStringToV2TIMStringMap;
 typedef TXV2TIMStringToV2TIMStringMap V2TIMGroupAttributeMap;
 
 class V2TIMLogListener;

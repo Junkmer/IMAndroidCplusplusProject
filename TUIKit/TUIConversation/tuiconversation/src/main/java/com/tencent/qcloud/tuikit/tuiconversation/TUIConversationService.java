@@ -276,6 +276,15 @@ public class TUIConversationService extends ServiceInitializer implements ITUICo
                 for(ConversationEventListener conversationEventObserver : conversationEventObserverList) {
                     conversationEventObserver.onConversationChanged(conversationInfoList);
                 }
+
+                for (int i = 0; i < conversationList.size(); i++) {
+                    TUIConversationLog.e("TAG-ConversationChange",
+                            "conversationID="+conversationList.get(i).getConversationID()
+                                    +"|"+"messageID="+conversationList.get(i).getLastMessage().getMsgID()
+                                    +"|"+"isRead="+conversationList.get(i).getLastMessage().isRead()
+                                    +"|"+"isPeerRead="+conversationList.get(i).getLastMessage().isPeerRead()
+                    );
+                }
             }
 
             @Override

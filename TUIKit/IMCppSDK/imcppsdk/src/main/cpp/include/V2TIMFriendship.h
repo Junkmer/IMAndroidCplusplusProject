@@ -177,7 +177,7 @@ struct TIM_API V2TIMUserStatus {
     /// 用户的状态
     V2TIMUserStatusType statusType;
 
-    /// 用户的自定义状态
+    /// 用户的自定义状态, 最大 50 字节
     V2TIMString customStatus;
 
     V2TIMUserStatus();

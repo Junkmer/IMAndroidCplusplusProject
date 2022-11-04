@@ -137,6 +137,24 @@ enum V2TIMGroupMessageReadMembersFilter {
     V2TIM_GROUP_MESSAGE_READ_MEMBERS_FILTER_UNREAD = 1,
 };
 
+/// iOS 离线推送的类型
+enum V2TIMIOSOfflinePushType {
+    ///< 普通的 APNs 推送
+    V2TIM_IOS_OFFLINE_PUSH_TYPE_APNS = 0,
+    ///< VoIP 推送
+    V2TIM_IOS_OFFLINE_PUSH_TYPE_VOIP = 1,
+};
+
+/// 配置离线推送时，注册的设备 token 类型
+enum V2TIMOfflinePushTokenType {
+    ///< 默认是厂商 token: APNS/小米 push/Huawei push 等
+    V2TIM_OFFLINE_PUSH_TOKEN_TYPE_DEFAULT = 0,
+    ///< TPNS
+    V2TIM_OFFLINE_PUSH_TOKEN_TYPE_TPNS    = 1,
+    ///< VoIP push，目前仅支持 iOS
+    V2TIM_OFFLINE_PUSH_TOKEN_TYPE_VOIP    = 2,
+};
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //                     （二）结构体定义
@@ -148,12 +166,13 @@ struct TIM_API V2TIMOfflinePushConfig {
     V2TIMBuffer token;
     /// IM 控制台证书 ID
     uint32_t businessID;
-    /// 是否接入配置 TPNS, token 是否是从 TPNS 获取
-    /// @note 该字段已废弃
+
+    /// token 的类型，默认是 V2TIM_OFFLINE_PUSH_TOKEN_TYPE_DEFAULT
+    /// @note V2TIM_OFFLINE_PUSH_TOKEN_TYPE_TPNS 字段已废弃
     /// - 如果您之前通过 TPNS 接入离线推送，并且在 TPNS 控制台配置推送信息，可以继续按照该方式接入推送功能；
     /// - 如果您从未接入 TPNS，从未在 TPNS 控制台配置推送信息，IM 将不在支持 TPNS 方式接入离线推送功能, 推荐参照如下方式接入：
     ///  https://cloud.tencent.com/document/product/269/74284
-    bool isTPNSToken;
+    V2TIMOfflinePushTokenType token_type;
 
     V2TIMOfflinePushConfig();
     V2TIMOfflinePushConfig(const V2TIMOfflinePushConfig &);
@@ -178,6 +197,9 @@ struct TIM_API V2TIMOfflinePushInfo {
     V2TIMString ext;
     /// 是否关闭推送（默认开启推送）。
     bool disablePush;
+    /// iOS 离线推送的类型（仅对 iOS 生效）
+    /// 默认值是 V2TIM_IOS_OFFLINE_PUSH_TYPE_APNS
+    V2TIMIOSOfflinePushType iOSPushType;
     /// 离线推送忽略 badge 计数（仅对 iOS 生效），
     /// 如果设置为 true，在 iOS 接收端，这条消息不会使 APP 的应用图标未读计数增加。
     bool ignoreIOSBadge;
@@ -257,16 +279,22 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     uint64_t random;
     /// 消息发送状态
     V2TIMMessageStatus status;
+    /// 是否支持消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
+    /// 社群（Community）和直播群（AVChatRoom）消息不支持该功能。
+    /// 您需要先到 IM 控制台配置该功能。
+    bool supportMessageExtension;
     /// 消息发送者是否是自己
     bool isSelf;
     /// 消息自己是否已读
-    bool isRead;
+    bool IsRead() const;
     /// 消息对方是否已读（只有 C2C 消息有效）
     /// 该字段为 true 的条件是消息 timestamp <= 对端标记会话已读的时间
-    bool isPeerRead;
-    /// 消息是否需要已读回执（6.1 及以上版本支持，需要您购买旗舰版套餐）
-    /// 群消息在使用该功能之前，需要先到 IM 控制台设置已读回执支持的群类型
-    /// 该功能为旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17485)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17221#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
+    bool IsPeerRead() const;
+    /// 消息是否需要已读回执
+    /// @note
+    /// <p> 群聊消息 6.1 及以上版本支持该特性，需要您先到 IM 控制台配置支持已读回执的群类型。
+    /// <p> 单聊消息 6.2 及以上版本支持该特性。
+    /// <p> 群聊消息和单聊消息都需要购买旗舰版套餐包。
     bool needReadReceipt;
     /// 是否是广播消息，仅直播群支持（6.5 及以上版本支持，需要您购买旗舰版套餐）
     bool isBroadcastMessage;
@@ -339,6 +367,10 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     bool isExcludedFromLastMessage;
     /// 消息的离线推送信息
     V2TIMOfflinePushInfo offlinePushInfo;
+    /// 仅供 SDK 内部使用，如果您想判断消息自己是否已读，请使用 IsRead()
+    bool isRead;
+    /// 仅供 SDK 内部使用，如果您想判断消息对方是否已读，请使用 IsPeerRead()
+    bool isPeerRead;
 
     V2TIMMessage();
     V2TIMMessage(const V2TIMMessage &);
@@ -947,5 +979,49 @@ struct TIM_API V2TIMMessageListGetOption {
     V2TIMMessageListGetOption &operator=(const V2TIMMessageListGetOption &);
     ~V2TIMMessageListGetOption();
 };
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息拓展
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageExtension {
+    /// 消息扩展信息 key
+    V2TIMString extensionKey;
+    /// 消息扩展信息 value
+    V2TIMString extensionValue;
+
+    V2TIMMessageExtension();
+    V2TIMMessageExtension(const V2TIMMessageExtension &);
+    V2TIMMessageExtension &operator=(const V2TIMMessageExtension &);
+    ~V2TIMMessageExtension();
+};
+
+DEFINE_VECTOR(V2TIMMessageExtension)
+typedef TXV2TIMMessageExtensionVector V2TIMMessageExtensionVector;
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息扩展操作结果
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageExtensionResult {
+    /// 返回码
+    int32_t resultCode;
+    /// 返回信息
+    V2TIMString resultInfo;
+    /// 扩展信息
+    V2TIMMessageExtension extension;
+
+    V2TIMMessageExtensionResult();
+    V2TIMMessageExtensionResult(const V2TIMMessageExtensionResult &);
+    V2TIMMessageExtensionResult &operator=(const V2TIMMessageExtensionResult &);
+    ~V2TIMMessageExtensionResult();
+};
+
+DEFINE_VECTOR(V2TIMMessageExtensionResult)
+typedef TXV2TIMMessageExtensionResultVector V2TIMMessageExtensionResultVector;
 
 #endif /* __V2TIM_MESSAGE_H__ */

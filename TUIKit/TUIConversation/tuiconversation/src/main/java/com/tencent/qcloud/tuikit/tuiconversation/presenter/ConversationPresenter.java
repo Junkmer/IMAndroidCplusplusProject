@@ -12,6 +12,7 @@ import com.tencent.imsdk.v2.V2TIMUserStatus;
 import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUILogin;
+import com.tencent.qcloud.tuicore.component.imageEngine.impl.GlideEngine;
 import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuicore.util.SPUtils;
 import com.tencent.qcloud.tuikit.tuiconversation.TUIConversationConstants;
@@ -40,7 +41,7 @@ public class ConversationPresenter {
 
     private int showType = SHOW_TYPE_CONVERSATION_LIST_WITH_FOLD;
 
-    private final static int GET_CONVERSATION_COUNT = 100;
+    private final static int GET_CONVERSATION_COUNT = 20;
 
     ConversationEventListener conversationEventListener;
 

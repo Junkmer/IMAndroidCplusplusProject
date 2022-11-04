@@ -67,7 +67,7 @@ namespace v2im {
                 env->DeleteLocalRef(tokenStr);
             }
 
-            pushConfig.isTPNSToken = env->GetBooleanField(pushConfigObj,j_field_array_[FieldIDIsTPNSToken]);
+//            pushConfig.isTPNSToken = env->GetBooleanField(pushConfigObj,j_field_array_[FieldIDIsTPNSToken]);
             return true;
         }
     }
