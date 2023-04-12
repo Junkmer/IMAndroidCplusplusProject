@@ -7,21 +7,11 @@ import java.io.Serializable;
  */
 public class V2TIMConversationListFilter implements Serializable {
     private int conversationType;
-    private long nextSeq;
-    private int count;
     private long markType;
     private String groupName;
 
     public void setConversationType(int conversationType) {
         this.conversationType = conversationType;
-    }
-
-    public void setNextSeq(long nextSeq) {
-        this.nextSeq = nextSeq;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
     }
 
     public void setMarkType(long markType) {

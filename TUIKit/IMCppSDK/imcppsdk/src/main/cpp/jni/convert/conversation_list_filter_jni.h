@@ -19,8 +19,6 @@ namespace v2im {
         private:
             enum FieldID{
                 FieldIDConversationType = 0,
-                FieldIDNextSeq,
-                FieldIDCount,
                 FieldIDMarkType,
                 FieldIDGroupName,
 

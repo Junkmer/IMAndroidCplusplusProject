@@ -53,12 +53,12 @@ DEFINE_NATIVE_FUNC(void, NativeGetConversationList, jlong next_seq, jint count, 
     auto nextSeq_c = (uint64_t) next_seq;
     auto count_c = (uint32_t) count;
 
-    LOGE("GetConversationList-Request, next_seq = %ld | count = %d",next_seq,count);
+    LOGE("GetConversationList-Request, next_seq = %ld | count = %d", next_seq, count);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMConversationResult>{};
     value_callback->setCallback(
             [=](const int &error_code, const V2TIMString &error_message, const V2TIMConversationResult &conversationResult) {
-                LOGE("GetConversationList-CallBack, nextSeq = %lu | isFinished = %d",conversationResult.nextSeq,conversationResult.isFinished);
+                LOGE("GetConversationList-CallBack, nextSeq = %lu | isFinished = %d", conversationResult.nextSeq, conversationResult.isFinished);
 
                 v2im::jni::ScopedJEnv scopedJEnv;
                 auto _env = scopedJEnv.GetEnv();
@@ -146,8 +146,11 @@ DEFINE_NATIVE_FUNC(void, NativeGetConversationListForID, jobject conversation_id
     v2im::V2IMEngine::GetInstance()->GetConversationList(conversation_vector, value_callback);
 }
 
-DEFINE_NATIVE_FUNC(void, NativeGetConversationListByFilter, jobject filter, jobject callback) {
+DEFINE_NATIVE_FUNC(void, NativeGetConversationListByFilter, jobject filter, jlong next_seq, jint count, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
+
+    auto nextSeq_c = (uint64_t) next_seq;
+    auto count_c = (uint32_t) count;
 
     V2TIMConversationListFilter listFilter;
 
@@ -172,7 +175,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetConversationListByFilter, jobject filter, jobj
         delete value_callback;
     });
 
-    v2im::V2IMEngine::GetInstance()->GetConversationListByFilter(listFilter, value_callback);
+    v2im::V2IMEngine::GetInstance()->GetConversationListByFilter(listFilter, nextSeq_c, count_c, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDeleteConversation, jstring conversation_id, jobject callback) {
@@ -457,26 +460,25 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteConversationsFromGroup, jstring group_name,
 
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
-        {"nativeInitCplusplusConversationListener", "()V",                                                                          (void *) NativeInitCplusplusConversationListener},
-        {"nativeAddConversationListener",           "(Lcom/tencent/imsdk/v2/V2TIMConversationListener;Ljava/lang/String;)V",        (void *) NativeAddConversationListener},
-        {"nativeRemoveConversationListener",        "(Ljava/lang/String;)V",                                                        (void *) NativeRemoveConversationListener},
-        {"nativeGetConversationList",               "(JILcom/tencent/imsdk/common/IMCallback;)V",                                   (void *) NativeGetConversationList},
-        {"nativeGetConversation",                   "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeGetConversation},
-        {"nativeGetConversationList",               "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                     (void *) NativeGetConversationListForID},
-        {"nativeGetConversationListByFilter",       "(Lcom/tencent/imsdk/v2/V2TIMConversationListFilter;"
-                                                    "Lcom/tencent/imsdk/common/IMCallback;)V",                                                      (void *) NativeGetConversationListByFilter},
-        {"nativeDeleteConversation",                "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeDeleteConversation},
-        {"nativeSetConversationDraft",              "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeSetConversationDraft},
-        {"nativeSetConversationCustomData",         "(Ljava/util/List;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",   (void *) NativeSetConversationCustomData},
-        {"nativePinConversation",                   "(Ljava/lang/String;ZLcom/tencent/imsdk/common/IMCallback;)V",                  (void *) NativePinConversation},
-        {"nativeMarkConversation",                  "(Ljava/util/List;JZLcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeMarkConversation},
-        {"nativeGetTotalUnreadMessageCount",        "(Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeGetTotalUnreadMessageCount},
-        {"nativeCreateConversationGroup",           "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",   (void *) NativeCreateConversationGroup},
-        {"nativeGetConversationGroupList",          "(Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeGetConversationGroupList},
-        {"nativeDeleteConversationGroup",           "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeDeleteConversationGroup},
-        {"nativeRenameConversationGroup",           "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeRenameConversationGroup},
-        {"nativeAddConversationsToGroup",           "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",   (void *) NativeAddConversationsToGroup},
-        {"nativeDeleteConversationsFromGroup",      "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",   (void *) NativeDeleteConversationsFromGroup},
+        {"nativeInitCplusplusConversationListener", "()V",                                                                                          (void *) NativeInitCplusplusConversationListener},
+        {"nativeAddConversationListener",           "(Lcom/tencent/imsdk/v2/V2TIMConversationListener;Ljava/lang/String;)V",                        (void *) NativeAddConversationListener},
+        {"nativeRemoveConversationListener",        "(Ljava/lang/String;)V",                                                                        (void *) NativeRemoveConversationListener},
+        {"nativeGetConversationList",               "(JILcom/tencent/imsdk/common/IMCallback;)V",                                                   (void *) NativeGetConversationList},
+        {"nativeGetConversation",                   "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                   (void *) NativeGetConversation},
+        {"nativeGetConversationList",               "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeGetConversationListForID},
+        {"nativeGetConversationListByFilter",       "(Lcom/tencent/imsdk/v2/V2TIMConversationListFilter;JILcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeGetConversationListByFilter},
+        {"nativeDeleteConversation",                "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                   (void *) NativeDeleteConversation},
+        {"nativeSetConversationDraft",              "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeSetConversationDraft},
+        {"nativeSetConversationCustomData",         "(Ljava/util/List;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeSetConversationCustomData},
+        {"nativePinConversation",                   "(Ljava/lang/String;ZLcom/tencent/imsdk/common/IMCallback;)V",                                  (void *) NativePinConversation},
+        {"nativeMarkConversation",                  "(Ljava/util/List;JZLcom/tencent/imsdk/common/IMCallback;)V",                                   (void *) NativeMarkConversation},
+        {"nativeGetTotalUnreadMessageCount",        "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                     (void *) NativeGetTotalUnreadMessageCount},
+        {"nativeCreateConversationGroup",           "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeCreateConversationGroup},
+        {"nativeGetConversationGroupList",          "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                     (void *) NativeGetConversationGroupList},
+        {"nativeDeleteConversationGroup",           "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                   (void *) NativeDeleteConversationGroup},
+        {"nativeRenameConversationGroup",           "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeRenameConversationGroup},
+        {"nativeAddConversationsToGroup",           "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeAddConversationsToGroup},
+        {"nativeDeleteConversationsFromGroup",      "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeDeleteConversationsFromGroup},
 
 };
 

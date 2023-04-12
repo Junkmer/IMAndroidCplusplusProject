@@ -363,11 +363,11 @@ public class ConversationProvider {
         });
     }
 
-    public void getMarkConversationList(final V2TIMConversationListFilter filter, boolean fromStart, IUIKitCallback<List<ConversationInfo>> callback) {
+    public void getMarkConversationList(final V2TIMConversationListFilter filter,long nextSeq, int count, boolean fromStart, IUIKitCallback<List<ConversationInfo>> callback) {
         if (fromStart) {
             markConversationInfoList.clear();
         }
-        V2TIMManager.getConversationManager().getConversationListByFilter(filter, new V2TIMValueCallback<V2TIMConversationResult>() {
+        V2TIMManager.getConversationManager().getConversationListByFilter(filter, nextSeq, count, new V2TIMValueCallback<V2TIMConversationResult>() {
             @Override
             public void onSuccess(V2TIMConversationResult v2TIMConversationResult) {
                 List<V2TIMConversation> conversationList = v2TIMConversationResult.getConversationList();
@@ -375,7 +375,7 @@ public class ConversationProvider {
                 markConversationInfoList.addAll(conversationInfoList);
 
                 if (!v2TIMConversationResult.isFinished()) {
-                    getMarkConversationList(filter, false, callback);
+                    getMarkConversationList(filter, v2TIMConversationResult.getNextSeq(), count,false, callback);
                 } else {
                     if (callback != null) {
                         callback.onSuccess(markConversationInfoList);

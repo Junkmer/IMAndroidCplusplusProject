@@ -127,7 +127,7 @@ namespace v2im {
 
         void GetConversationList(const V2TIMStringVector &conversationIDList, V2TIMValueCallback<V2TIMConversationVector> *callback);
 
-        void GetConversationListByFilter(const V2TIMConversationListFilter &filter,
+        void GetConversationListByFilter(const V2TIMConversationListFilter &filter, uint64_t nextSeq, uint32_t count,
                                          V2TIMValueCallback<V2TIMConversationResult> *callback);
 
         void DeleteConversation(const V2TIMString &conversationID, V2TIMCallback *callback);

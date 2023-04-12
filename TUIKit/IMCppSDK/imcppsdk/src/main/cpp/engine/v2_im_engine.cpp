@@ -10,6 +10,7 @@
 #include "v2_im_common.h"
 #include "value_callback_impl.h"
 #include "message_jni.h"
+#include "IMC++ErrorCode.h"
 
 namespace v2im {
 
@@ -37,7 +38,7 @@ namespace v2im {
                     if (messageVector.Size() > 0) {
                         callback(V2TIMErrorCode::ERR_SUCC, "", messageVector);
                     } else {
-                        callback(V2TIMErrorCode::ERR_NOT_MESSAGE, "not find message", {});
+                        callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message", {});
                     }
                 } else {
                     callback(error_code, error_message, {});
@@ -47,7 +48,7 @@ namespace v2im {
 
             v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
         } else {
-            callback(V2TIMErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
+            callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
         }
     }
 
@@ -78,7 +79,7 @@ namespace v2im {
             });
             v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
         } else {
-            callback(V2TIMErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
+            callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
         }
     }
 
@@ -108,7 +109,7 @@ namespace v2im {
             });
             v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
         } else {
-            callback(V2TIMErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
+            callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
         }
     }
 
@@ -284,8 +285,8 @@ namespace v2im {
         GetConversationManager()->GetConversationList(conversationIDList, callback);
     }
 
-    void V2IMEngine::GetConversationListByFilter(const V2TIMConversationListFilter &filter, V2TIMValueCallback<V2TIMConversationResult> *callback) {
-        GetConversationManager()->GetConversationListByFilter(filter, callback);
+    void V2IMEngine::GetConversationListByFilter(const V2TIMConversationListFilter &filter, uint64_t nextSeq, uint32_t count, V2TIMValueCallback<V2TIMConversationResult> *callback) {
+        GetConversationManager()->GetConversationListByFilter(filter, nextSeq, count, callback);
     }
 
     void V2IMEngine::DeleteConversation(const V2TIMString &conversationID, V2TIMCallback *callback) {

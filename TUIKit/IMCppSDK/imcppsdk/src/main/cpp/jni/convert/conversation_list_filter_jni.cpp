@@ -39,17 +39,6 @@ namespace v2im {
             }
             j_field_array_[FieldIDConversationType] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "nextSeq", "J");
-            if (nullptr == jfield) {
-                return false;
-            }
-            j_field_array_[FieldIDNextSeq] = jfield;
-
-            jfield = env->GetFieldID(j_cls_, "count", "I");
-            if (nullptr == jfield) {
-                return false;
-            }
-            j_field_array_[FieldIDCount] = jfield;
 
             jfield = env->GetFieldID(j_cls_, "markType", "J");
             if (nullptr == jfield) {
@@ -80,11 +69,9 @@ namespace v2im {
             }
 
             env->SetIntField(listFilterObj, j_field_array_[FieldIDConversationType], (jint) listFilter.type);
-            env->SetLongField(listFilterObj, j_field_array_[FieldIDNextSeq], (jlong) listFilter.nextSeq);
-            env->SetIntField(listFilterObj, j_field_array_[FieldIDCount], (jint) listFilter.count);
             env->SetLongField(listFilterObj, j_field_array_[FieldIDMarkType], (jlong) listFilter.markType);
 
-            jstring groupName = StringJni::Cstring2Jstring(env, listFilter.groupName.CString());
+            jstring groupName = StringJni::Cstring2Jstring(env, listFilter.conversationGroup.CString());
             if (groupName) {
                 env->SetObjectField(listFilterObj, j_field_array_[FieldIDGroupName], groupName);
                 env->DeleteLocalRef(groupName);
@@ -102,13 +89,11 @@ namespace v2im {
             }
 
             listFilter.type = V2TIMConversationType(env->GetIntField(filterObj, j_field_array_[FieldIDConversationType]));
-            listFilter.nextSeq = (uint64_t) env->GetLongField(filterObj, j_field_array_[FieldIDNextSeq]);
-            listFilter.count = (uint32_t) env->GetIntField(filterObj, j_field_array_[FieldIDCount]);
             listFilter.markType = (uint64_t) env->GetLongField(filterObj, j_field_array_[FieldIDMarkType]);
 
             auto jStr = (jstring) env->GetObjectField(filterObj,j_field_array_[FieldIDGroupName]);
             if (jStr){
-                listFilter.groupName = StringJni::Jstring2Cstring(env,jStr).c_str();
+                listFilter.conversationGroup = StringJni::Jstring2Cstring(env,jStr).c_str();
                 env->DeleteLocalRef(jStr);
             }
             return true;

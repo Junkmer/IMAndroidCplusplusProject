@@ -71,8 +71,8 @@ public class V2TIMConversationManagerImpl extends V2TIMConversationManager {
     }
 
     @Override
-    public void getConversationListByFilter(V2TIMConversationListFilter filter, V2TIMValueCallback<V2TIMConversationResult> _callback_) {
-        nativeGetConversationListByFilter(filter, new IMCallback<V2TIMConversationResult>(_callback_) {
+    public void getConversationListByFilter(V2TIMConversationListFilter filter,long nextSeq, int count, V2TIMValueCallback<V2TIMConversationResult> _callback_) {
+        nativeGetConversationListByFilter(filter, nextSeq, count, new IMCallback<V2TIMConversationResult>(_callback_) {
             @Override
             public void success(V2TIMConversationResult data) {
                 super.success(data);

@@ -121,11 +121,9 @@ public class ConversationFoldPresenter {
     public void loadConversation() {
         TUIConversationLog.i(TAG, "loadConversation");
         V2TIMConversationListFilter filter = new V2TIMConversationListFilter();
-        filter.setCount(GET_CONVERSATION_COUNT);
         long markType = V2TIMConversation.V2TIM_CONVERSATION_MARK_TYPE_FOLD;
         filter.setMarkType(markType);
-        filter.setNextSeq(0);
-        provider.getMarkConversationList(filter, true, new IUIKitCallback<List<ConversationInfo>>() {
+        provider.getMarkConversationList(filter, 0, 100, true, new IUIKitCallback<List<ConversationInfo>>() {
             @Override
             public void onSuccess(List<ConversationInfo> conversationInfoList) {
                 if (conversationInfoList.size() == 0) {
