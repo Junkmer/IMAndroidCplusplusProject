@@ -385,9 +385,8 @@ public:
     /**
      * 14.1 有日志打印时的回调
      *
-     * @param log 日志内容
-     * @param level 日志等级 参见 TRTCLogLevel
-     * @param module 暂无具体意义，目前为固定值 TXLiteAVSDK
+     * @param logLevel 日志等级, 参见 V2TIMLogLevel
+     * @param logContent 日志内容
      */
     virtual void OnLog(V2TIMLogLevel logLevel, const V2TIMString &logContent) {}
 };

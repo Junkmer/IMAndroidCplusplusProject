@@ -27,7 +27,7 @@ public class SystemUtil {
         try {
             System.loadLibrary("ImC++Demo");
             loadLibrarySuccess = true;
-            Log.i(TAG, "system load so library success, libImSDK.so");
+            Log.i(TAG, "system load so library success, ImC++Demo.so");
         } catch (UnsatisfiedLinkError e) {
             loadLibrarySuccess = false;
             Log.e(TAG, "system load so library failed, UnsatisfiedLinkError = " + e.getMessage());

@@ -100,7 +100,7 @@ public:
                                      V2TIMCallback* callback) = 0;
 
     /**
-     * 2.5 设置群属性。已S有该群属性则更新其 value 值，没有该群属性则添加该属性。
+     * 2.5 设置群属性。已有该群属性则更新其 value 值，没有该群属性则添加该属性。
      * @note
      *   - 6.7 及其以前版本，只支持 AVChatRoom 直播群；
      *   - 从 6.8 版本开始，同时支持 AVChatRoom、Public、Meeting、Work 四种群类型；
@@ -275,6 +275,7 @@ public:
 
     /**
      * 4.1 获取加群申请列表
+     * @note 最多支持50个
      */
     virtual void GetGroupApplicationList(
         V2TIMValueCallback<V2TIMGroupApplicationResult>* callback) = 0;
