@@ -11,12 +11,15 @@
 
 namespace v2im {
     namespace jni {
-        class MessageJni{
+        class MessageJni {
         public:
             static bool InitIDs(JNIEnv *env);
+
             static jobject Convert2JObject(const V2TIMMessage &v2TimMessage);
-            static std::unique_ptr<V2TIMMessage> Convert2CoreObject(jobject &messageObj);
-            static void UpdateJMessageObject(jobject &messageObj,V2TIMMessage &v2TimMessage);
+
+            static bool Convert2CoreObject(const jobject &messageObj,V2TIMMessage &v2TimMessage);
+
+            static void UpdateJMessageObject(jobject &messageObj, V2TIMMessage &v2TimMessage);
 
         private:
             enum FieldID {
@@ -55,7 +58,7 @@ namespace v2im {
                 FieldIDMax,
             };
 
-            enum MethodID{
+            enum MethodID {
                 MethodIDConstructor = 0,
                 MethodIDAddMessageElem,
 

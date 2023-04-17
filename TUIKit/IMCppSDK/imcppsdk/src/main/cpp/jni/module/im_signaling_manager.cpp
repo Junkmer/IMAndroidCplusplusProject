@@ -106,8 +106,10 @@ DEFINE_NATIVE_FUNC(void, NativeReject, jstring invite_id, jstring data, jobject 
 }
 
 DEFINE_NATIVE_FUNC(jobject, NativeGetSignalingInfo, jobject msg) {
-    std::unique_ptr<V2TIMMessage> timMessage = v2im::jni::MessageJni::Convert2CoreObject(msg);
-    V2TIMSignalingInfo signalingInfo = v2im::V2IMEngine::GetInstance()->GetSignalingInfo(timMessage.operator*());
+    V2TIMMessage timMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(msg,timMessage);
+
+    V2TIMSignalingInfo signalingInfo = v2im::V2IMEngine::GetInstance()->GetSignalingInfo(timMessage);
     return v2im::jni::SignalingInfoJni::Convert2JObject(signalingInfo);
 }
 

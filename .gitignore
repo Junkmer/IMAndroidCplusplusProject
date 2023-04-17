@@ -12,3 +12,5 @@
 *.idea
 Demo/app/build
 TUIKit/*/*/build
+/TUIKit/IMCppSDK/imcppsdk/.cxx
+/Demo/app/src/main/java/com/tencent/qcloud/tim/demo/signature/GenerateTestUserSig.java

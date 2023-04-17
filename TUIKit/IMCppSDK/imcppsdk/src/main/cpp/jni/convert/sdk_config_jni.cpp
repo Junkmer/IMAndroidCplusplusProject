@@ -40,11 +40,14 @@ namespace v2im {
             jclass clazz = env->GetObjectClass(object);
             V2TIMSDKConfig config;
 
-//            config.initPath = "/data/user/0/com.junker.im.ndk.im.ndk.demo/files";
-//            config.logPath = "/storage/emulated/0/Android/data/com.junker.im.ndk.im.ndk.demo/files/log/tencent/imsdk/";
+//            config.initPath = "/data/user/0/包名/files";
+//            config.logPath = "/storage/emulated/0/Android/data/包名/files/log/tencent/imsdk/";
 
             config.initPath = util::getStringValue(env,clazz,object,"sdkInitPath").c_str();
             config.logPath = util::getStringValue(env,clazz,object,"sdkLogPath").c_str();
+
+//            config.initPath = static_cast<V2TIMString>("D:\\");
+//            config.logPath = static_cast<V2TIMString>("D:\\");
 
             env->DeleteLocalRef(clazz);
             return config;

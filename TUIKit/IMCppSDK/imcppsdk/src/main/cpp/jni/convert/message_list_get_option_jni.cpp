@@ -117,9 +117,10 @@ namespace v2im {
 
             jobject j_obj_message = env->GetObjectField(j_obj_getOption,j_field_array_[FieldIDLastMsg]);
             if (j_obj_message){
-                std::unique_ptr<V2TIMMessage> timMessage = v2im::jni::MessageJni::Convert2CoreObject(j_obj_message);
-                getOption.lastMsg = timMessage.get();
-                timMessage.release();// 释放局部变量指针 elem，让传入 message->elemList 数据的elem重新分配内存。
+                V2TIMMessage timMessage;
+                if (v2im::jni::MessageJni::Convert2CoreObject(j_obj_message,timMessage)){
+                    getOption.lastMsg = new V2TIMMessage(timMessage);
+                }
                 env->DeleteLocalRef(j_obj_message);
             }
 

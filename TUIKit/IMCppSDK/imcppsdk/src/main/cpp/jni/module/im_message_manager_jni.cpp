@@ -143,8 +143,10 @@ DEFINE_NATIVE_FUNC(jobject, NativeCreateMergerMessage, jobject message_list, jst
     size = v2im::jni::ArrayListJni::Size(message_list);
     for (int i = 0; i < size; ++i) {
         jobject messageObj = v2im::jni::ArrayListJni::Get(message_list, i);
-        V2TIMMessage message = v2im::jni::MessageJni::Convert2CoreObject(messageObj).operator*();
-        messageVector.PushBack(message);
+        V2TIMMessage timMessage;
+        if (v2im::jni::MessageJni::Convert2CoreObject(messageObj,timMessage)){
+            messageVector.PushBack(timMessage);
+        }
         env->DeleteLocalRef(messageObj);
     }
 
@@ -166,14 +168,15 @@ DEFINE_NATIVE_FUNC(jobject, NativeCreateMergerMessage, jobject message_list, jst
 }
 
 DEFINE_NATIVE_FUNC(jobject, NativeCreateForwardMessage, jobject message) {
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(message).operator*();
-
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(message,message_c);
     V2TIMMessage messageObj = v2im::V2IMEngine::GetInstance()->CreateForwardMessage(message_c);
     return v2im::jni::MessageJni::Convert2JObject(messageObj);
 }
 
 DEFINE_NATIVE_FUNC(jobject, NativeCreateTargetedGroupMessage, jobject message, jobject receiver_list) {
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(message).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(message,message_c);
 
     V2TIMStringVector stringVector;
     int size = v2im::jni::ArrayListJni::Size(receiver_list);
@@ -190,7 +193,8 @@ DEFINE_NATIVE_FUNC(jobject, NativeCreateTargetedGroupMessage, jobject message, j
 
 DEFINE_NATIVE_FUNC(jstring, NativeSendMessage, jobject message, jstring receiver, jstring group_id, jint priority, jboolean online_user_only,
                    jobject offline_push_info, jobject callback) {
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(message).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(message,message_c);
     V2TIMString receiverStr = v2im::jni::StringJni::Jstring2Cstring(env, receiver).c_str();
     V2TIMString groupIDStr = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
     auto messagePriority = V2TIMMessagePriority(priority);
@@ -271,9 +275,13 @@ DEFINE_NATIVE_FUNC(void, NativeGetC2CHistoryMessageList, jstring user_id, jint c
     option.count = (uint32_t) count;
     option.getType = V2TIMMessageGetType::V2TIM_GET_CLOUD_OLDER_MSG;
     if (last_msg) {
-        std::unique_ptr<V2TIMMessage> timMessage = v2im::jni::MessageJni::Convert2CoreObject(last_msg);
-        option.lastMsg = timMessage.get();
-        timMessage.release();// 释放局部变量指针 elem，让传入 message->elemList 数据的elem重新分配内存。
+        static V2TIMMessage message_c;
+        bool msgFlg = v2im::jni::MessageJni::Convert2CoreObject(last_msg,message_c);
+        if (msgFlg){
+            option.lastMsg = &message_c;
+//            option.lastMsg = new V2TIMMessage(message_c);
+        }
+
     }
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageVector>{};
@@ -310,9 +318,11 @@ DEFINE_NATIVE_FUNC(void, NativeGetGroupHistoryMessageList, jstring group_id, jin
     option.count = (uint32_t) count;
     option.getType = V2TIMMessageGetType::V2TIM_GET_CLOUD_OLDER_MSG;
     if (last_msg) {
-        std::unique_ptr<V2TIMMessage> timMessage = v2im::jni::MessageJni::Convert2CoreObject(last_msg);
-        option.lastMsg = timMessage.get();
-        timMessage.release();// 释放局部变量指针 elem，让传入 message->elemList 数据的elem重新分配内存。
+        V2TIMMessage timMessage;
+        bool msgFlag = v2im::jni::MessageJni::Convert2CoreObject(last_msg,timMessage);
+        if (msgFlag){
+            option.lastMsg = new V2TIMMessage(timMessage);
+        }
     }
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageVector>{};
@@ -373,13 +383,15 @@ DEFINE_NATIVE_FUNC(void, NativeGetHistoryMessageList, jobject option, jobject ca
 }
 
 DEFINE_NATIVE_FUNC(void, NativeRevokeMessage, jobject msg, jobject callback) {
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(msg).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(msg,message_c);
 
     v2im::V2IMEngine::GetInstance()->RevokeMessage(message_c, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeModifyMessage, jobject msg, jobject callback) {
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(msg).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(msg,message_c);
 
     v2im::V2IMEngine::GetInstance()->ModifyMessage(message_c, new v2im::CompleteCallbackImpl<V2TIMMessage>(callback));
 }
@@ -412,8 +424,9 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteMessages, jobject messages, jobject callbac
     size = v2im::jni::ArrayListJni::Size(messages);
     for (int i = 0; i < size; ++i) {
         jobject messageObj = v2im::jni::ArrayListJni::Get(messages, i);
-        V2TIMMessage message = v2im::jni::MessageJni::Convert2CoreObject(messageObj).operator*();
-        messageVector.PushBack(message);
+        V2TIMMessage message_c;
+        v2im::jni::MessageJni::Convert2CoreObject(messageObj,message_c);
+        messageVector.PushBack(message_c);
         env->DeleteLocalRef(messageObj);
     }
 
@@ -435,7 +448,8 @@ DEFINE_NATIVE_FUNC(void, NativeClearGroupHistoryMessage, jstring group_id, jobje
 DEFINE_NATIVE_FUNC(jstring, NativeInsertGroupMessageToLocalStorage, jobject msg, jstring group_id, jstring sender, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(msg).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(msg,message_c);
     V2TIMString groupIDStr = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
     V2TIMString senderStr = v2im::jni::StringJni::Jstring2Cstring(env, sender).c_str();
 
@@ -464,7 +478,8 @@ DEFINE_NATIVE_FUNC(jstring, NativeInsertGroupMessageToLocalStorage, jobject msg,
 DEFINE_NATIVE_FUNC(jstring, NativeInsertC2CMessageToLocalStorage, jobject msg, jstring user_id, jstring sender, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(msg).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(msg,message_c);
     V2TIMString userIDStr = v2im::jni::StringJni::Jstring2Cstring(env, user_id).c_str();
     V2TIMString senderStr = v2im::jni::StringJni::Jstring2Cstring(env, sender).c_str();
 
@@ -561,8 +576,9 @@ DEFINE_NATIVE_FUNC(void, NativeSendMessageReadReceipts, jobject message_list, jo
     size = v2im::jni::ArrayListJni::Size(message_list);
     for (int i = 0; i < size; ++i) {
         jobject messageObj = v2im::jni::ArrayListJni::Get(message_list, i);
-        V2TIMMessage message = v2im::jni::MessageJni::Convert2CoreObject(messageObj).operator*();
-        messageVector.PushBack(message);
+        V2TIMMessage message_c;
+        v2im::jni::MessageJni::Convert2CoreObject(messageObj,message_c);
+        messageVector.PushBack(message_c);
         env->DeleteLocalRef(messageObj);
     }
 
@@ -578,9 +594,9 @@ DEFINE_NATIVE_FUNC(void, NativeGetMessageReadReceipts, jobject message_list, job
     for (int i = 0; i < size; ++i) {
         jobject messageObj = v2im::jni::ArrayListJni::Get(message_list, i);
         if (messageObj) {
-            std::unique_ptr<V2TIMMessage> message = v2im::jni::MessageJni::Convert2CoreObject(messageObj);
-            if (message) {
-                messageVector.PushBack(*message);
+            V2TIMMessage message_c;
+            if (v2im::jni::MessageJni::Convert2CoreObject(messageObj,message_c)) {
+                messageVector.PushBack(message_c);
             }
             env->DeleteLocalRef(messageObj);
         }
@@ -614,7 +630,8 @@ DEFINE_NATIVE_FUNC(void, NativeGetMessageReadReceipts, jobject message_list, job
 DEFINE_NATIVE_FUNC(void, NativeGetGroupMessageReadMemberList, jobject message, jint filter, jlong next_seq, jint count, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
-    V2TIMMessage message_c = v2im::jni::MessageJni::Convert2CoreObject(message).operator*();
+    V2TIMMessage message_c;
+    v2im::jni::MessageJni::Convert2CoreObject(message,message_c);
     auto readMembersFilter = V2TIMGroupMessageReadMembersFilter(filter);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMGroupMessageReadMemberList>{};
