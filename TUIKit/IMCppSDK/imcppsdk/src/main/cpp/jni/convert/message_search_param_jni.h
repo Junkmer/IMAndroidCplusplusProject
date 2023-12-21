@@ -19,13 +19,15 @@ namespace v2im {
             enum FieldID{
                 FieldIDConversationID = 0,
                 FieldIDKeywordList,
-                FieldIDType,
-                FieldIDUserIDList,
+                FieldIDKeywordListMatchType,
+                FieldIDSenderUserIDList,
                 FieldIDMessageTypeList,
                 FieldIDSearchTimePosition,
                 FieldIDSearchTimePeriod,
                 FieldIDPageSize,
                 FieldIDPageIndex,
+                FieldIDSearchCount,
+                FieldIDSearchCursor,
 
                 FieldIDMax,
             };

@@ -8,7 +8,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,20 +16,23 @@ import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUILogin;
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKitImpl;
+import com.tencent.qcloud.tuikit.tuicallkit.base.BaseCallActivity;
+import com.tencent.qcloud.tuikit.tuicallkit.utils.DeviceUtils;
+import com.tencent.qcloud.tuikit.tuicallkit.view.floatwindow.FloatWindowService;
 
 /**
- * `TUICalling` uses `ContentProvider` to be registered with `TUICore`.
- * (`TUICore` is the tuicallengine connection and communication class of each component)
+ * `TUICallKit` uses `ContentProvider` to be registered with `TUICore`.
+ * (`TUICore` is the connection and communication class of each component)
  */
 public final class ServiceInitializer extends ContentProvider {
-    private static final String TAG = "ServiceInitializer";
-
     public void init(Context context) {
         TUICallingService callingService = TUICallingService.sharedInstance();
         callingService.init(context);
         TUICore.registerService(TUIConstants.TUICalling.SERVICE_NAME, callingService);
-        TUICore.registerExtension(TUIConstants.TUIChat.EXTENSION_INPUT_MORE_AUDIO_CALL, callingService);
-        TUICore.registerExtension(TUIConstants.TUIChat.EXTENSION_INPUT_MORE_VIDEO_CALL, callingService);
+
+        TUIAudioMessageRecordService audioRecordService = new TUIAudioMessageRecordService(context);
+        TUICore.registerService(TUIConstants.TUICalling.SERVICE_NAME_AUDIO_RECORD, audioRecordService);
+
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
                 private int foregroundActivities = 0;
@@ -44,8 +46,10 @@ public final class ServiceInitializer extends ContentProvider {
                 public void onActivityStarted(Activity activity) {
                     foregroundActivities++;
                     if (foregroundActivities == 1 && !isChangingConfiguration) {
-                        Log.i(TAG, "application enter foreground");
-                        if (TUILogin.isUserLogined()) {
+                        // The Call page exits the background and re-enters without repeatedly pulling up the page.
+                        if (TUILogin.isUserLogined()
+                                && !(activity instanceof BaseCallActivity)
+                                && !DeviceUtils.isServiceRunning(context, FloatWindowService.class.getName())) {
                             TUICallKitImpl.createInstance(context).queryOfflineCall();
                         }
                     }

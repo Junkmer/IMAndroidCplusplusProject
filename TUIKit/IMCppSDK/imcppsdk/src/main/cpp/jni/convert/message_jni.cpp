@@ -8,6 +8,7 @@
 #include "java_basic_jni.h"
 #include "elem_processor_jni.h"
 #include "offline_push_info_jni.h"
+#include "user_full_info_jni.h"
 
 namespace v2im {
     namespace jni {
@@ -100,12 +101,6 @@ namespace v2im {
                 return false;
             }
             j_filed_id_array[FieldIDStatus] = jfield;
-
-            jfield = env->GetFieldID(j_cls_, "elemType", "I");
-            if (nullptr == jfield) {
-                return false;
-            }
-            j_filed_id_array[FieldIDElemType] = jfield;
 
             jfield = env->GetFieldID(j_cls_, "elemList", "Ljava/util/List;");
             if (nullptr == jfield) {
@@ -203,6 +198,36 @@ namespace v2im {
             }
             j_filed_id_array[FieldIDIsExcludedFromLastMessage] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "isExcludedFromContentModeration", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDIsExcludedFromContentModeration] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "isSupportMessageExtension", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDIsSupportMessageExtension] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "riskContent", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDRiskContent] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "revokerInfo", "Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDRevokerInfo] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "revokeReason", "Ljava/lang/String;");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDRevokeReason] = jfield;
+
             return true;
         }
 
@@ -230,7 +255,6 @@ namespace v2im {
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
-            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDElemType], (jint) v2TimMessage.elemList[0]->elemType);
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
                                 StringJni::Cuint8_t2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
@@ -249,15 +273,11 @@ namespace v2im {
                 env->DeleteLocalRef(offlinePushObj);
             }
 
-//            LOGE(" loading - userID = %s | groupID = %s",v2TimMessage.userID.CString(),v2TimMessage.groupID.CString());
-
             for (int i = 0; i < v2TimMessage.elemList.Size(); ++i) {
                 auto *jElemObj = ElemProcessor::GetInstance().ParseElem(v2TimMessage,i);
                 if (jElemObj) {
-//                    LOGE("start - conversationID = %s | elemType = %d",v2TimMessage.sender.CString(),v2TimMessage.elemList[i]->elemType);
                     env->CallVoidMethod(j_obj_message, j_method_id_array[MethodIDAddMessageElem], jElemObj);
                     env->DeleteLocalRef(jElemObj);
-//                    LOGE("end - conversationID = %s | elemType = %d",v2TimMessage.sender.CString(),v2TimMessage.elemList[i]->elemType);
                 }
             }
 
@@ -275,7 +295,16 @@ namespace v2im {
             env->SetLongField(j_obj_message, j_filed_id_array[FieldIDRandom], (jlong) v2TimMessage.random);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromUnreadCount], v2TimMessage.isExcludedFromUnreadCount);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromLastMessage], v2TimMessage.isExcludedFromLastMessage);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromContentModeration], v2TimMessage.isExcludedFromLastMessage);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSupportMessageExtension], v2TimMessage.supportMessageExtension);
 
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDRiskContent], v2TimMessage.hasRiskContent);
+            jobject revokerInfoObj = UserFullInfoJni::Convert2JObject(v2TimMessage.revokerInfo);
+            if (revokerInfoObj) {
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokerInfo], revokerInfoObj);
+                env->DeleteLocalRef(revokerInfoObj);
+            }
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokeReason], StringJni::Cstring2Jstring(env, v2TimMessage.revokeReason.CString()));
             return j_obj_message;
         }
 
@@ -400,34 +429,77 @@ namespace v2im {
             message.random = (uint64_t) env->GetLongField(messageObj, j_filed_id_array[FieldIDRandom]);
             message.isExcludedFromUnreadCount = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromUnreadCount]);
             message.isExcludedFromLastMessage = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromLastMessage]);
-
+            message.isExcludedFromContentModeration = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromContentModeration]);
+            message.supportMessageExtension = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsSupportMessageExtension]);
             return true;
         }
 
-        void MessageJni::UpdateJMessageObject(jobject &messageObj, V2TIMMessage &v2TimMessage) {
+        void MessageJni::UpdateJMessageObject(jobject &j_obj_message, V2TIMMessage &v2TimMessage) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
-            if (!InitIDs(env)) {
-                return;
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDMsgID], StringJni::Cstring2Jstring(env, v2TimMessage.msgID.CString()));
+            env->SetLongField(j_obj_message, j_filed_id_array[FieldIDTimestamp], (jlong) v2TimMessage.timestamp);
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDSender], StringJni::Cstring2Jstring(env, v2TimMessage.sender.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDNickName], StringJni::Cstring2Jstring(env, v2TimMessage.nickName.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDFriendRemark],
+                                StringJni::Cstring2Jstring(env, v2TimMessage.friendRemark.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDFaceUrl], StringJni::Cstring2Jstring(env, v2TimMessage.faceURL.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDNameCard], StringJni::Cstring2Jstring(env, v2TimMessage.nameCard.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
+                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
+                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsRead], v2TimMessage.IsRead());
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsPeerRead], v2TimMessage.IsPeerRead());
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDNeedReadReceipt], v2TimMessage.needReadReceipt);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsBroadcastMessage], v2TimMessage.isBroadcastMessage);
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDPriority], (jint) v2TimMessage.priority);
+
+            jobject offlinePushObj = OfflinePushInfoJni::Convert2JObject(v2TimMessage.offlinePushInfo);
+            if (offlinePushObj) {
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDOfflinePushInfo], offlinePushObj);
+                env->DeleteLocalRef(offlinePushObj);
             }
 
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDMsgID], StringJni::Cstring2Jstring(env, v2TimMessage.msgID.CString()));
-            env->SetLongField(messageObj, j_filed_id_array[FieldIDTimestamp], (jlong) v2TimMessage.timestamp);
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDSender], StringJni::Cstring2Jstring(env, v2TimMessage.sender.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDNickName], StringJni::Cstring2Jstring(env, v2TimMessage.nickName.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDFriendRemark],
-                                StringJni::Cstring2Jstring(env, v2TimMessage.friendRemark.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDFaceUrl], StringJni::Cstring2Jstring(env, v2TimMessage.faceURL.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDNameCard], StringJni::Cstring2Jstring(env, v2TimMessage.nameCard.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
-            env->SetObjectField(messageObj, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
-            env->SetIntField(messageObj, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
-            env->SetIntField(messageObj, j_filed_id_array[FieldIDPriority], (jint) v2TimMessage.priority);
-            env->SetLongField(messageObj, j_filed_id_array[FieldIDSeq], (jlong) v2TimMessage.seq);
-            env->SetLongField(messageObj, j_filed_id_array[FieldIDRandom], (jlong) v2TimMessage.random);
-        }
+            for (int i = 0; i < v2TimMessage.elemList.Size(); ++i) {
+                auto *jElemObj = ElemProcessor::GetInstance().ParseElem(v2TimMessage, i);
+                if (jElemObj) {
+                    env->CallVoidMethod(j_obj_message, j_method_id_array[MethodIDAddMessageElem], jElemObj);
+                    env->DeleteLocalRef(jElemObj);
+                }
+            }
 
+            jobject arrayList = ArrayListJni::NewArrayList();
+            for (int i = 0; i < v2TimMessage.groupAtUserList.Size(); ++i) {
+                jstring userIDObj = StringJni::Cstring2Jstring(env, v2TimMessage.groupAtUserList[i].CString());
+                ArrayListJni::Add(arrayList, userIDObj);
+
+                env->DeleteLocalRef(userIDObj);
+            }
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupAtUserList], arrayList);
+            env->DeleteLocalRef(arrayList);
+
+            env->SetLongField(j_obj_message, j_filed_id_array[FieldIDSeq], (jlong) v2TimMessage.seq);
+            env->SetLongField(j_obj_message, j_filed_id_array[FieldIDRandom], (jlong) v2TimMessage.random);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromUnreadCount], v2TimMessage.isExcludedFromUnreadCount);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromLastMessage], v2TimMessage.isExcludedFromLastMessage);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromContentModeration], v2TimMessage.isExcludedFromLastMessage);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSupportMessageExtension], v2TimMessage.supportMessageExtension);
+
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDRiskContent], v2TimMessage.hasRiskContent);
+            jobject revokerInfoObj = UserFullInfoJni::Convert2JObject(v2TimMessage.revokerInfo);
+            if (revokerInfoObj) {
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokerInfo], revokerInfoObj);
+                env->DeleteLocalRef(revokerInfoObj);
+            }
+            env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokeReason], StringJni::Cstring2Jstring(env, v2TimMessage.revokeReason.CString()));
+        }
     }
 }
 

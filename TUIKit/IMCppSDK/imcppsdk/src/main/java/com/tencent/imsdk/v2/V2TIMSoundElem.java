@@ -15,7 +15,9 @@ public class V2TIMSoundElem extends V2TIMElem {
     //仅用于下载，不对外公开
     private DownloadParam param;
 
-    public V2TIMSoundElem() { setElementType(V2TIMMessage.V2TIM_ELEM_TYPE_SOUND); }
+    public V2TIMSoundElem() {
+        setElementType(V2TIMMessage.V2TIM_ELEM_TYPE_SOUND);
+    }
 
     public String getPath() {
         return path;
@@ -66,6 +68,10 @@ public class V2TIMSoundElem extends V2TIMElem {
         });
     }
 
+    public void convertVoiceToText(String language, final V2TIMValueCallback<String> callback) {
+
+    }
+
     @Override
     public String toString() {
         return "V2TIMSoundElem{" +
@@ -79,5 +85,6 @@ public class V2TIMSoundElem extends V2TIMElem {
     //底层方法
     native void nativeGetSoundUrl(DownloadParam param, IMCallback<String> callback);
     native void nativeDownloadSound(DownloadParam param, String path, IMCallback callback);
+    native void nativeConvertVoiceToText(DownloadParam param, String language, IMCallback<String> callback);
 
 }

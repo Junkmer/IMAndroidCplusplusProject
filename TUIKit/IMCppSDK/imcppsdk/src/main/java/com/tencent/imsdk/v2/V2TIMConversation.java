@@ -28,12 +28,14 @@ public class V2TIMConversation implements Serializable {
     private V2TIMMessage lastMessage;
     private String draftText;
     private long draftTimestamp;
-    private List<V2TIMGroupAtInfo> groupAtInfoList = new ArrayList<>();
+    private final List<V2TIMGroupAtInfo> groupAtInfoList = new ArrayList<>();
     private boolean pinned;
     private long orderKey;
-    private List<Long> markList = new ArrayList<>();
+    private final List<Long> markList = new ArrayList<>();
     private String customData;
-    private List<String> conversationGroupList = new ArrayList<>();
+    private final List<String> conversationGroupList = new ArrayList<>();
+    private long c2CReadTimestamp;
+    private long groupReadSequence;
 
     public String getConversationID() {
         return conversationID;
@@ -107,18 +109,26 @@ public class V2TIMConversation implements Serializable {
         return conversationGroupList;
     }
 
-    private void addGroupAtInfo(V2TIMGroupAtInfo groupAtInfo){
-        if (null != groupAtInfo){
+    public long getC2CReadTimestamp() {
+        return c2CReadTimestamp;
+    }
+
+    public long getGroupReadSequence() {
+        return groupReadSequence;
+    }
+
+    private void addGroupAtInfo(V2TIMGroupAtInfo groupAtInfo) {
+        if (null != groupAtInfo) {
             groupAtInfoList.add(groupAtInfo);
         }
     }
 
-    private void addMark(long mark){
+    private void addMark(long mark) {
         markList.add(mark);
     }
 
-    private void addConversationGroup(String conversationGroup){
-        if (null != conversationGroup){
+    private void addConversationGroup(String conversationGroup) {
+        if (null != conversationGroup) {
             conversationGroupList.add(conversationGroup);
         }
     }

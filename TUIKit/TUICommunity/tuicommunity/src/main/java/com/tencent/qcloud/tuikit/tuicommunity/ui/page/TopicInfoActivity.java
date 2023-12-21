@@ -1,36 +1,31 @@
 package com.tencent.qcloud.tuikit.tuicommunity.ui.page;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
-
 import com.tencent.qcloud.tuicore.TUIConstants;
-import com.tencent.qcloud.tuicore.component.activities.BaseLightActivity;
-import com.tencent.qcloud.tuicore.component.dialog.TUIKitDialog;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.component.popupcard.PopupInputCard;
-import com.tencent.qcloud.tuicore.util.ScreenUtil;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.PopupInputCard;
+import com.tencent.qcloud.tuikit.timcommon.component.activities.BaseLightActivity;
+import com.tencent.qcloud.tuikit.timcommon.component.dialog.TUIKitDialog;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ScreenUtil;
 import com.tencent.qcloud.tuikit.tuicommunity.R;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityBean;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.TopicBean;
 import com.tencent.qcloud.tuikit.tuicommunity.component.SelectListPopupView;
 import com.tencent.qcloud.tuikit.tuicommunity.component.SettingsLinearView;
 import com.tencent.qcloud.tuikit.tuicommunity.component.bottompopupcard.BottomPopupCard;
-import com.tencent.qcloud.tuikit.tuicommunity.presenter.CommunityPresenter;
 import com.tencent.qcloud.tuikit.tuicommunity.presenter.TopicPresenter;
 import com.tencent.qcloud.tuikit.tuicommunity.ui.interfaces.ITopicInfoActivity;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.TUICommunityLog;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoActivity {
-
     private TopicPresenter presenter;
 
     private TextView deleteTopicButton;
@@ -40,6 +35,7 @@ public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoAc
     private CommunityBean communityBean;
     private TUIKitDialog deleteTopicDialog;
     private SelectListPopupView selectListPopupView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,8 +67,7 @@ public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoAc
             }
 
             @Override
-            public void onError(String module, int errCode, String errMsg) {
-            }
+            public void onError(String module, int errCode, String errMsg) {}
         });
 
         presenter.getTopicBean(topicID, new IUIKitCallback<TopicBean>() {
@@ -175,7 +170,6 @@ public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoAc
                 });
                 BottomPopupCard bottomPopupCard = new BottomPopupCard(TopicInfoActivity.this, selectListPopupView);
                 bottomPopupCard.show(categorySetting);
-
             }
         });
     }
@@ -183,27 +177,27 @@ public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoAc
     private void deleteTopic() {
         if (deleteTopicDialog == null || !deleteTopicDialog.isShowing()) {
             deleteTopicDialog = new TUIKitDialog(this)
-                    .builder()
-                    .setCancelable(true)
-                    .setCancelOutside(true)
-                    .setTitle(getString(R.string.community_delete_topic_tip))
-                    .setDialogWidth(0.75f)
-                    .setPositiveButton(getString(R.string.sure), new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            presenter.deleteTopic(topicBean.getID(), new IUIKitCallback<Void>() {
-                                @Override
-                                public void onSuccess(Void data) {
-                                    finish();
-                                }
+                                    .builder()
+                                    .setCancelable(true)
+                                    .setCancelOutside(true)
+                                    .setTitle(getString(R.string.community_delete_topic_tip))
+                                    .setDialogWidth(0.75f)
+                                    .setPositiveButton(getString(com.tencent.qcloud.tuicore.R.string.sure), new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            presenter.deleteTopic(topicBean.getID(), new IUIKitCallback<Void>() {
+                                                @Override
+                                                public void onSuccess(Void data) {
+                                                    finish();
+                                                }
 
-                                @Override
-                                public void onError(String module, int errCode, String errMsg) {
-                                    ToastUtil.toastShortMessage("delete topic failed, code=" + errCode + " msg=" + errMsg);
-                                }
-                            });
-                        }
-                    });
+                                                @Override
+                                                public void onError(String module, int errCode, String errMsg) {
+                                                    ToastUtil.toastShortMessage("delete topic failed, code=" + errCode + " msg=" + errMsg);
+                                                }
+                                            });
+                                        }
+                                    });
             deleteTopicDialog.show();
         }
     }
@@ -211,7 +205,6 @@ public class TopicInfoActivity extends BaseLightActivity implements ITopicInfoAc
     @Override
     public void onTopicChanged(TopicBean topicBean) {
         if (TextUtils.equals(this.topicBean.getID(), topicBean.getID())) {
-
             this.topicBean = topicBean;
             nameSetting.setContent(topicBean.getTopicName());
             if (TextUtils.isEmpty(topicBean.getCategory())) {

@@ -1,25 +1,22 @@
 package com.tencent.qcloud.tuikit.tuichat.util;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.tencent.imsdk.v2.V2TIMCustomElem;
-import com.tencent.imsdk.v2.V2TIMImageElem;
 import com.tencent.imsdk.v2.V2TIMManager;
 import com.tencent.imsdk.v2.V2TIMMessage;
 import com.tencent.imsdk.v2.V2TIMSignalingInfo;
 import com.tencent.qcloud.tuicore.TUIConstants;
-import com.tencent.qcloud.tuicore.util.DateTimeUtil;
+import com.tencent.qcloud.tuikit.timcommon.bean.TUIMessageBean;
+import com.tencent.qcloud.tuikit.timcommon.component.face.FaceManager;
+import com.tencent.qcloud.tuikit.timcommon.util.TIMCommonConstants;
 import com.tencent.qcloud.tuikit.tuichat.R;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatConstants;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatService;
 import com.tencent.qcloud.tuikit.tuichat.bean.CallModel;
 import com.tencent.qcloud.tuikit.tuichat.bean.MessageCustom;
-import com.tencent.qcloud.tuikit.tuichat.bean.MessageFeature;
-import com.tencent.qcloud.tuikit.tuichat.bean.MessageReactBean;
-import com.tencent.qcloud.tuikit.tuichat.bean.MessageRepliesBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.MessageTyping;
 import com.tencent.qcloud.tuikit.tuichat.bean.ReplyPreviewBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.CallingMessageBean;
@@ -32,13 +29,11 @@ import com.tencent.qcloud.tuikit.tuichat.bean.message.MergeMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.QuoteMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.ReplyMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.SoundMessageBean;
-import com.tencent.qcloud.tuikit.tuichat.bean.message.TUIMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.TextMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.TipsMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.VideoMessageBean;
-import com.tencent.qcloud.tuikit.tuichat.component.face.FaceManager;
 
-import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,34 +102,83 @@ public class ChatMessageParser {
     }
 
     private static TUIMessageBean parseCustomMessage(V2TIMMessage v2TIMMessage) {
+        //********************************************************************************
+        //********************************************************************************
+        //************************ 待 TUICallKit 按标准流程接入后删除************************
+        //********************************************************************************
+        //********************************************************************************
         TUIMessageBean messageBean = parseCallingMessage(v2TIMMessage);
-        if (messageBean == null) {
-            messageBean = parseGroupCreateMessage(v2TIMMessage);
-        }
-        if (messageBean == null) {
-            messageBean = parseCustomMessageFromMap(v2TIMMessage);
-        }
-        if (messageBean == null) {
-            messageBean = new TextMessageBean();
-            String text = TUIChatService.getAppContext().getString(R.string.no_support_msg);
-            ((TextMessageBean) messageBean).setText(text);
-        }
-        return messageBean;
-    }
-
-    private static TUIMessageBean parseCustomMessageFromMap(V2TIMMessage v2TIMMessage) {
-        String businessId = getCustomBusinessId(v2TIMMessage);
-        Class<? extends TUIMessageBean> messageBeanClazz = TUIChatService.getInstance().getMessageBeanClass(businessId);
-        if (messageBeanClazz != null) {
-            try {
-                return messageBeanClazz.newInstance();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
+        if (messageBean != null) {
+            // Calling message
+            if (messageBean.isExcludeFromHistory()) {
+                messageBean = null;
             }
+            return messageBean;
         }
-        return null;
+        //********************************************************************************
+        //********************************************************************************
+        //********************************************************************************
+        //********************************************************************************
+
+        String businessID = null;
+        boolean excludeFromHistory = false;
+
+        V2TIMSignalingInfo signalingInfo = V2TIMManager.getSignalingManager().getSignalingInfo(v2TIMMessage);
+        if (signalingInfo != null) {
+            // This message is signaling message
+            boolean isOnlineOnly = false;
+            try {
+//                Field messageField = v2TIMMessage.getClass().getDeclaredField("message");
+//                messageField.setAccessible(true);
+//                Object message = messageField.get(v2TIMMessage);
+//                if (message instanceof Message) {
+//                    Message msg = (Message) message;
+//                    isOnlineOnly = (msg.getLifeTime() == 0);
+//                }
+                Field onlineOnlyField = v2TIMMessage.getClass().getDeclaredField("isOnlineMsg");
+                onlineOnlyField.setAccessible(true);
+                isOnlineOnly = onlineOnlyField.getBoolean(v2TIMMessage);
+            } catch (Exception e) {
+                isOnlineOnly = false;
+            }
+            excludeFromHistory = isOnlineOnly || (v2TIMMessage.isExcludedFromLastMessage() && v2TIMMessage.isExcludedFromUnreadCount());
+
+            businessID = getSignalingBusinessId(signalingInfo);
+        } else {
+            // This message is normal custom message
+            excludeFromHistory = false;
+            businessID = getCustomBusinessId(v2TIMMessage);
+        }
+
+        if (excludeFromHistory) {
+            // Return null means not display in the chat page
+            return null;
+        }
+
+        TextMessageBean unsupportBean = new TextMessageBean();
+        unsupportBean.setText(TUIChatService.getAppContext().getString(R.string.no_support_msg));
+        if (!TextUtils.isEmpty(businessID)) {
+            TUIMessageBean bean = parseGroupCreateMessage(v2TIMMessage);
+            if (bean == null) {
+                Class<? extends TUIMessageBean> messageBeanClazz = TUIChatService.getInstance().getMessageBeanClass(businessID);
+                if (messageBeanClazz != null) {
+                    try {
+                        bean = messageBeanClazz.newInstance();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (bean != null) {
+                return bean;
+            } else {
+                return unsupportBean;
+            }
+        } else {
+            return unsupportBean;
+        }
     }
 
     private static TUIMessageBean parseReplyMessage(V2TIMMessage v2TIMMessage) {
@@ -146,7 +190,7 @@ public class ChatMessageParser {
             Gson gson = new Gson();
             HashMap replyHashMap = gson.fromJson(cloudCustomData, HashMap.class);
             if (replyHashMap != null) {
-                Object replyContentObj = replyHashMap.get(TUIChatConstants.MESSAGE_REPLY_KEY);
+                Object replyContentObj = replyHashMap.get(TIMCommonConstants.MESSAGE_REPLY_KEY);
                 ReplyPreviewBean replyPreviewBean = null;
                 if (replyContentObj instanceof Map) {
                     replyPreviewBean = gson.fromJson(gson.toJson(replyContentObj), ReplyPreviewBean.class);
@@ -168,65 +212,11 @@ public class ChatMessageParser {
         return null;
     }
 
-    public static MessageReactBean parseMessageReact(TUIMessageBean messageBean) {
-        V2TIMMessage message = messageBean.getV2TIMMessage();
-        String cloudCustomData = message.getCloudCustomData();
-
-        try {
-            Gson gson = new Gson();
-            HashMap hashMap = gson.fromJson(cloudCustomData, HashMap.class);
-            if (hashMap != null) {
-                Object reactContentObj = hashMap.get(TUIChatConstants.MESSAGE_REACT_KEY);
-                MessageReactBean reactBean = null;
-                if (reactContentObj instanceof Map) {
-                    reactBean = gson.fromJson(gson.toJson(reactContentObj), MessageReactBean.class);
-                }
-                if (reactBean != null) {
-                    if (reactBean.getVersion() > MessageReactBean.VERSION) {
-                        return null;
-                    }
-                    return reactBean;
-                }
-            }
-        } catch (JsonSyntaxException e) {
-            TUIChatLog.e(TAG, " getCustomJsonMap error ");
-        }
-        return null;
-    }
-
-    public static MessageRepliesBean parseMessageReplies(TUIMessageBean messageBean) {
-        V2TIMMessage message = messageBean.getV2TIMMessage();
-        String cloudCustomData = message.getCloudCustomData();
-
-        try {
-            Gson gson = new Gson();
-            HashMap hashMap = gson.fromJson(cloudCustomData, HashMap.class);
-            if (hashMap != null) {
-                Object repliesContentObj = hashMap.get(TUIChatConstants.MESSAGE_REPLIES_KEY);
-                MessageRepliesBean repliesBean = null;
-                if (repliesContentObj instanceof Map) {
-                    repliesBean = gson.fromJson(gson.toJson(repliesContentObj), MessageRepliesBean.class);
-                }
-                if (repliesBean != null) {
-                    if (repliesBean.getVersion() > MessageRepliesBean.VERSION) {
-                        return null;
-                    }
-                    return repliesBean;
-                }
-            }
-        } catch (JsonSyntaxException e) {
-            TUIChatLog.e(TAG, " getCustomJsonMap error ");
-        }
-        return null;
-    }
-
     public static boolean isTyping(byte[] data) {
         try {
             String str = new String(data, "UTF-8");
             MessageTyping typing = new Gson().fromJson(str, MessageTyping.class);
-            if (typing != null
-                    && typing.userAction == MessageTyping.TYPE_TYPING
-                    && TextUtils.equals(typing.actionParam, MessageTyping.EDIT_START)) {
+            if (typing != null && typing.userAction == MessageTyping.TYPE_TYPING && TextUtils.equals(typing.actionParam, MessageTyping.EDIT_START)) {
                 return true;
             }
             return false;
@@ -237,8 +227,11 @@ public class ChatMessageParser {
     }
 
     private static String getCustomBusinessId(V2TIMMessage v2TIMMessage) {
-        byte[] customData = v2TIMMessage.getCustomElem().getData();
-        String data = new String(customData);
+        V2TIMCustomElem customElem = v2TIMMessage.getCustomElem();
+        if (customElem == null || customElem.getData() == null || customElem.getData().length == 0) {
+            return null;
+        }
+        String data = new String(customElem.getData());
 
         Gson gson = new Gson();
         HashMap customJsonMap = null;
@@ -258,9 +251,32 @@ public class ChatMessageParser {
         return businessId;
     }
 
+    private static String getSignalingBusinessId(V2TIMSignalingInfo v2SignalingInfo) {
+        if (v2SignalingInfo.getData() == null || v2SignalingInfo.getData().length() == 0) {
+            return null;
+        }
+
+        Gson gson = new Gson();
+        HashMap customJsonMap = null;
+        try {
+            customJsonMap = gson.fromJson(v2SignalingInfo.getData(), HashMap.class);
+        } catch (JsonSyntaxException e) {
+            TUIChatLog.e(TAG, " getCustomJsonMap error ");
+        }
+        String businessId = null;
+        Object businessIdObj = null;
+        if (customJsonMap != null) {
+            businessIdObj = customJsonMap.get(TUIConstants.Message.CUSTOM_BUSINESS_ID_KEY);
+        }
+        if (businessIdObj instanceof String) {
+            businessId = (String) businessIdObj;
+        }
+        return businessId;
+    }
+
     /**
      * 把 IMSDK 的消息 bean 列表转化为 TUIKit 的消息bean列表
-     * 
+     *
      * Convert IMSDK's message bean list to TUIKit's message bean list
      *
      * @param v2TIMMessageList IMSDK 的消息 bean 列表
@@ -282,121 +298,39 @@ public class ChatMessageParser {
     }
 
     private static TUIMessageBean parseCallingMessage(V2TIMMessage v2TIMMessage) {
-        V2TIMSignalingInfo signalingInfo = V2TIMManager.getSignalingManager().getSignalingInfo(v2TIMMessage);
-        if (signalingInfo != null) {
-            String businessId = null;
-            Double businessIdForTimeout = 0.0;
-            Object businessIdObj = null;
-            Gson gson = new Gson();
-            try {
-                HashMap signalDataMap = gson.fromJson(signalingInfo.getData(), HashMap.class);
-                if (signalDataMap != null) {
-                    businessIdObj = signalDataMap.get(TUIConstants.Message.CUSTOM_BUSINESS_ID_KEY);
-                }
-            } catch (JsonSyntaxException e) {
-                TUIChatLog.e(TAG, " get signalingInfoCustomJsonMap error ");
-            }
-            if (businessIdObj instanceof String) {
-                businessId = (String) businessIdObj;
-            } else if (businessIdObj instanceof Double) {
-                businessIdForTimeout = (Double) businessIdObj;
-            }
-
-            if (TextUtils.equals(businessId, TUIConstants.TUICalling.CUSTOM_MESSAGE_BUSINESS_ID) ||
-                    Math.abs(businessIdForTimeout - TUIConstants.TUICalling.CALL_TIMEOUT_BUSINESS_ID) < 0.000001) {
-                return getCallingMessage(v2TIMMessage);
-            } else {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private static TUIMessageBean getCallingMessage(V2TIMMessage timMessage) {
-        TUIMessageBean message;
-        boolean isGroup = !TextUtils.isEmpty(timMessage.getGroupID());
-
-        CallModel callModel = CallModel.convert2VideoCallData(timMessage);
+        CallModel callModel = CallModel.convert2VideoCallData(v2TIMMessage);
         if (callModel == null) {
             return null;
         }
-        String senderShowName = getDisplayName(timMessage);
-        String content = "";
-        Context context = TUIChatService.getAppContext();
-        switch (callModel.action) {
-            case CallModel.VIDEO_CALL_ACTION_DIALING:
-                content = isGroup ? ("\"" + senderShowName + "\"" +
-                        context.getString(R.string.start_group_call)) : (context.getString(R.string.start_call));
-                break;
-            case CallModel.VIDEO_CALL_ACTION_SPONSOR_CANCEL:
-                content = isGroup ? context.getString(R.string.cancle_group_call) : context.getString(R.string.cancle_call);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_LINE_BUSY:
-                content = isGroup ? ("\"" + senderShowName + "\"" +
-                        context.getString(R.string.line_busy)) : context.getString(R.string.other_line_busy);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_REJECT:
-                content = isGroup ? ("\"" + senderShowName + "\"" +
-                        context.getString(R.string.reject_group_calls)) : context.getString(R.string.reject_calls);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_SPONSOR_TIMEOUT:
-                if (isGroup && callModel.invitedList != null && callModel.invitedList.size() == 1
-                        && callModel.invitedList.get(0).equals(timMessage.getSender())) {
-                    content = "\"" + senderShowName + "\"" + context.getString(R.string.no_response_call);
-                } else {
-                    StringBuilder inviteeShowStringBuilder = new StringBuilder();
-                    if (callModel.invitedList != null && callModel.invitedList.size() > 0) {
-                        for (String invitee : callModel.invitedList) {
-                            inviteeShowStringBuilder.append(invitee).append("、");
-                        }
-                        if (inviteeShowStringBuilder.length() > 0) {
-                            inviteeShowStringBuilder.delete(inviteeShowStringBuilder.length() - 1, inviteeShowStringBuilder.length());
-                        }
-                    }
-                    content = isGroup ? ("\"" + inviteeShowStringBuilder.toString() + "\""
-                            + context.getString(R.string.no_response_call)) : context.getString(R.string.no_response_call);
-                }
-                break;
-            case CallModel.VIDEO_CALL_ACTION_ACCEPT:
-                content = isGroup ? ("\"" + senderShowName + "\"" +
-                        context.getString(R.string.accept_call)) : context.getString(R.string.accept_call);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_HANGUP:
-                content = isGroup ? context.getString(R.string.stop_group_call) :
-                        context.getString(R.string.stop_call_tip) + DateTimeUtil.formatSecondsTo00(callModel.duration);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_SWITCH_TO_AUDIO:
-                content = context.getString(R.string.chat_calling_switch_to_audio);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_SWITCH_TO_AUDIO_ACCEPT:
-                content = context.getString(R.string.chat_calling_switch_to_audio_accept);
-                break;
-            case CallModel.VIDEO_CALL_ACTION_UNKNOWN_INVITE:
-                content = context.getString(R.string.chat_calling_unknown_invitation);
-                break;
-            default:
-                content = context.getString(R.string.invalid_command);
-                break;
-        }
+
+        TUIMessageBean message;
+        boolean isGroup = (callModel.getParticipantType() == CallModel.CALL_PARTICIPANT_TYPE_GROUP);
         if (isGroup) {
             TipsMessageBean tipsMessageBean = new TipsMessageBean();
-            tipsMessageBean.setCommonAttribute(timMessage);
-            tipsMessageBean.setText(content);
-            tipsMessageBean.setExtra(content);
+            tipsMessageBean.setCommonAttribute(v2TIMMessage);
+            tipsMessageBean.setText(callModel.getContent());
+            tipsMessageBean.setExtra(callModel.getContent());
             message = tipsMessageBean;
         } else {
             CallingMessageBean callingMessageBean = new CallingMessageBean();
-            callingMessageBean.setCommonAttribute(timMessage);
-            callingMessageBean.setText(content);
-            callingMessageBean.setExtra(content);
-            callingMessageBean.setCallType(callModel.callType);
+            callingMessageBean.setCommonAttribute(v2TIMMessage);
+            callingMessageBean.setText(callModel.getContent());
+            callingMessageBean.setExtra(callModel.getContent());
+            callingMessageBean.setCallType(callModel.getStreamMediaType());
+            callingMessageBean.setCaller(callModel.getDirection() == CallModel.CALL_MESSAGE_DIRECTION_OUTGOING);
+            callingMessageBean.setShowUnreadPoint(callModel.isShowUnreadPoint());
+            callingMessageBean.setUseMsgReceiverAvatar(callModel.isUseReceiverAvatar());
             message = callingMessageBean;
         }
+        message.setExcludeFromHistory(callModel.isExcludeFromHistory());
         return message;
     }
 
     private static TUIMessageBean parseGroupCreateMessage(V2TIMMessage v2TIMMessage) {
         V2TIMCustomElem customElem = v2TIMMessage.getCustomElem();
+        if (customElem == null || customElem.getData() == null || customElem.getData().length == 0) {
+            return null;
+        }
         String data = new String(customElem.getData());
         Gson gson = new Gson();
 
@@ -424,7 +358,15 @@ public class ChatMessageParser {
                     TipsMessageBean messageBean = new TipsMessageBean();
                     messageBean.setCommonAttribute(v2TIMMessage);
                     messageBean.setTipType(TipsMessageBean.MSG_TYPE_GROUP_CREATE);
-                    String message = TUIChatConstants.covert2HTMLString(getDisplayName(v2TIMMessage)) + messageCustom.content;
+                    String localizableContent = messageCustom.content;
+                    if (messageCustom.cmd >= 0) {
+                        if (messageCustom.cmd == 1) {
+                            localizableContent = TUIChatService.getAppContext().getString(R.string.create_community);
+                        } else {
+                            localizableContent = TUIChatService.getAppContext().getString(R.string.create_group);
+                        }
+                    }
+                    String message = TUIChatConstants.covert2HTMLString(getDisplayName(v2TIMMessage)) + localizableContent;
                     messageBean.setText(message);
                     messageBean.setExtra(message);
                     return messageBean;
@@ -453,35 +395,6 @@ public class ChatMessageParser {
         return displayName;
     }
 
-    /**
-     * 获取图片在本地的原始路径 (可能是沙盒中的路径)
-     * @param messageBean 图片消息元组
-     * @return 图片原始路径，如果不存在返回 null
-     * 
-     * Get the original path of the image locally (maybe the path in the sandbox)
-     * @param messageBean message bean
-     * @return The original path of the image, or null if it does not exist
-     */
-    public static String getLocalImagePath(TUIMessageBean messageBean) {
-        if (messageBean == null || !messageBean.isSelf()) {
-            return null;
-        }
-        V2TIMMessage message = messageBean.getV2TIMMessage();
-        if (message == null || message.getElemType() != V2TIMMessage.V2TIM_ELEM_TYPE_IMAGE) {
-            return null;
-        }
-        V2TIMImageElem imageElem = message.getImageElem();
-        if (imageElem == null) {
-            return null;
-        }
-        String path = imageElem.getPath();
-        File file = new File(path);
-        if (file.exists()) {
-            return path;
-        }
-        return null;
-    }
-
     public static String getDisplayString(V2TIMMessage v2TIMMessage) {
         if (v2TIMMessage == null) {
             return null;
@@ -495,11 +408,8 @@ public class ChatMessageParser {
             if (messageBean.isSelf()) {
                 displayString = TUIChatService.getAppContext().getString(R.string.revoke_tips_you);
             } else if (messageBean.isGroup()) {
-                String message = TUIChatConstants.covert2HTMLString(
-                        TextUtils.isEmpty(messageBean.getNameCard())
-                                ? messageBean.getSender()
-                                : messageBean.getNameCard());
-                displayString = message + TUIChatService.getAppContext().getString(R.string.revoke_tips);
+                String sender = TUIChatConstants.covert2HTMLString(messageBean.getUserDisplayName());
+                displayString = sender + TUIChatService.getAppContext().getString(R.string.revoke_tips);
             } else {
                 displayString = TUIChatService.getAppContext().getString(R.string.revoke_tips_other);
             }
@@ -522,11 +432,8 @@ public class ChatMessageParser {
                 extra = ((FileMessageBean) messageBean).getFileName();
             } else if (messageBean instanceof CustomLinkMessageBean) {
                 extra = ((CustomLinkMessageBean) messageBean).getText();
-            } else if (messageBean instanceof SoundMessageBean
-                    || messageBean instanceof ImageMessageBean
-                    || messageBean instanceof VideoMessageBean
-                    || messageBean instanceof LocationMessageBean
-                    || messageBean instanceof FaceMessageBean) {
+            } else if (messageBean instanceof SoundMessageBean || messageBean instanceof ImageMessageBean || messageBean instanceof VideoMessageBean
+                || messageBean instanceof LocationMessageBean || messageBean instanceof FaceMessageBean) {
                 extra = "";
             } else {
                 extra = messageBean.getExtra();
@@ -573,33 +480,4 @@ public class ChatMessageParser {
         }
         return typeStr;
     }
-
-    public static MessageFeature isSupportTyping(TUIMessageBean messageBean) {
-        String cloudCustomData = messageBean.getV2TIMMessage().getCloudCustomData();
-        if (TextUtils.isEmpty(cloudCustomData)) {
-            return null;
-        }
-        try {
-            Gson gson = new Gson();
-            HashMap featureHashMap = gson.fromJson(cloudCustomData, HashMap.class);
-            if (featureHashMap != null) {
-                Object featureContentObj = featureHashMap.get(TUIChatConstants.MESSAGE_FEATURE_KEY);
-                MessageFeature messageFeature = null;
-                if (featureContentObj instanceof Map) {
-                    messageFeature = gson.fromJson(gson.toJson(featureContentObj), MessageFeature.class);
-                }
-                if (messageFeature != null) {
-                    if (messageFeature.getVersion() > MessageFeature.VERSION) {
-                        return null;
-                    }
-
-                    return messageFeature;
-                }
-            }
-        } catch (JsonSyntaxException e) {
-            TUIChatLog.e(TAG, " isSupportTyping exception e = " + e);
-        }
-        return null;
-    }
-    
 }

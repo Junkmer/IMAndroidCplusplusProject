@@ -1,17 +1,15 @@
 package com.tencent.qcloud.tuikit.tuichat.presenter;
 
 import android.text.TextUtils;
-
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.bean.TUIMessageBean;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuichat.bean.ChatInfo;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.MergeMessageBean;
-import com.tencent.qcloud.tuikit.tuichat.bean.message.TUIMessageBean;
+import com.tencent.qcloud.tuikit.tuichat.interfaces.IMessageAdapter;
+import com.tencent.qcloud.tuikit.tuichat.interfaces.IMessageRecyclerView;
 import com.tencent.qcloud.tuikit.tuichat.model.ChatProvider;
-import com.tencent.qcloud.tuikit.tuichat.ui.interfaces.IMessageAdapter;
-import com.tencent.qcloud.tuikit.tuichat.ui.view.message.MessageRecyclerView;
 import com.tencent.qcloud.tuikit.tuichat.util.TUIChatLog;
 import com.tencent.qcloud.tuikit.tuichat.util.TUIChatUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +59,6 @@ public class ForwardPresenter extends ChatPresenter {
                                 onMergeMessageDownloaded(mergeMessageData);
                             }
                         });
-
                     }
 
                     @Override
@@ -69,7 +66,6 @@ public class ForwardPresenter extends ChatPresenter {
                         TUIChatLog.e(TAG, "downloadMergerMessage error , code = " + errCode + "  message = " + errMsg);
                     }
                 });
-
             }
         }
     }
@@ -79,7 +75,7 @@ public class ForwardPresenter extends ChatPresenter {
         loadedData.addAll(mergeMessageData);
         if (messageListAdapter != null) {
             messageListAdapter.onDataSourceChanged(loadedData);
-            messageListAdapter.onViewNeedRefresh(MessageRecyclerView.DATA_CHANGE_TYPE_UPDATE, loadedData.size());
+            messageListAdapter.onViewNeedRefresh(IMessageRecyclerView.DATA_CHANGE_TYPE_UPDATE, loadedData.size());
         }
     }
 
@@ -91,7 +87,7 @@ public class ForwardPresenter extends ChatPresenter {
         for (TUIMessageBean loadedMessage : loadedData) {
             if (TextUtils.equals(originMsgID, loadedMessage.getId())) {
                 isFind = true;
-                updateAdapter(MessageRecyclerView.SCROLL_TO_POSITION, loadedMessage);
+                updateAdapter(IMessageRecyclerView.SCROLL_TO_POSITION, loadedMessage);
                 break;
             }
         }

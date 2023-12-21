@@ -5,43 +5,39 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.tencent.qcloud.tuikit.tuichat.component.camera.view.CameraInterface;
-import com.tencent.qcloud.tuikit.tuichat.component.camera.view.CameraView;
+import com.tencent.qcloud.tuikit.tuichat.component.camera.view.ICameraView;
 
 public class CameraMachine implements State {
-
     private Context context;
     private State state;
-    private CameraView view;
-//    private CameraInterface.CameraOpenOverCallback cameraOpenOverCallback;
+    private final ICameraView cameraView;
 
-    private State previewState;
-    private State borrowPictureState;
-    private State borrowVideoState;
+    private final State previewState;
+    private final State borrowPictureState;
+    private final State borrowVideoState;
 
-    public CameraMachine(Context context, CameraView view, CameraInterface.CameraOpenOverCallback
-            cameraOpenOverCallback) {
+    public CameraMachine(Context context, ICameraView cameraView) {
         this.context = context;
         previewState = new PreviewState(this);
-        borrowPictureState = new BorrowPictureState(this);
-        borrowVideoState = new BorrowVideoState(this); 
+        borrowPictureState = new BrowserPictureState(this);
+        borrowVideoState = new BrowserVideoState(this);
         this.state = previewState;
-//        this.cameraOpenOverCallback = cameraOpenOverCallback;
-        this.view = view;
+        this.cameraView = cameraView;
     }
 
-    public CameraView getView() {
-        return view;
+    public ICameraView getCameraView() {
+        return cameraView;
     }
 
     public Context getContext() {
         return context;
     }
 
-    State getBorrowPictureState() {
+    State getBrowserPictureState() {
         return borrowPictureState;
     }
 
-    State getBorrowVideoState() {
+    State getBrowserVideoState() {
         return borrowVideoState;
     }
 
@@ -50,8 +46,8 @@ public class CameraMachine implements State {
     }
 
     @Override
-    public void start(SurfaceHolder holder, float screenProp) {
-        state.start(holder, screenProp);
+    public void startPreview(SurfaceHolder holder, float screenProp) {
+        state.startPreview(holder, screenProp);
     }
 
     @Override
@@ -60,13 +56,13 @@ public class CameraMachine implements State {
     }
 
     @Override
-    public void foucs(float x, float y, CameraInterface.FocusCallback callback) {
-        state.foucs(x, y, callback);
+    public void focus(float x, float y, CameraInterface.FocusCallback callback) {
+        state.focus(x, y, callback);
     }
 
     @Override
-    public void swtich(SurfaceHolder holder, float screenProp) {
-        state.swtich(holder, screenProp);
+    public void switchCamera(SurfaceHolder holder, float screenProp) {
+        state.switchCamera(holder, screenProp);
     }
 
     @Override
@@ -80,8 +76,8 @@ public class CameraMachine implements State {
     }
 
     @Override
-    public void record(Surface surface, float screenProp) {
-        state.record(surface, screenProp);
+    public void startRecord(Surface surface, float screenProp) {
+        state.startRecord(surface, screenProp);
     }
 
     @Override
@@ -90,8 +86,8 @@ public class CameraMachine implements State {
     }
 
     @Override
-    public void cancle(SurfaceHolder holder, float screenProp) {
-        state.cancle(holder, screenProp);
+    public void cancel(SurfaceHolder holder, float screenProp) {
+        state.cancel(holder, screenProp);
     }
 
     @Override
@@ -105,8 +101,8 @@ public class CameraMachine implements State {
     }
 
     @Override
-    public void flash(String mode) {
-        state.flash(mode);
+    public void setFlashMode(String mode) {
+        state.setFlashMode(mode);
     }
 
     public State getState() {

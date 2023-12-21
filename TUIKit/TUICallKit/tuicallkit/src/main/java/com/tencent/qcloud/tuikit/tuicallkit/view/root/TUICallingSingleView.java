@@ -2,7 +2,6 @@ package com.tencent.qcloud.tuikit.tuicallkit.view.root;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -13,21 +12,21 @@ import android.widget.TextView;
 
 import com.tencent.qcloud.tuicore.TUILogin;
 import com.tencent.qcloud.tuikit.TUICommonDefine;
-import com.tencent.qcloud.tuikit.tuicallengine.impl.base.TUILog;
+import com.tencent.qcloud.tuikit.tuicallengine.TUICallDefine;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
 import com.tencent.qcloud.tuikit.tuicallkit.base.CallingUserModel;
 import com.tencent.qcloud.tuikit.tuicallkit.base.TUICallingStatusManager;
 import com.tencent.qcloud.tuikit.tuicallkit.base.UserLayout;
 import com.tencent.qcloud.tuikit.tuicallkit.base.UserLayoutEntity;
 import com.tencent.qcloud.tuikit.tuicallkit.utils.DisplayUtils;
+import com.tencent.qcloud.tuikit.tuicallkit.utils.ImageLoader;
 import com.tencent.qcloud.tuikit.tuicallkit.view.UserLayoutFactory;
+import com.tencent.qcloud.tuikit.tuicallkit.view.common.RoundCornerImageView;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class TUICallingSingleView extends BaseCallView {
-    private static final String TAG = "TUICallingSingleView";
-
     private Context           mContext;
     private UserLayoutFactory mUserLayoutFactory;
     private TextView          mTextTime;
@@ -45,6 +44,11 @@ public class TUICallingSingleView extends BaseCallView {
         mContext = context.getApplicationContext();
         mUserLayoutFactory = factory;
         initView();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
         initData();
     }
 
@@ -62,9 +66,18 @@ public class TUICallingSingleView extends BaseCallView {
         for (UserLayoutEntity entity : mUserLayoutFactory.mLayoutEntityList) {
             if (null != entity && !TextUtils.isEmpty(entity.userId) && entity.userId.equals(TUILogin.getLoginUser())) {
                 UserLayout layout = allocUserLayout(entity.userModel);
-                layout.setVideoAvailable(true);
-                TUICommonDefine.Camera frontCamera = TUICallingStatusManager.sharedInstance(mContext).getFrontCamera();
-                mCallingAction.openCamera(frontCamera, layout.getVideoView(), null);
+                if (layout == null) {
+                    continue;
+                }
+
+                boolean cameraOpen = TUICallingStatusManager.sharedInstance(mContext).isCameraOpen();
+                layout.setVideoAvailable(cameraOpen);
+
+                TUICallDefine.Status status = TUICallingStatusManager.sharedInstance(mContext).getCallStatus();
+                if (!cameraOpen && !TUICallDefine.Status.Accept.equals(status)) {
+                    TUICommonDefine.Camera camera = TUICallingStatusManager.sharedInstance(mContext).getFrontCamera();
+                    mCallingAction.openCamera(camera, layout.getVideoView(), null);
+                }
             }
         }
     }
@@ -78,23 +91,7 @@ public class TUICallingSingleView extends BaseCallView {
         }
 
         layout.setVideoAvailable(userModel.isVideoAvailable);
-        mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(),
-                new TUICommonDefine.PlayCallback() {
-                    @Override
-                    public void onPlaying(String userId) {
-
-                    }
-
-                    @Override
-                    public void onLoading(String userId) {
-
-                    }
-
-                    @Override
-                    public void onError(String userId, int errCode, String errMsg) {
-
-                    }
-                });
+        mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(), null);
     }
 
     public void updateUserInfo(CallingUserModel userModel) {
@@ -102,6 +99,8 @@ public class TUICallingSingleView extends BaseCallView {
         UserLayout layout = findUserLayout(userModel.userId);
         if (layout != null) {
             layout.setVideoAvailable(userModel.isVideoAvailable);
+            ImageLoader.loadImage(mContext, layout.getAvatarImage(), userModel.userAvatar,
+                    R.drawable.tuicalling_ic_avatar);
         }
     }
 
@@ -173,6 +172,10 @@ public class TUICallingSingleView extends BaseCallView {
         initGestureListener(userLayout);
         userLayout.setVisibility(VISIBLE);
         userLayout.disableAudioImage(true);
+        RelativeLayout.LayoutParams lp = new LayoutParams(180, 180);
+        lp.addRule(CENTER_IN_PARENT);
+        ((RoundCornerImageView) userLayout.getAvatarImage()).setRadius(15);
+        userLayout.getAvatarImage().setLayoutParams(lp);
         mLayoutUserContainer.addView(userLayout);
         mCount++;
         this.post(new Runnable() {
@@ -185,7 +188,6 @@ public class TUICallingSingleView extends BaseCallView {
     }
 
     private void recyclerAllUserLayout() {
-        TUILog.i(TAG, "recyclerAllUserLayout , mUserLayoutFactory: " + mUserLayoutFactory);
         if (null == mUserLayoutFactory || null == mLayoutUserContainer) {
             return;
         }
@@ -278,7 +280,6 @@ public class TUICallingSingleView extends BaseCallView {
     }
 
     private void makeFullVideoView(String userId) {
-        Log.i(TAG, "makeFullVideoView: from = " + userId);
         UserLayoutEntity entity = findEntity(userId);
         mUserLayoutFactory.mLayoutEntityList.remove(entity);
         mUserLayoutFactory.mLayoutEntityList.addLast(entity);

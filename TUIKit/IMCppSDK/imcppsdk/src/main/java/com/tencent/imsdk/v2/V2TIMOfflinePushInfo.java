@@ -23,7 +23,12 @@ public class V2TIMOfflinePushInfo implements Serializable {
     private String androidSound;
     private boolean ignoreIOSBadge;
     private String androidOPPOChannelID;
+    private String androidFCMChannelID;
+    private String androidXiaoMiChannelID;
     private int androidVIVOClassification;
+    private String androidVIVOCategory;
+    private int iOSPushType;
+    private String androidHuaWeiCategory;
 
     public String getTitle() {
         return title;
@@ -73,7 +78,27 @@ public class V2TIMOfflinePushInfo implements Serializable {
         this.androidOPPOChannelID = androidOPPOChannelID;
     }
 
+    public void setAndroidFCMChannelID(String androidFCMChannelID) {
+        this.androidFCMChannelID = androidFCMChannelID;
+    }
+
+    public void setAndroidXiaoMiChannelID(String androidXiaoMiChannelID) {
+        this.androidXiaoMiChannelID = androidXiaoMiChannelID;
+    }
+
     public void setAndroidVIVOClassification(int androidVIVOClassification) {
         this.androidVIVOClassification = androidVIVOClassification;
+    }
+
+    public void setAndroidVIVOCategory(String androidVIVOCategory) {
+        this.androidVIVOCategory = androidVIVOCategory;
+    }
+
+    public void setiOSPushType(int iOSPushType) {
+        this.iOSPushType = iOSPushType;
+    }
+
+    public void setAndroidHuaWeiCategory(String androidHuaWeiCategory) {
+        this.androidHuaWeiCategory = androidHuaWeiCategory;
     }
 }

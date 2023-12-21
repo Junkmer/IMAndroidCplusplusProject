@@ -6,28 +6,33 @@ import android.view.SurfaceHolder;
 import com.tencent.qcloud.tuikit.tuichat.component.camera.view.CameraInterface;
 
 public interface State {
+    default void startPreview(SurfaceHolder holder, float screenProp) {}
 
-    void start(SurfaceHolder holder, float screenProp);
+    default void stop() {}
 
-    void stop();
+    default void focus(float x, float y, CameraInterface.FocusCallback callback) {}
 
-    void foucs(float x, float y, CameraInterface.FocusCallback callback);
+    default void switchCamera(SurfaceHolder holder, float screenProp) {}
 
-    void swtich(SurfaceHolder holder, float screenProp);
+    default void restart() {}
 
-    void restart();
+    default void capture() {}
 
-    void capture();
+    default void startRecord(Surface surface, float screenProp) {}
 
-    void record(Surface surface, float screenProp);
+    default void stopRecord(boolean isShort, long time) {}
 
-    void stopRecord(boolean isShort, long time);
+    default void cancel(SurfaceHolder holder, float screenProp) {}
 
-    void cancle(SurfaceHolder holder, float screenProp);
+    default void confirm() {}
 
-    void confirm();
+    default void zoom(float zoom, int type) {}
 
-    void zoom(float zoom, int type);
+    default void setFlashMode(String mode) {}
 
-    void flash(String mode);
+    default void setDataPath(String dataPath) {}
+    
+    default String getDataPath() {
+        return null;
+    }
 }

@@ -13,18 +13,15 @@ import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.tencent.qcloud.tuikit.tuicallengine.impl.base.TUILog;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
 import com.tencent.qcloud.tuikit.tuicallkit.utils.DeviceUtils;
 import com.tencent.qcloud.tuikit.tuicallkit.view.root.BaseCallView;
 
 public class BaseCallActivity extends AppCompatActivity {
-    private static final String TAG = "BaseCallActivity";
-
     private static AppCompatActivity mActivity;
     private static BaseCallView      mBaseCallView;
     private static RelativeLayout    mLayoutContainer;
-    
+
     public static void updateBaseView(BaseCallView view) {
         mBaseCallView = view;
         if (null != mLayoutContainer && null != mBaseCallView) {
@@ -40,18 +37,22 @@ public class BaseCallActivity extends AppCompatActivity {
         if (null != mActivity) {
             mActivity.finish();
         }
+        mActivity = null;
+        if (null != mBaseCallView && null != mBaseCallView.getParent()) {
+            ((ViewGroup) mBaseCallView.getParent()).removeView(mBaseCallView);
+        }
+        mBaseCallView = null;
+        mLayoutContainer = null;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TUILog.i(TAG, "onCreate");
         DeviceUtils.setScreenLockParams(getWindow());
         mActivity = this;
         setContentView(R.layout.tuicalling_base_activity);
         initStatusBar();
     }
-
 
     private void initStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -69,7 +70,6 @@ public class BaseCallActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        TUILog.i(TAG, "onResume");
         initView();
         // clear notifications after a call is processed
         NotificationManager notificationManager =
@@ -96,12 +96,5 @@ public class BaseCallActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (null != mBaseCallView && null != mBaseCallView.getParent()) {
-            ((ViewGroup) mBaseCallView.getParent()).removeView(mBaseCallView);
-        }
-        mBaseCallView = null;
-        mLayoutContainer = null;
-        mActivity = null;
-        TUILog.i(TAG, "onDestroy");
     }
 }

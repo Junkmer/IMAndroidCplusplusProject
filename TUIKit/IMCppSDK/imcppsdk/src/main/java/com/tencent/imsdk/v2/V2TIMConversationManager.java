@@ -34,6 +34,14 @@ public abstract class V2TIMConversationManager {
 
     public abstract void getTotalUnreadMessageCount(V2TIMValueCallback<Long> callback);
 
+    public abstract void getUnreadMessageCountByFilter(V2TIMConversationListFilter filter, V2TIMValueCallback<Long> callback);
+
+    public abstract void subscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter);
+
+    public abstract void unsubscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter);
+
+    public abstract void cleanConversationUnreadMessageCount(String conversationID, long cleanTimestamp, long cleanSequence, V2TIMCallback callback);
+
     public abstract void createConversationGroup(String groupName, List<String> conversationIDList, V2TIMValueCallback<List<V2TIMConversationOperationResult>> callback);
 
     public abstract void getConversationGroupList(V2TIMValueCallback<List<String>> callback);
@@ -73,6 +81,14 @@ public abstract class V2TIMConversationManager {
     native void nativeMarkConversation(List<String> conversationIDList, long markType, boolean enableMark, IMCallback<List<V2TIMConversationOperationResult>> callback);
 
     native void nativeGetTotalUnreadMessageCount(IMCallback<Long> callback);
+
+    native void nativeGetUnreadMessageCountByFilter(V2TIMConversationListFilter filter, IMCallback<Long> callback);
+
+    native void nativeSubscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter);
+
+    native void nativeUnsubscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter);
+
+    native void nativeCleanConversationUnreadMessageCount(String conversationID, long cleanTimestamp, long cleanSequence, IMCallback callback);
 
     native void nativeCreateConversationGroup(String groupName, List<String> conversationIDList, IMCallback<List<V2TIMConversationOperationResult>> callback);
 

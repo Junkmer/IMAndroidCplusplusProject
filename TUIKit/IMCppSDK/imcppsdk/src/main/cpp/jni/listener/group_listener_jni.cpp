@@ -32,8 +32,8 @@ namespace v2im {
 
             std::string path;
             for (auto &item: listener_group_map) {
-                path = StringJni::Jstring2Cstring(env,listenerPath);
-                if (path.empty() || path == item.first){
+                path = StringJni::Jstring2Cstring(env, listenerPath);
+                if (path.empty() || path == item.first) {
                     return;
                 }
             }
@@ -47,7 +47,7 @@ namespace v2im {
                 LOGE("GroupListenerJni | RemoveListener listener is null");
                 return;
             }
-            listener_group_map.erase(StringJni::Jstring2Cstring(env,listenerPath));
+            listener_group_map.erase(StringJni::Jstring2Cstring(env, listenerPath));
         }
 
         bool GroupListenerJni::InitIDs(JNIEnv *env) {
@@ -95,6 +95,18 @@ namespace v2im {
             }
             j_method_id_array_[MethodIDOnMemberInfoChanged] = jmethod;
 
+            jmethod = env->GetMethodID(j_cls_, "onAllGroupMembersMuted", "(Ljava/lang/String;Z)V");
+            if (jmethod == nullptr) {
+                return false;
+            }
+            j_method_id_array_[MethodIDOnAllGroupMembersMuted] = jmethod;
+
+            jmethod = env->GetMethodID(j_cls_, "onMemberMarkChanged", "(Ljava/lang/String;Ljava/util/List;IZ)V");
+            if (jmethod == nullptr) {
+                return false;
+            }
+            j_method_id_array_[MethodIDOnMemberMarkChanged] = jmethod;
+
             jmethod = env->GetMethodID(j_cls_, "onGroupCreated", "(Ljava/lang/String;)V");
             if (jmethod == nullptr) {
                 return false;
@@ -127,14 +139,14 @@ namespace v2im {
             if (jmethod == nullptr) {
                 return false;
             }
-            j_method_id_array_[MethodIDOnReceiveJoinRequest] = jmethod;
+            j_method_id_array_[MethodIDOnReceiveJoinApplication] = jmethod;
 
             jmethod = env->GetMethodID(j_cls_, "onApplicationProcessed",
                                        "(Ljava/lang/String;Lcom/tencent/imsdk/v2/V2TIMGroupMemberInfo;ZLjava/lang/String;)V");
             if (jmethod == nullptr) {
                 return false;
             }
-            j_method_id_array_[MethodIDOnReceiveJoinResponse] = jmethod;
+            j_method_id_array_[MethodIDOnApplicationProcessed] = jmethod;
 
             jmethod = env->GetMethodID(j_cls_, "onGrantAdministrator",
                                        "(Ljava/lang/String;Lcom/tencent/imsdk/v2/V2TIMGroupMemberInfo;Ljava/util/List;)V");
@@ -168,6 +180,12 @@ namespace v2im {
                 return false;
             }
             j_method_id_array_[MethodIDOnGroupAttributeChanged] = jmethod;
+
+            jmethod = env->GetMethodID(j_cls_, "onGroupCounterChanged", "(Ljava/lang/String;Ljava/lang/String;J)V");
+            if (jmethod == nullptr) {
+                return false;
+            }
+            j_method_id_array_[MethodIDOnGroupCounterChanged] = jmethod;
 
             jmethod = env->GetMethodID(j_cls_, "onTopicCreated", "(Ljava/lang/String;Ljava/lang/String;)V");
             if (jmethod == nullptr) {
@@ -309,11 +327,53 @@ namespace v2im {
             }
 
             for (auto &item_listener: listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnMemberInfoChanged], groupIDStr, groupIDStr);
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnMemberInfoChanged], groupIDStr, j_obj_groupMemberChangeInfoList);
             }
 
             env->DeleteLocalRef(groupIDStr);
+            env->DeleteLocalRef(j_obj_groupMemberChangeInfoList);
+        }
+
+        void GroupListenerJni::OnAllGroupMembersMuted(const V2TIMString &groupID, bool isMute) {
+            if (listener_group_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
+
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnAllGroupMembersMuted], groupIDStr, isMute);
+            }
+
             env->DeleteLocalRef(groupIDStr);
+        }
+
+        void GroupListenerJni::OnMemberMarkChanged(const V2TIMString &groupID, const V2TIMStringVector &memberIDList, uint32_t markType, bool enableMark) {
+            if (listener_group_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
+
+            jobject j_obj_memberIDList = ArrayListJni::NewArrayList();
+            for (int i = 0; i < memberIDList.Size(); ++i) {
+                jstring j_obj_memberID = StringJni::Cstring2Jstring(env, memberIDList[i].CString());
+                ArrayListJni::Add(j_obj_memberIDList, j_obj_memberID);
+                env->DeleteLocalRef(j_obj_memberID);
+            }
+
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnMemberMarkChanged], groupIDStr, j_obj_memberIDList, markType, enableMark);
+            }
+
+            env->DeleteLocalRef(groupIDStr);
+            env->DeleteLocalRef(j_obj_memberIDList);
         }
 
         void GroupListenerJni::OnGroupCreated(const V2TIMString &groupID) {
@@ -346,7 +406,7 @@ namespace v2im {
             jobject j_obj_opUser = GroupMemberInfoJni::Convert2JObject(opUser);
 
             for (auto item_listener = listener_group_map.begin(); item_listener != listener_group_map.end(); item_listener++) {
-                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnMemberKicked], groupIDStr,j_obj_opUser);
+                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnGroupDismissed], groupIDStr, j_obj_opUser);
             }
 
             env->DeleteLocalRef(groupIDStr);
@@ -354,7 +414,23 @@ namespace v2im {
         }
 
         void GroupListenerJni::OnGroupRecycled(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser) {
+            if (listener_group_map.empty()) {
+                return;
+            }
 
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
+
+            jobject j_obj_opUser = GroupMemberInfoJni::Convert2JObject(opUser);
+
+            for (auto item_listener = listener_group_map.begin(); item_listener != listener_group_map.end(); item_listener++) {
+                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnGroupRecycled], groupIDStr, j_obj_opUser);
+            }
+
+            env->DeleteLocalRef(groupIDStr);
+            env->DeleteLocalRef(j_obj_opUser);
         }
 
         void GroupListenerJni::OnGroupInfoChanged(const V2TIMString &groupID, const V2TIMGroupChangeInfoVector &changeInfos) {
@@ -377,7 +453,7 @@ namespace v2im {
 
 
             for (auto item_listener = listener_group_map.begin(); item_listener != listener_group_map.end(); item_listener++) {
-                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnGroupInfoChanged], groupIDStr,j_obj_changeInfoList);
+                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnGroupInfoChanged], groupIDStr, j_obj_changeInfoList);
             }
 
             env->DeleteLocalRef(groupIDStr);
@@ -397,23 +473,42 @@ namespace v2im {
             V2TIMStringVector vectorKeys = groupAttributeMap.AllKeys();
             jobject map_obj = HashMapJni::NewHashMap();
             for (int i = 0; i < groupAttributeMap.Size(); ++i) {
-                jstring key = StringJni::Cstring2Jstring(env,vectorKeys[i].CString());
-                jstring value = StringJni::Cstring2Jstring(env,groupAttributeMap.Get(vectorKeys[i]).CString());
-                HashMapJni::Put(map_obj,key,value);
+                jstring key = StringJni::Cstring2Jstring(env, vectorKeys[i].CString());
+                jstring value = StringJni::Cstring2Jstring(env, groupAttributeMap.Get(vectorKeys[i]).CString());
+                HashMapJni::Put(map_obj, key, value);
 
                 env->DeleteLocalRef(key);
                 env->DeleteLocalRef(value);
             }
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnMemberKicked], groupIDStr,map_obj);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnMemberKicked], groupIDStr, map_obj);
             }
 
             env->DeleteLocalRef(groupIDStr);
             env->DeleteLocalRef(map_obj);
         }
 
-        void GroupListenerJni::OnReceiveJoinApplication(const V2TIMString &groupID,const V2TIMGroupMemberInfo &member, const V2TIMString &opReason) {
+        void GroupListenerJni::OnGroupCounterChanged(const V2TIMString &groupID, const V2TIMString &key, int64_t newValue) {
+            if (listener_group_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
+            jstring keyStr = StringJni::Cstring2Jstring(env, key.CString());
+
+            for (auto item_listener = listener_group_map.begin(); item_listener != listener_group_map.end(); item_listener++) {
+                env->CallVoidMethod(item_listener->second, j_method_id_array_[MethodIDOnGroupRecycled], groupIDStr, keyStr, newValue);
+            }
+
+            env->DeleteLocalRef(groupIDStr);
+            env->DeleteLocalRef(keyStr);
+        }
+
+        void GroupListenerJni::OnReceiveJoinApplication(const V2TIMString &groupID, const V2TIMGroupMemberInfo &member, const V2TIMString &opReason) {
             if (listener_group_map.empty()) {
                 return;
             }
@@ -425,8 +520,8 @@ namespace v2im {
             jobject j_obj_member = GroupMemberInfoJni::Convert2JObject(member);
             jstring j_str_opReason = StringJni::Cstring2Jstring(env, opReason.CString());
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnReceiveJoinRequest], groupIDStr,j_obj_member, j_str_opReason);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnReceiveJoinApplication], groupIDStr, j_obj_member, j_str_opReason);
             }
 
             env->DeleteLocalRef(groupIDStr);
@@ -447,8 +542,8 @@ namespace v2im {
             jobject j_obj_opUser = GroupMemberInfoJni::Convert2JObject(opUser);
             jstring j_str_opReason = StringJni::Cstring2Jstring(env, groupID.CString());
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnReceiveJoinResponse], groupIDStr,j_obj_opUser,isAgreeJoin, j_str_opReason);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnApplicationProcessed], groupIDStr, j_obj_opUser, isAgreeJoin, j_str_opReason);
             }
 
             env->DeleteLocalRef(groupIDStr);
@@ -475,7 +570,7 @@ namespace v2im {
                 env->DeleteLocalRef(j_obj_member);
             }
 
-            for (auto & item_listener : listener_group_map) {
+            for (auto &item_listener: listener_group_map) {
                 env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnGrantAdministrator], groupIDStr, j_obj_opUser, j_obj_memberList);
             }
 
@@ -502,7 +597,7 @@ namespace v2im {
                 env->DeleteLocalRef(j_obj_member);
             }
 
-            for (auto & item_listener : listener_group_map) {
+            for (auto &item_listener: listener_group_map) {
                 env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnRevokeAdministrator], groupIDStr, j_obj_opUser, j_obj_memberList);
             }
 
@@ -521,7 +616,7 @@ namespace v2im {
 
             jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
 
-            for (auto & item_listener : listener_group_map) {
+            for (auto &item_listener: listener_group_map) {
                 env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnQuitFromGroup], groupIDStr);
             }
 
@@ -537,10 +632,10 @@ namespace v2im {
             auto *env = scopedJEnv.GetEnv();
 
             jstring groupIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
-            jobject j_str_customData = ByteJni::Cuint8_t2JByteArray(env,customData.Data(),customData.Size());
+            jobject j_str_customData = ByteJni::Cuint8_t2JByteArray(env, customData.Data(), customData.Size());
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnReceiveCustomData], groupIDStr,j_str_customData);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnReceiveCustomData], groupIDStr, j_str_customData);
             }
 
             env->DeleteLocalRef(groupIDStr);
@@ -557,8 +652,8 @@ namespace v2im {
             jstring communityIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
             jstring j_str_topicID = StringJni::Cstring2Jstring(env, topicID.CString());
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicCreated], communityIDStr,j_str_topicID);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicCreated], communityIDStr, j_str_topicID);
             }
 
             env->DeleteLocalRef(communityIDStr);
@@ -577,13 +672,13 @@ namespace v2im {
 
             jobject j_obj_topicIDList = ArrayListJni::NewArrayList();
             for (int i = 0; i < topicIDList.Size(); ++i) {
-                jstring j_obj_topicID = StringJni::Cstring2Jstring(env,topicIDList[i].CString());
+                jstring j_obj_topicID = StringJni::Cstring2Jstring(env, topicIDList[i].CString());
                 ArrayListJni::Add(j_obj_topicIDList, j_obj_topicID);
                 env->DeleteLocalRef(j_obj_topicID);
             }
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicDeleted], communityIDStr,j_obj_topicIDList);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicDeleted], communityIDStr, j_obj_topicIDList);
             }
 
             env->DeleteLocalRef(communityIDStr);
@@ -601,8 +696,8 @@ namespace v2im {
             jstring communityIDStr = StringJni::Cstring2Jstring(env, groupID.CString());
             jobject j_obj_topicInfo = GroupTopicInfoJni::Convert2JObject(topicInfo);
 
-            for (auto & item_listener : listener_group_map) {
-                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicChanged], communityIDStr,j_obj_topicInfo);
+            for (auto &item_listener: listener_group_map) {
+                env->CallVoidMethod(item_listener.second, j_method_id_array_[MethodIDOnTopicChanged], communityIDStr, j_obj_topicInfo);
             }
 
             env->DeleteLocalRef(communityIDStr);

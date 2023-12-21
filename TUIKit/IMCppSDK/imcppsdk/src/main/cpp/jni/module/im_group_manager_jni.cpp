@@ -202,6 +202,8 @@ DEFINE_NATIVE_FUNC(void, NativeInitGroupAttributes, jstring group_id, jobject at
             env->DeleteLocalRef(jStr_key);
         }
     }
+    env->DeleteLocalRef(entry_set);
+    env->DeleteLocalRef(iterator);
 
     v2im::V2IMEngine::GetInstance()->InitGroupAttributes(groupID_c, attributeMap, new v2im::CallbackIMpl(callback));
 }
@@ -229,6 +231,8 @@ DEFINE_NATIVE_FUNC(void, NativeSetGroupAttributes, jstring group_id, jobject att
             env->DeleteLocalRef(jStr_key);
         }
     }
+    env->DeleteLocalRef(entry_set);
+    env->DeleteLocalRef(iterator);
 
     v2im::V2IMEngine::GetInstance()->SetGroupAttributes(groupID_c, attributeMap, new v2im::CallbackIMpl(callback));
 }
@@ -240,8 +244,8 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteGroupAttributes, jstring group_id, jobject 
     V2TIMStringVector keyList;
     int size = v2im::jni::ArrayListJni::Size(keys);
     for (int i = 0; i < size; ++i) {
-        V2TIMString groupID = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(keys, i)).c_str();
-        keyList.PushBack(groupID);
+        V2TIMString key = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(keys, i)).c_str();
+        keyList.PushBack(key);
     }
 
     v2im::V2IMEngine::GetInstance()->DeleteGroupAttributes(groupID_c, keyList, new v2im::CallbackIMpl(callback));
@@ -255,8 +259,8 @@ DEFINE_NATIVE_FUNC(void, NativeGetGroupAttributes, jstring group_id, jobject key
     V2TIMStringVector keyList;
     int size = v2im::jni::ArrayListJni::Size(keys);
     for (int i = 0; i < size; ++i) {
-        V2TIMString groupID = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(keys, i)).c_str();
-        keyList.PushBack(groupID);
+        V2TIMString key = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(keys, i)).c_str();
+        keyList.PushBack(key);
     }
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMGroupAttributeMap>{};
@@ -314,6 +318,183 @@ DEFINE_NATIVE_FUNC(void, NativeGetGroupOnlineMemberCount, jstring group_id, jobj
     });
 
     v2im::V2IMEngine::GetInstance()->GetGroupOnlineMemberCount(groupID_c, value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeSetGroupCounters, jstring group_id, jobject counters, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    V2TIMStringToInt64Map counterMap;
+    jobject entry_set = v2im::jni::HashMapJni::entrySet(counters);
+    jobject iterator = v2im::jni::HashMapJni::iterator(entry_set);
+    while (v2im::jni::HashMapJni::hasNext(iterator)) {
+        jobject object = v2im::jni::HashMapJni::next(iterator);
+        if (nullptr == object) {
+            continue;
+        }
+        auto jStr_key = (jstring) v2im::jni::HashMapJni::getKey(object);
+        if (nullptr != jStr_key) {
+            V2TIMString c_key = v2im::jni::StringJni::Jstring2Cstring(env, jStr_key).c_str();
+            auto jLong_value = (int64_t) v2im::jni::HashMapJni::getValue(object);
+            counterMap.Insert(c_key, jLong_value);
+
+            env->DeleteLocalRef(jStr_key);
+        }
+    }
+    env->DeleteLocalRef(entry_set);
+    env->DeleteLocalRef(iterator);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMStringToInt64Map>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMStringToInt64Map &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject j_obj_customHashMap = v2im::jni::HashMapJni::NewHashMap();
+            V2TIMStringVector key_vector = value.AllKeys();
+            for (int i = 0; i < value.Size(); ++i) {
+                jstring keyStr = v2im::jni::StringJni::Cstring2Jstring(env, key_vector[i].CString());
+                if (keyStr) {
+                    auto valueLong = (jlong)value.Get(key_vector[i]);
+                    if (valueLong) {
+                        v2im::jni::HashMapJni::Put(j_obj_customHashMap, keyStr, v2im::jni::LongJni::NewLongObj(valueLong));
+                    }
+                    _env->DeleteLocalRef(keyStr);
+                }
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, j_obj_customHashMap);
+            _env->DeleteLocalRef(j_obj_customHashMap);
+
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->SetGroupCounters(groupID_c,counterMap,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetGroupCounters, jstring group_id, jobject keys, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    V2TIMStringVector keyList;
+    int size = v2im::jni::ArrayListJni::Size(keys);
+    for (int i = 0; i < size; ++i) {
+        V2TIMString key = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(keys, i)).c_str();
+        keyList.PushBack(key);
+    }
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMStringToInt64Map>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMStringToInt64Map &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject j_obj_customHashMap = v2im::jni::HashMapJni::NewHashMap();
+            V2TIMStringVector key_vector = value.AllKeys();
+            for (int i = 0; i < value.Size(); ++i) {
+                jstring keyStr = v2im::jni::StringJni::Cstring2Jstring(env, key_vector[i].CString());
+                if (keyStr) {
+                    auto valueLong = (jlong)value.Get(key_vector[i]);
+                    if (valueLong) {
+                        v2im::jni::HashMapJni::Put(j_obj_customHashMap, keyStr, v2im::jni::LongJni::NewLongObj(valueLong));
+                    }
+                    _env->DeleteLocalRef(keyStr);
+                }
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, j_obj_customHashMap);
+            _env->DeleteLocalRef(j_obj_customHashMap);
+
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->GetGroupCounters(groupID_c,keyList,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeIncreaseGroupCounter, jstring group_id, jstring key, jlong value,jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    V2TIMString key_str = v2im::jni::StringJni::Jstring2Cstring(env,key).c_str();
+    int64_t value_int = value;
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMStringToInt64Map>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMStringToInt64Map &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject j_obj_customHashMap = v2im::jni::HashMapJni::NewHashMap();
+            V2TIMStringVector key_vector = value.AllKeys();
+            for (int i = 0; i < value.Size(); ++i) {
+                jstring keyStr = v2im::jni::StringJni::Cstring2Jstring(env, key_vector[i].CString());
+                if (keyStr) {
+                    auto valueLong = (jlong)value.Get(key_vector[i]);
+                    if (valueLong) {
+                        v2im::jni::HashMapJni::Put(j_obj_customHashMap, keyStr, v2im::jni::LongJni::NewLongObj(valueLong));
+                    }
+                    _env->DeleteLocalRef(keyStr);
+                }
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, j_obj_customHashMap);
+            _env->DeleteLocalRef(j_obj_customHashMap);
+
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->IncreaseGroupCounter(groupID_c,key_str,value_int,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeDecreaseGroupCounter, jstring group_id, jstring key, jlong value,jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    V2TIMString key_str = v2im::jni::StringJni::Jstring2Cstring(env,key).c_str();
+    int64_t value_int = value;
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMStringToInt64Map>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMStringToInt64Map &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject j_obj_customHashMap = v2im::jni::HashMapJni::NewHashMap();
+            V2TIMStringVector key_vector = value.AllKeys();
+            for (int i = 0; i < value.Size(); ++i) {
+                jstring keyStr = v2im::jni::StringJni::Cstring2Jstring(env, key_vector[i].CString());
+                if (keyStr) {
+                    auto valueLong = (jlong)value.Get(key_vector[i]);
+                    if (valueLong) {
+                        v2im::jni::HashMapJni::Put(j_obj_customHashMap, keyStr, v2im::jni::LongJni::NewLongObj(valueLong));
+                    }
+                    _env->DeleteLocalRef(keyStr);
+                }
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, j_obj_customHashMap);
+            _env->DeleteLocalRef(j_obj_customHashMap);
+
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->DecreaseGroupCounter(groupID_c,key_str,value_int,value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetGroupMemberList, jstring group_id, jint filter, jlong next_seq, jobject callback) {
@@ -400,8 +581,8 @@ DEFINE_NATIVE_FUNC(void, NativeSearchGroupMembers, jobject param, jobject callba
                 if (keyStr) {
                     V2TIMGroupMemberFullInfoVector memberFullInfoVector = value.Get(key_vector[i]);
                     jobject valueObjList = v2im::jni::ArrayListJni::NewArrayList();
-                    for (int i = 0; i < memberFullInfoVector.Size(); ++i) {
-                        jobject item = v2im::jni::GroupMemberFullInfoJNI::Convert2JObject(memberFullInfoVector[i]);
+                    for (int j = 0; j < memberFullInfoVector.Size(); ++j) {
+                        jobject item = v2im::jni::GroupMemberFullInfoJNI::Convert2JObject(memberFullInfoVector[j]);
                         v2im::jni::ArrayListJni::Add(valueObjList, item);
                         _env->DeleteLocalRef(item);
                     }
@@ -436,9 +617,15 @@ DEFINE_NATIVE_FUNC(void, NativeMuteGroupMember, jstring group_id, jstring user_i
 
     V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
     V2TIMString userID_c = v2im::jni::StringJni::Jstring2Cstring(env, user_id).c_str();
-    uint32_t seconds_c = (uint32_t) seconds;
+    auto seconds_c = (uint32_t) seconds;
 
     v2im::V2IMEngine::GetInstance()->MuteGroupMember(groupID_c, userID_c, seconds_c, new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeMuteAllGroupMembers, jstring group_id, jboolean is_mute, jobject callback) {
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    v2im::V2IMEngine::GetInstance()->MuteAllGroupMembers(groupID_c, is_mute, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeInviteUserToGroup, jstring group_id, jobject user_list, jobject callback) {
@@ -477,6 +664,46 @@ DEFINE_NATIVE_FUNC(void, NativeInviteUserToGroup, jstring group_id, jobject user
     });
 
     v2im::V2IMEngine::GetInstance()->InviteUserToGroup(groupID_c, userList, value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeKickGroupMemberNew, jstring group_id, jobject member_list, jstring reason, jint duration, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMString groupID_c = v2im::jni::StringJni::Jstring2Cstring(env, group_id).c_str();
+
+    V2TIMStringVector memberList;
+    int size = v2im::jni::ArrayListJni::Size(member_list);
+    for (int i = 0; i < size; ++i) {
+        V2TIMString memberID = v2im::jni::StringJni::Jstring2Cstring(env, (jstring) v2im::jni::ArrayListJni::Get(member_list, i)).c_str();
+        memberList.PushBack(memberID);
+    }
+
+    V2TIMString reason_c = v2im::jni::StringJni::Jstring2Cstring(env, reason).c_str();
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMGroupMemberOperationResultVector>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMGroupMemberOperationResultVector &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+
+            jobject memberOperationResultList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < value.Size(); ++i) {
+                jobject memberOperationResult = v2im::jni::GroupMemberOperationResultJni::Convert2JObject(value[i]);
+                v2im::jni::ArrayListJni::Add(memberOperationResultList, memberOperationResult);
+                _env->DeleteLocalRef(memberOperationResult);
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, memberOperationResultList);
+            _env->DeleteLocalRef(memberOperationResultList);
+
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->KickGroupMember(groupID_c, memberList, reason_c, duration,value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeKickGroupMember, jstring group_id, jobject member_list, jstring reason, jobject callback) {
@@ -518,6 +745,8 @@ DEFINE_NATIVE_FUNC(void, NativeKickGroupMember, jstring group_id, jobject member
 
     v2im::V2IMEngine::GetInstance()->KickGroupMember(groupID_c, memberList, reason_c, value_callback);
 }
+
+
 
 DEFINE_NATIVE_FUNC(void, NativeSetGroupMemberRole, jstring group_id, jstring user_id, jint role, jobject callback) {
 
@@ -752,16 +981,22 @@ static JNINativeMethod gMethods[] = {
         {"nativeDeleteGroupAttributes",     "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                    (void *) NativeDeleteGroupAttributes},
         {"nativeGetGroupAttributes",        "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                    (void *) NativeGetGroupAttributes},
         {"nativeGetGroupOnlineMemberCount", "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                                                    (void *) NativeGetGroupOnlineMemberCount},
+        {"nativeSetGroupCounters",          "(Ljava/lang/String;Ljava/util/HashMap;Lcom/tencent/imsdk/common/IMCallback;)V",                             (void *) NativeSetGroupCounters},
+        {"nativeGetGroupCounters",          "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                (void *) NativeGetGroupCounters},
+        {"nativeIncreaseGroupCounter",      "(Ljava/lang/String;Ljava/lang/String;JLcom/tencent/imsdk/common/IMCallback;)V",                             (void *) NativeIncreaseGroupCounter},
+        {"nativeDecreaseGroupCounter",      "(Ljava/lang/String;Ljava/lang/String;JLcom/tencent/imsdk/common/IMCallback;)V",                             (void *) NativeDecreaseGroupCounter},
         {"nativeGetGroupMemberList",        "(Ljava/lang/String;IJLcom/tencent/imsdk/common/IMCallback;)V",                                                                  (void *) NativeGetGroupMemberList},
         {"nativeGetGroupMembersInfo",       "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                    (void *) NativeGetGroupMembersInfo},
         {"nativeSearchGroupMembers",        "(Lcom/tencent/imsdk/v2/V2TIMGroupMemberSearchParam;Lcom/tencent/imsdk/common/IMCallback;)V",                (void *) NativeSearchGroupMembers},
         {"nativeSetGroupMemberInfo",        "(Ljava/lang/String;Lcom/tencent/imsdk/v2/V2TIMGroupMemberFullInfo;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeSetGroupMemberInfo},
         {"nativeMuteGroupMember",           "(Ljava/lang/String;Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)V",                                                 (void *) NativeMuteGroupMember},
+        {"nativeMuteAllGroupMembers",       "(Ljava/lang/String;ZLcom/tencent/imsdk/common/IMCallback;)V",                                               (void *) NativeMuteAllGroupMembers},
         {"nativeInviteUserToGroup",         "(Ljava/lang/String;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                    (void *) NativeInviteUserToGroup},
-        {"nativeKickGroupMember",           "(Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                  (void *) NativeKickGroupMember},
+        {"nativeKickGroupMember",           "(Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)V",                                 (void *) NativeKickGroupMemberNew},
         {"nativeSetGroupMemberRole",        "(Ljava/lang/String;Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)V",                                                 (void *) NativeSetGroupMemberRole},
         {"nativeMarkGroupMemberList",       "(Ljava/lang/String;Ljava/util/List;IZLcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeMarkGroupMemberList},
         {"nativeTransferGroupOwner",        "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeTransferGroupOwner},
+        {"nativeKickGroupMember",           "(Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                  (void *) NativeKickGroupMember},
         {"nativeGetGroupApplicationList",   "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                                                      (void *) NativeGetGroupApplicationList},
         {"nativeAcceptGroupApplication",    "(Lcom/tencent/imsdk/v2/V2TIMGroupApplication;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",    (void *) NativeAcceptGroupApplication},
         {"nativeRefuseGroupApplication",    "(Lcom/tencent/imsdk/v2/V2TIMGroupApplication;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",    (void *) NativeRefuseGroupApplication},

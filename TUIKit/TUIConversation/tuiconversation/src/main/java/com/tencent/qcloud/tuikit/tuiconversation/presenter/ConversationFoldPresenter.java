@@ -1,21 +1,19 @@
 package com.tencent.qcloud.tuikit.tuiconversation.presenter;
 
 import android.text.TextUtils;
-
 import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMConversationListFilter;
 import com.tencent.imsdk.v2.V2TIMUserStatus;
 import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuiconversation.TUIConversationService;
 import com.tencent.qcloud.tuikit.tuiconversation.bean.ConversationInfo;
+import com.tencent.qcloud.tuikit.tuiconversation.commonutil.ConversationUtils;
+import com.tencent.qcloud.tuikit.tuiconversation.commonutil.TUIConversationLog;
 import com.tencent.qcloud.tuikit.tuiconversation.interfaces.ConversationEventListener;
+import com.tencent.qcloud.tuikit.tuiconversation.interfaces.IConversationListAdapter;
 import com.tencent.qcloud.tuikit.tuiconversation.model.ConversationProvider;
-import com.tencent.qcloud.tuikit.tuiconversation.ui.interfaces.IConversationListAdapter;
-import com.tencent.qcloud.tuikit.tuiconversation.util.ConversationUtils;
-import com.tencent.qcloud.tuikit.tuiconversation.util.TUIConversationLog;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +23,7 @@ import java.util.List;
 public class ConversationFoldPresenter {
     private static final String TAG = ConversationFoldPresenter.class.getSimpleName();
 
-    private final static int GET_CONVERSATION_COUNT = 100;
+    private static final int GET_CONVERSATION_COUNT = 100;
 
     ConversationEventListener conversationEventForMarkObserver;
 
@@ -51,9 +49,7 @@ public class ConversationFoldPresenter {
             }
 
             @Override
-            public void clearConversationMessage(String chatId, boolean isGroup) {
-
-            }
+            public void clearConversationMessage(String chatId, boolean isGroup) {}
 
             @Override
             public void clearFoldMarkAndDeleteConversation(String conversationId) {
@@ -61,9 +57,7 @@ public class ConversationFoldPresenter {
             }
 
             @Override
-            public void setConversationTop(String chatId, boolean isChecked, IUIKitCallback<Void> iuiKitCallBack) {
-
-            }
+            public void setConversationTop(String chatId, boolean isChecked, IUIKitCallback<Void> iuiKitCallBack) {}
 
             @Override
             public boolean isTopConversation(String chatId) {
@@ -76,14 +70,10 @@ public class ConversationFoldPresenter {
             }
 
             @Override
-            public void onSyncServerFinish() {
-
-            }
+            public void onSyncServerFinish() {}
 
             @Override
-            public void updateTotalUnreadMessageCount(long count) {
-
-            }
+            public void updateTotalUnreadMessageCount(long count) {}
 
             @Override
             public void onNewConversation(List<ConversationInfo> conversationList) {
@@ -96,26 +86,33 @@ public class ConversationFoldPresenter {
             }
 
             @Override
-            public void onFriendRemarkChanged(String id, String remark) {
-
-            }
+            public void onFriendRemarkChanged(String id, String remark) {}
 
             @Override
-            public void onUserStatusChanged(List<V2TIMUserStatus> userStatusList) {
-
-            }
+            public void onUserStatusChanged(List<V2TIMUserStatus> userStatusList) {}
 
             @Override
-            public void refreshUserStatusFragmentUI() {
-
-            }
+            public void refreshUserStatusFragmentUI() {}
 
             @Override
             public void onReceiveMessage(String conversationID, boolean isTypingMessage) {
                 processNewMessage(conversationID, isTypingMessage);
             }
+
+            @Override
+            public void onMessageSendForHideConversation(String conversationID) {}
+
+            @Override
+            public void onConversationDeleted(List<String> conversationIDList) {
+                ConversationFoldPresenter.this.onConversationDeleted(conversationIDList);
+            }
         };
         TUIConversationService.getInstance().addConversationEventListener(conversationEventForMarkObserver);
+    }
+
+    public void destroy() {
+        TUIConversationService.getInstance().removeConversationEventListener(conversationEventForMarkObserver);
+        this.conversationEventForMarkObserver = null;
     }
 
     public void loadConversation() {
@@ -123,7 +120,7 @@ public class ConversationFoldPresenter {
         V2TIMConversationListFilter filter = new V2TIMConversationListFilter();
         long markType = V2TIMConversation.V2TIM_CONVERSATION_MARK_TYPE_FOLD;
         filter.setMarkType(markType);
-        provider.getMarkConversationList(filter, 0, 100, true, new IUIKitCallback<List<ConversationInfo>>() {
+        provider.getMarkConversationList(filter, 0, GET_CONVERSATION_COUNT, true, new IUIKitCallback<List<ConversationInfo>>() {
             @Override
             public void onSuccess(List<ConversationInfo> conversationInfoList) {
                 if (conversationInfoList.size() == 0) {
@@ -184,7 +181,6 @@ public class ConversationFoldPresenter {
                     break;
                 }
             }
-
         }
 
         // 对新增会话排序，避免插入 recyclerview 时错乱
@@ -244,8 +240,7 @@ public class ConversationFoldPresenter {
         refreshChangedInfo(loadedConversationInfoList, changedInfoList);
     }
 
-    private void refreshChangedInfo(List<ConversationInfo> uiSourceInfoList,
-                                    ArrayList<ConversationInfo> changedInfoList) {
+    private void refreshChangedInfo(List<ConversationInfo> uiSourceInfoList, ArrayList<ConversationInfo> changedInfoList) {
         Collections.sort(changedInfoList);
 
         HashMap<ConversationInfo, Integer> indexMap = new HashMap<>();
@@ -253,7 +248,7 @@ public class ConversationFoldPresenter {
             ConversationInfo update = changedInfoList.get(j);
             for (int i = 0; i < uiSourceInfoList.size(); i++) {
                 ConversationInfo cacheInfo = uiSourceInfoList.get(i);
-                //单个会话刷新时找到老的会话数据，替换
+                // 单个会话刷新时找到老的会话数据，替换
                 if (cacheInfo.getConversationId().equals(update.getConversationId())) {
                     if (update.getStatusType() == V2TIMUserStatus.V2TIM_USER_STATUS_UNKNOWN) {
                         update.setStatusType(cacheInfo.getStatusType());
@@ -325,7 +320,7 @@ public class ConversationFoldPresenter {
 
     private void processNewMessage(String conversationID, boolean isTypingMessage) {
         if (TextUtils.isEmpty(conversationID)) {
-           return;
+            return;
         }
         if (isTypingMessage) {
             return;
@@ -356,9 +351,7 @@ public class ConversationFoldPresenter {
                 }
 
                 @Override
-                public void onError(String module, int errCode, String errMsg) {
-
-                }
+                public void onError(String module, int errCode, String errMsg) {}
             });
         }
     }
@@ -389,14 +382,13 @@ public class ConversationFoldPresenter {
             @Override
             public void onSuccess(Void data) {
                 conversationInfo.setMarkHidden(isHidden);
-                TUIConversationLog.i(TAG, "markConversationHidden success, conversationID:" +
-                        conversationInfo.getConversationId() + ", isHidden:" + isHidden);
+                TUIConversationLog.i(TAG, "markConversationHidden success, conversationID:" + conversationInfo.getConversationId() + ", isHidden:" + isHidden);
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                TUIConversationLog.e(TAG, "markConversationHidden error, conversationID:" +
-                        conversationInfo.getConversationId() + ", code:" + errCode + "|msg:" + errMsg);
+                TUIConversationLog.e(
+                    TAG, "markConversationHidden error, conversationID:" + conversationInfo.getConversationId() + ", code:" + errCode + "|msg:" + errMsg);
             }
         });
     }
@@ -411,14 +403,13 @@ public class ConversationFoldPresenter {
             @Override
             public void onSuccess(Void data) {
                 conversationInfo.setMarkUnread(markUnread);
-                TUIConversationLog.i(TAG, "markConversationRead success, conversationID:" +
-                        conversationInfo.getConversationId());
+                TUIConversationLog.i(TAG, "markConversationRead success, conversationID:" + conversationInfo.getConversationId());
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                TUIConversationLog.e(TAG, "markConversationRead error, conversationID:" +
-                        conversationInfo.getConversationId() + ", code:" + errCode + "|msg:" + errMsg);
+                TUIConversationLog.e(
+                    TAG, "markConversationRead error, conversationID:" + conversationInfo.getConversationId() + ", code:" + errCode + "|msg:" + errMsg);
             }
         });
     }
@@ -452,6 +443,16 @@ public class ConversationFoldPresenter {
                 }
                 break;
             }
+        }
+    }
+
+    public void onConversationDeleted(List<String> conversationIdList) {
+        if (conversationIdList == null || conversationIdList.isEmpty()) {
+            return;
+        }
+
+        for (String conversationId : conversationIdList) {
+            deleteConversationFromUI(conversationId);
         }
     }
 }

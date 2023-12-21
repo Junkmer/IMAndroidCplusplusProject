@@ -291,6 +291,41 @@ DEFINE_NATIVE_FUNC(void, NativeSetSelfInfo, jobject info, jobject callback) {
     }
 }
 
+DEFINE_NATIVE_FUNC(void, NativeSubscribeUserInfo, jobject user_id_list, jobject callback) {
+    if (nullptr == user_id_list) {
+        return;
+    }
+
+    int size = v2im::jni::ArrayListJni::Size(user_id_list);
+    V2TIMStringVector stringVector;
+    for (int i = 0; i < size; ++i) {
+        auto userID = (jstring) v2im::jni::ArrayListJni::Get(user_id_list, i);
+        if (nullptr != userID) {
+            stringVector.PushBack(v2im::jni::StringJni::Jstring2Cstring(env, userID).c_str());
+            env->DeleteLocalRef(userID);
+        }
+    }
+    v2im::V2IMEngine::GetInstance()->SubscribeUserInfo(stringVector,new v2im::CallbackIMpl(callback));
+}
+
+
+DEFINE_NATIVE_FUNC(void, NativeUnsubscribeUserInfo, jobject user_id_list, jobject callback) {
+    if (nullptr == user_id_list) {
+        return;
+    }
+
+    int size = v2im::jni::ArrayListJni::Size(user_id_list);
+    V2TIMStringVector stringVector;
+    for (int i = 0; i < size; ++i) {
+        auto userID = (jstring) v2im::jni::ArrayListJni::Get(user_id_list, i);
+        if (nullptr != userID) {
+            stringVector.PushBack(v2im::jni::StringJni::Jstring2Cstring(env, userID).c_str());
+            env->DeleteLocalRef(userID);
+        }
+    }
+    v2im::V2IMEngine::GetInstance()->UnsubscribeUserInfo(stringVector,new v2im::CallbackIMpl(callback));
+}
+
 DEFINE_NATIVE_FUNC(void, NativeGetUserStatus, jobject user_id_list, jobject callback) {
     if (nullptr == user_id_list) {
         return;
@@ -357,6 +392,7 @@ DEFINE_NATIVE_FUNC(void, NativeSubscribeUserStatus, jobject user_id_list, jobjec
     for (int i = 0; i < size; ++i) {
         auto userID = (jstring) v2im::jni::ArrayListJni::Get(user_id_list, i);
         stringVector.PushBack(v2im::jni::StringJni::Jstring2Cstring(env, userID).c_str());
+        env->DeleteLocalRef(userID);
     }
 
     v2im::V2IMEngine::GetInstance()->SubscribeUserStatus(stringVector, new v2im::CallbackIMpl(callback));
@@ -372,6 +408,7 @@ DEFINE_NATIVE_FUNC(void, NativeUnsubscribeUserStatus, jobject user_id_list, jobj
     for (int i = 0; i < size; ++i) {
         auto userID = (jstring) v2im::jni::ArrayListJni::Get(user_id_list, i);
         stringVector.PushBack(v2im::jni::StringJni::Jstring2Cstring(env, userID).c_str());
+        env->DeleteLocalRef(userID);
     }
 
     v2im::V2IMEngine::GetInstance()->UnsubscribeUserStatus(stringVector, new v2im::CallbackIMpl(callback));
@@ -444,6 +481,8 @@ static JNINativeMethod gMethods[] = {
         {"nativeDismissGroup",                  "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeDismissGroup},
         {"nativeGetUsersInfo",                  "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUsersInfo},
         {"nativeSetSelfInfo",                   "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;Lcom/tencent/imsdk/common/IMCallback;)V",               (void *) NativeSetSelfInfo},
+        {"nativeSubscribeUserInfo",       "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserInfo},
+        {"nativeUnsubscribeUserInfo",     "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserInfo},
         {"nativeGetUserStatus",                 "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUserStatus},
         {"nativeSetSelfStatus",                 "(Lcom/tencent/imsdk/v2/V2TIMUserStatus;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeSetSelfStatus},
         {"nativeSubscribeUserStatus",           "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserStatus},

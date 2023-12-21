@@ -78,7 +78,7 @@ public:
      *  信令邀请方：设置邀请的服务器时间 serverTime 。
      *  信令接收方：收到信令推送，根据 serverTime 判断信令是否超时 。
      *
-     *  @return 服务器时间，单位 s
+     *  @return UTC 时间戳，单位 s
      */
     virtual int64_t GetServerTime() = 0;
 
@@ -291,8 +291,33 @@ public:
      */
     virtual void SetSelfInfo(const V2TIMUserFullInfo &info, V2TIMCallback *callback) = 0;
 
+     /**
+     *  5.3 订阅用户资料，从 7.4 版本开始支持
+     *
+     *  @param userIDList 待订阅的用户 ID
+     *
+     *  @note 请注意
+     *   - 该接口用于订阅陌生人的资料变更事件，订阅成功后，当订阅用户资料发生变更，您可以通过监听 OnUserInfoChanged 回调来感知
+     *   - 订阅列表最多允许订阅 200 个，超过限制后，会自动淘汰最先订阅的用户
+     *   - 自己的资料变更通知不需要订阅，默认会通过 OnSelfInfoUpdated 回调通知给您
+     *   - 好友的资料变更通知不需要订阅，默认会通过 OnFriendInfoChange 回调通知给您
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void SubscribeUserInfo(const V2TIMStringVector &userIDList, V2TIMCallback *callback) = 0;
+
     /**
-     *  5.3 查询用户状态，从 6.3 版本开始支持
+     *  5.4 取消订阅用户资料，从 7.4 版本开始支持
+     * 
+     *  @param userIDList 需要取消订阅的用户 ID
+     * 
+     *  @note
+     *   - 当 userIDList 为空时，取消当前所有的订阅
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void UnsubscribeUserInfo(const V2TIMStringVector &userIDList, V2TIMCallback *callback) = 0;
+
+    /**
+     *  5.5 查询用户状态，从 6.3 版本开始支持
      *
      *  @param userIDList 需要获取的用户 ID
      *
@@ -305,7 +330,7 @@ public:
                                V2TIMValueCallback<V2TIMUserStatusVector> *callback) = 0;
 
     /**
-     *  5.4 设置自己的状态，从 6.3 版本开始支持
+     *  5.6 设置自己的状态，从 6.3 版本开始支持
      *
      *  @param status 待设置的自定义状态
      *
@@ -314,7 +339,7 @@ public:
     virtual void SetSelfStatus(const V2TIMUserStatus &status, V2TIMCallback *callback) = 0;
 
     /**
-     *  5.5 订阅用户状态，从 6.3 版本开始支持
+     *  5.7 订阅用户状态，从 6.3 版本开始支持
      *
      *  @param userIDList 待订阅的用户 ID
      *
@@ -322,13 +347,13 @@ public:
      *   - 当成功订阅用户状态后，当对方的状态（包含在线状态、自定义状态）发生变更后，您可以监听 OnUserStatusChanged 回调来感知
      *   - 如果您需要订阅好友列表的状态，您只需要在控制台上打开开关即可，无需调用该接口
      *   - 该接口不支持订阅自己，您可以通过监听 OnUserStatusChanged 回调来感知自身的自定义状态的变更
-     *   - 订阅列表有个数限制，超过限制后，会自动淘汰最先订阅的用户
+     *   - 订阅列表最多允许订阅 200 个，超过限制后，会自动淘汰最先订阅的用户
      *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
      */
     virtual void SubscribeUserStatus(const V2TIMStringVector &userIDList, V2TIMCallback *callback) = 0;
 
     /**
-     *  5.6 取消订阅用户状态，从 6.3 版本开始支持
+     *  5.8 取消订阅用户状态，从 6.3 版本开始支持
      *
      *  @note
      *   - 当 userIDList 为空时，取消当前所有的订阅

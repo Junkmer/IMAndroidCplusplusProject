@@ -87,6 +87,12 @@ namespace v2im {
             }
             j_field_array_[FieldIDMessageTypeList] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "messageSeqList", "Ljava/util/List;");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDMessageSeqList] = jfield;
+
             return true;
         }
 
@@ -132,11 +138,20 @@ namespace v2im {
             if (j_obj_messageTypeList){
                 int size = ArrayListJni::Size(j_obj_messageTypeList);
                 for (int i = 0; i < size; ++i) {
-                    jobject messageTypeObj = ArrayListJni::Get(j_obj_messageTypeList,i);
                     int messageType = IntegerJni::IntValue(ArrayListJni::Get(j_obj_messageTypeList,i));
                     getOption.messageTypeList.PushBack(V2TIMElemType(messageType));
                 }
                 env->DeleteLocalRef(j_obj_messageTypeList);
+            }
+
+            jobject j_obj_messageSeqList = env->GetObjectField(j_obj_getOption,j_field_array_[FieldIDMessageSeqList]);
+            if (j_obj_messageSeqList){
+                int size = ArrayListJni::Size(j_obj_messageSeqList);
+                for (int i = 0; i < size; ++i) {
+                    long messageType = LongJni::LongValue(ArrayListJni::Get(j_obj_messageSeqList,i));
+                    getOption.messageSeqList.PushBack(messageType);
+                }
+                env->DeleteLocalRef(j_obj_messageSeqList);
             }
             return true;
         }

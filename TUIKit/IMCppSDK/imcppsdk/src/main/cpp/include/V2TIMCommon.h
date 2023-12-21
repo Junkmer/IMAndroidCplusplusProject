@@ -53,6 +53,10 @@ enum V2TIMReceiveMessageOpt {
 //
 /////////////////////////////////////////////////////////////////////////////////
 
+typedef uint64_t V2TIMUInt64;
+DEFINE_VECTOR(V2TIMUInt64)
+typedef TXV2TIMUInt64Vector V2TIMUInt64Vector;
+
 DEFINE_VECTOR(V2TIMString)
 typedef TXV2TIMStringVector V2TIMStringVector;
 

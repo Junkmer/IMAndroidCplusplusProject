@@ -46,11 +46,23 @@ namespace v2im {
             }
             j_field_array_[FieldIDMarkType] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "groupName", "Ljava/lang/String;");
+            jfield = env->GetFieldID(j_cls_, "conversationGroup", "Ljava/lang/String;");
             if (nullptr == jfield) {
                 return false;
             }
-            j_field_array_[FieldIDGroupName] = jfield;
+            j_field_array_[FieldIDConversationGroup] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "hasUnreadCount", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDHasUnreadCount] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "hasGroupAtInfo", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDHasGroupAtInfo] = jfield;
 
             return true;
         }
@@ -73,9 +85,11 @@ namespace v2im {
 
             jstring groupName = StringJni::Cstring2Jstring(env, listFilter.conversationGroup.CString());
             if (groupName) {
-                env->SetObjectField(listFilterObj, j_field_array_[FieldIDGroupName], groupName);
+                env->SetObjectField(listFilterObj, j_field_array_[FieldIDConversationGroup], groupName);
                 env->DeleteLocalRef(groupName);
             }
+            env->SetBooleanField(listFilterObj,j_field_array_[FieldIDHasUnreadCount], listFilter.hasUnreadCount);
+            env->SetBooleanField(listFilterObj,j_field_array_[FieldIDHasGroupAtInfo], listFilter.hasGroupAtInfo);
 
             return listFilterObj;
         }
@@ -91,11 +105,13 @@ namespace v2im {
             listFilter.type = V2TIMConversationType(env->GetIntField(filterObj, j_field_array_[FieldIDConversationType]));
             listFilter.markType = (uint64_t) env->GetLongField(filterObj, j_field_array_[FieldIDMarkType]);
 
-            auto jStr = (jstring) env->GetObjectField(filterObj,j_field_array_[FieldIDGroupName]);
+            auto jStr = (jstring) env->GetObjectField(filterObj,j_field_array_[FieldIDConversationGroup]);
             if (jStr){
                 listFilter.conversationGroup = StringJni::Jstring2Cstring(env,jStr).c_str();
                 env->DeleteLocalRef(jStr);
             }
+            listFilter.hasUnreadCount = env->GetBooleanField(filterObj,j_field_array_[FieldIDHasUnreadCount]);
+            listFilter.hasGroupAtInfo = env->GetBooleanField(filterObj,j_field_array_[FieldIDHasGroupAtInfo]);
             return true;
         }
     }

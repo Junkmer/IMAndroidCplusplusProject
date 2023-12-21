@@ -7,7 +7,7 @@
     <attr name="iconRight" format="reference" />
     <attr name="duration_max" format="integer" />
 
-    <declare-styleable name="JCameraView">
+    <declare-styleable name="CameraView">
         <attr name="iconSize" />
         <attr name="iconMargin" />
         <attr name="iconSrc" />
@@ -27,10 +27,6 @@
         <attr name="synthesized_image_size" format="dimension" />
         <!--多图片之间的空隙间隔-->
         <attr name="synthesized_image_gap" format="dimension" />
-    </declare-styleable>
-
-    <declare-styleable name="max_width_style">
-        <attr name="maxWidth" format="dimension" />
     </declare-styleable>
 
 </resources>

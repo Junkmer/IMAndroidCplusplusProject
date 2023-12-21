@@ -1,13 +1,11 @@
 package com.tencent.qcloud.tuikit.tuicontact.presenter;
 
 import android.text.TextUtils;
-
 import com.google.gson.Gson;
 import com.tencent.imsdk.v2.V2TIMUserStatus;
 import com.tencent.qcloud.tuicore.TUILogin;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.BackgroundTasks;
-import com.tencent.qcloud.tuicore.util.ThreadHelper;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ThreadUtils;
 import com.tencent.qcloud.tuikit.tuicontact.R;
 import com.tencent.qcloud.tuikit.tuicontact.TUIContactConstants;
 import com.tencent.qcloud.tuikit.tuicontact.TUIContactService;
@@ -17,12 +15,10 @@ import com.tencent.qcloud.tuikit.tuicontact.bean.GroupInfo;
 import com.tencent.qcloud.tuikit.tuicontact.bean.MessageCustom;
 import com.tencent.qcloud.tuikit.tuicontact.config.TUIContactConfig;
 import com.tencent.qcloud.tuikit.tuicontact.interfaces.ContactEventListener;
+import com.tencent.qcloud.tuikit.tuicontact.interfaces.IContactListView;
 import com.tencent.qcloud.tuikit.tuicontact.model.ContactProvider;
-import com.tencent.qcloud.tuikit.tuicontact.ui.interfaces.IContactListView;
-import com.tencent.qcloud.tuikit.tuicontact.ui.view.ContactListView;
 import com.tencent.qcloud.tuikit.tuicontact.util.ContactUtils;
 import com.tencent.qcloud.tuikit.tuicontact.util.TUIContactLog;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -131,30 +127,37 @@ public class ContactPresenter {
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                TUIContactLog.e(TAG, "load data source error , loadType = " + dataSourceType +
-                        "  " + "errCode = " + errCode + "  errMsg = " + errMsg);
+                TUIContactLog.e(TAG,
+                    "load data source error , loadType = " + dataSourceType + "  "
+                        + "errCode = " + errCode + "  errMsg = " + errMsg);
                 onDataLoaded(new ArrayList<>(), dataSourceType);
             }
         };
 
         dataSource.clear();
         switch (dataSourceType) {
-            case ContactListView.DataSource.FRIEND_LIST:
+            case IContactListView.DataSource.FRIEND_LIST:
                 provider.loadFriendListDataAsync(callback);
                 break;
-            case ContactListView.DataSource.BLACK_LIST:
+            case IContactListView.DataSource.BLACK_LIST:
                 provider.loadBlackListData(callback);
                 break;
-            case ContactListView.DataSource.GROUP_LIST:
+            case IContactListView.DataSource.GROUP_LIST:
                 provider.loadGroupListData(callback);
                 break;
-            case ContactListView.DataSource.CONTACT_LIST:
+            case IContactListView.DataSource.CONTACT_LIST:
                 dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.new_friend))
-                        .setTop(true).setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
-                dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.group)).
-                        setTop(true).setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
-                dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.blacklist)).
-                        setTop(true).setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
+                                   .setItemBeanType(ContactItemBean.ITEM_BEAN_TYPE_CONTROLLER)
+                                   .setTop(true)
+                                   .setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
+                dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.group))
+                                   .setItemBeanType(ContactItemBean.ITEM_BEAN_TYPE_CONTROLLER)
+                                   .setTop(true)
+                                   .setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
+                dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.blacklist))
+                                   .setItemBeanType(ContactItemBean.ITEM_BEAN_TYPE_CONTROLLER)
+                                   .setTop(true)
+                                   .setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
                 provider.loadFriendListDataAsync(callback);
                 break;
             default:
@@ -169,21 +172,22 @@ public class ContactPresenter {
     public void loadGroupMemberList(String groupId) {
         if (!isSelectForCall && getNextSeq() == 0) {
             dataSource.add((ContactItemBean) new ContactItemBean(TUIContactService.getAppContext().getResources().getString(R.string.at_all))
-                    .setTop(true).setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
+                               .setTop(true)
+                               .setBaseIndexTag(ContactItemBean.INDEX_STRING_TOP));
         }
         provider.loadGroupMembers(groupId, new IUIKitCallback<List<ContactItemBean>>() {
             @Override
             public void onSuccess(List<ContactItemBean> data) {
-                TUIContactLog.i(TAG, "load data source success , loadType = " + ContactListView.DataSource.GROUP_MEMBER_LIST);
-                onDataLoaded(data, ContactListView.DataSource.GROUP_MEMBER_LIST);
+                TUIContactLog.i(TAG, "load data source success , loadType = " + IContactListView.DataSource.GROUP_MEMBER_LIST);
+                onDataLoaded(data, IContactListView.DataSource.GROUP_MEMBER_LIST);
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                TUIContactLog.e(TAG, "load data source error , loadType = " + ContactListView.DataSource.GROUP_MEMBER_LIST +
-                        "  " + "errCode = " + errCode + "  errMsg = " + errMsg);
-                onDataLoaded(new ArrayList<>(), ContactListView.DataSource.GROUP_MEMBER_LIST);
-
+                TUIContactLog.e(TAG,
+                    "load data source error , loadType = " + IContactListView.DataSource.GROUP_MEMBER_LIST + "  "
+                        + "errCode = " + errCode + "  errMsg = " + errMsg);
+                onDataLoaded(new ArrayList<>(), IContactListView.DataSource.GROUP_MEMBER_LIST);
             }
         });
     }
@@ -191,13 +195,13 @@ public class ContactPresenter {
     private void onDataLoaded(List<ContactItemBean> loadedData, int dataSourceType) {
         dataSource.addAll(loadedData);
         notifyDataSourceChanged();
-        if (dataSourceType != ContactListView.DataSource.GROUP_LIST) {
+        if (dataSourceType != IContactListView.DataSource.GROUP_LIST) {
             loadContactUserStatus(dataSource);
         }
     }
 
     private void loadContactUserStatus(List<ContactItemBean> loadedData) {
-        getUserStatusCallback = new IUIKitCallback<Void>(){
+        getUserStatusCallback = new IUIKitCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 TUIContactLog.i(TAG, "loadContactUserStatus success");
@@ -223,9 +227,9 @@ public class ContactPresenter {
 
     private void onDataListDeleted(List<String> userList) {
         Iterator<ContactItemBean> userIterator = dataSource.iterator();
-        while(userIterator.hasNext()) {
+        while (userIterator.hasNext()) {
             ContactItemBean contactItemBean = userIterator.next();
-            for(String id : userList) {
+            for (String id : userList) {
                 if (TextUtils.equals(id, contactItemBean.getId())) {
                     userIterator.remove();
                 }
@@ -239,12 +243,12 @@ public class ContactPresenter {
             return;
         }
         HashMap<String, ContactItemBean> dataSourceMap = new HashMap<>();
-        for(ContactItemBean itemBean : dataSource) {
+        for (ContactItemBean itemBean : dataSource) {
             dataSourceMap.put(itemBean.getId(), itemBean);
         }
 
         boolean isrefresh = false;
-        for(V2TIMUserStatus timUserStatus : userStatusList) {
+        for (V2TIMUserStatus timUserStatus : userStatusList) {
             String userid = timUserStatus.getUserID();
             ContactItemBean bean = dataSourceMap.get(userid);
             if (bean != null && bean.getStatusType() != timUserStatus.getStatusType()) {
@@ -261,9 +265,9 @@ public class ContactPresenter {
     private void onDataListAdd(List<ContactItemBean> users) {
         List<ContactItemBean> addUserList = new ArrayList<>(users);
         Iterator<ContactItemBean> beanIterator = addUserList.iterator();
-        while(beanIterator.hasNext()) {
+        while (beanIterator.hasNext()) {
             ContactItemBean contactItemBean = beanIterator.next();
-            for(ContactItemBean dataItemBean : dataSource) {
+            for (ContactItemBean dataItemBean : dataSource) {
                 if (TextUtils.equals(contactItemBean.getId(), dataItemBean.getId())) {
                     beanIterator.remove();
                 }
@@ -304,15 +308,16 @@ public class ContactPresenter {
             @Override
             public void onSuccess(String groupId) {
                 groupInfo.setId(groupId);
-                Gson gson = new Gson();
                 MessageCustom messageCustom = new MessageCustom();
                 messageCustom.version = TUIContactConstants.version;
                 messageCustom.businessID = MessageCustom.BUSINESS_ID_GROUP_CREATE;
                 messageCustom.opUser = TUILogin.getLoginUser();
                 messageCustom.content = TUIContactService.getAppContext().getString(R.string.create_group);
+                messageCustom.cmd = TextUtils.equals(groupInfo.getGroupType(), TUIContactConstants.GroupType.TYPE_COMMUNITY) ? 1 : 0;
+                Gson gson = new Gson();
                 String data = gson.toJson(messageCustom);
 
-                ThreadHelper.INST.execute(new Runnable() {
+                ThreadUtils.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -323,7 +328,7 @@ public class ContactPresenter {
                         sendGroupTipsMessage(groupId, data, new IUIKitCallback<String>() {
                             @Override
                             public void onSuccess(String result) {
-                                BackgroundTasks.getInstance().runOnUiThread(new Runnable() {
+                                ThreadUtils.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         ContactUtils.callbackOnSuccess(callback, result);
@@ -333,7 +338,7 @@ public class ContactPresenter {
 
                             @Override
                             public void onError(String module, int errCode, String errMsg) {
-                                BackgroundTasks.getInstance().runOnUiThread(new Runnable() {
+                                ThreadUtils.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         ContactUtils.callbackOnError(callback, module, errCode, errMsg);
@@ -354,7 +359,7 @@ public class ContactPresenter {
 
     public void onFriendInfoChanged(List<ContactItemBean> infoList) {
         for (ContactItemBean changedItem : infoList) {
-            for (int i = 0;i < dataSource.size();i++) {
+            for (int i = 0; i < dataSource.size(); i++) {
                 if (TextUtils.equals(dataSource.get(i).getId(), changedItem.getId())) {
                     if (changedItem.getStatusType() == V2TIMUserStatus.V2TIM_USER_STATUS_UNKNOWN) {
                         changedItem.setStatusType(dataSource.get(i).getStatusType());
@@ -368,11 +373,10 @@ public class ContactPresenter {
     }
 
     public void onFriendRemarkChanged(String id, String remark) {
-        loadDataSource(ContactListView.DataSource.CONTACT_LIST);
+        loadDataSource(IContactListView.DataSource.CONTACT_LIST);
     }
 
     public void sendGroupTipsMessage(String groupId, String messageData, IUIKitCallback<String> callback) {
         provider.sendGroupTipsMessage(groupId, messageData, callback);
     }
-
 }

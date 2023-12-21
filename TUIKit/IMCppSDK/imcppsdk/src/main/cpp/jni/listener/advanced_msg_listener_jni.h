@@ -34,17 +34,29 @@ namespace v2im {
 
             void OnRecvMessageReadReceipts(const V2TIMMessageReceiptVector &receiptList) override;
 
-            void OnRecvMessageRevoked(const V2TIMString &messageID) override;
+            void OnRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser, const V2TIMString &reason) override;
 
             void OnRecvMessageModified(const V2TIMMessage &message) override;
+
+            void OnRecvMessageExtensionsChanged(const V2TIMString &msgID,const V2TIMMessageExtensionVector &extensions) override;
+
+            void OnRecvMessageExtensionsDeleted(const V2TIMString &msgID,const V2TIMStringVector &extensionKeys) override;
+
+            void OnRecvMessageReactionsChanged(const V2TIMMessageReactionChangeInfoVector &changeInfos) override;
+
+            void OnRecvMessageRevoked(const V2TIMString &msgID) override;
 
         private:
             enum MethodID {
                 MethodIDOnRecvNewMessage = 0,
                 MethodIDOnRecvMessageReadReceipts,
                 MethodIDOnRecvC2CReadReceipt,
-                MethodIDOnRecvMessageRevoked,
+                MethodIDOnRecvMessageRevoked2Data,
                 MethodIDOnRecvMessageModified,
+                MethodIDOnRecvMessageExtensionsChanged,
+                MethodIDOnRecvMessageExtensionsDeleted,
+                MethodIDOnRecvMessageReactionsChanged,
+                MethodIDOnRecvMessageRevoked,
 
                 MethodIDMax,
             };

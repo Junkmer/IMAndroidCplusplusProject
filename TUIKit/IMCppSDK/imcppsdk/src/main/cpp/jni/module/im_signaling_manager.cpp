@@ -123,12 +123,6 @@ DEFINE_NATIVE_FUNC(void, NativeAddInvitedSignaling, jobject info, jobject callba
 
 }
 
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMSignalingManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusSignalingListener", "()V");
-//}
-
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
         {"nativeInitCplusplusSignalingListener", "()V",                                                                                                             (void *) NativeInitCplusplusSignalingListener},

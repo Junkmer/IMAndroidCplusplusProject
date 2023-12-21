@@ -12,13 +12,15 @@ public class V2TIMMessageSearchParam implements Serializable {
 
     private String conversationID;
     private List<String> keywordList;
-    private int type;
-    private List<String> userIDList;
+    private int keywordListMatchType;
+    private List<String> senderUserIDList;
     private List<Integer> messageTypeList;
     private long searchTimePosition;
     private long searchTimePeriod;
     private int pageSize;
     private int pageIndex;
+    private int searchCount;
+    private String searchCursor;
 
     public void setConversationID(String conversationID) {
         this.conversationID = conversationID;
@@ -28,12 +30,12 @@ public class V2TIMMessageSearchParam implements Serializable {
         this.keywordList = keywordList;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setKeywordListMatchType(int keywordListMatchType) {
+        this.keywordListMatchType = keywordListMatchType;
     }
 
-    public void setUserIDList(List<String> userIDList) {
-        this.userIDList = userIDList;
+    public void setSenderUserIDList(List<String> senderUserIDList) {
+        this.senderUserIDList = senderUserIDList;
     }
 
     public void setMessageTypeList(List<Integer> messageTypeList) {
@@ -54,6 +56,14 @@ public class V2TIMMessageSearchParam implements Serializable {
 
     public void setPageIndex(int pageIndex) {
         this.pageIndex = pageIndex;
+    }
+
+    public void setSearchCount(int searchCount) {
+        this.searchCount = searchCount;
+    }
+
+    public void setSearchCursor(String searchCursor) {
+        this.searchCursor = searchCursor;
     }
 
     public List<String> getKeywordList() {

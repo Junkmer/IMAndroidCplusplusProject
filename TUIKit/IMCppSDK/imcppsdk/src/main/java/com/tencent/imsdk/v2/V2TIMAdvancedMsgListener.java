@@ -16,10 +16,22 @@ public abstract class V2TIMAdvancedMsgListener {
     public void onRecvC2CReadReceipt(List<V2TIMMessageReceipt> receiptList) {
     }
 
-    public void onRecvMessageRevoked(String msgID) {
+    public void onRecvMessageRevoked(String msgID, V2TIMUserFullInfo operateUser, String reason) {
     }
 
     public void onRecvMessageModified(V2TIMMessage msg) {
     }
 
+
+    public void onRecvMessageExtensionsChanged(String msgID, List<V2TIMMessageExtension> extensions) {
+    }
+
+    public void onRecvMessageExtensionsDeleted(String msgID, List<String> extensionKeys) {
+    }
+
+    public void onRecvMessageReactionsChanged(List<V2TIMMessageReactionChangeInfo> changeInfos) {
+    }
+
+    public void onRecvMessageRevoked(String msgID) {
+    }
 }

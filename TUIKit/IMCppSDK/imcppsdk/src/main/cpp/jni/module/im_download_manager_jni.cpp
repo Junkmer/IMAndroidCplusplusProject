@@ -21,21 +21,21 @@
 extern "C" {
 #endif
 
-DEFINE_NATIVE_FUNC(void, NativeDownloadImage, jobject j_obj_param, int type,jstring path, jobject callback) {
+DEFINE_NATIVE_FUNC(void, NativeDownloadImage, jobject j_obj_param, int type, jstring path, jobject callback) {
 
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
     auto imageType = V2TIMImageType(type);
-    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env,path).c_str();
+    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env, path).c_str();
 
-    v2im::V2IMEngine::GetInstance()->DownloadImage(param,imageType,pathStr,new v2im::DownloadCallbackImpl(callback));
+    v2im::V2IMEngine::GetInstance()->DownloadImage(param, imageType, pathStr, new v2im::DownloadCallbackImpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetSoundUrl, jobject j_obj_param, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMString>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMString &value) {
@@ -43,7 +43,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetSoundUrl, jobject j_obj_param, jobject callbac
         auto _env = scopedJEnv.GetEnv();
 
         if (V2TIMErrorCode::ERR_SUCC == error_code) {
-            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env,value.CString()));
+            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env, value.CString()));
         } else {
             v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
         }
@@ -51,22 +51,46 @@ DEFINE_NATIVE_FUNC(void, NativeGetSoundUrl, jobject j_obj_param, jobject callbac
         delete value_callback;
     });
 
-    v2im::V2IMEngine::GetInstance()->GetSoundUrl(param,value_callback);
+    v2im::V2IMEngine::GetInstance()->GetSoundUrl(param, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDownloadSound, jobject j_obj_param, jstring path, jobject callback) {
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
-    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env,path).c_str();
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
+    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env, path).c_str();
 
-    v2im::V2IMEngine::GetInstance()->DownloadSound(param,pathStr,new v2im::DownloadCallbackImpl(callback));
+    v2im::V2IMEngine::GetInstance()->DownloadSound(param, pathStr, new v2im::DownloadCallbackImpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeConvertVoiceToText, jobject j_obj_param, jstring language, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    DownloadParam param;
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
+    V2TIMString languageStr = v2im::jni::StringJni::Jstring2Cstring(env, language).c_str();
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMString>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMString &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env, value.CString()));
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->ConvertVoiceToText(param, languageStr, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetVideoUrl, jobject j_obj_param, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMString>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMString &value) {
@@ -74,7 +98,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetVideoUrl, jobject j_obj_param, jobject callbac
         auto _env = scopedJEnv.GetEnv();
 
         if (V2TIMErrorCode::ERR_SUCC == error_code) {
-            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env,value.CString()));
+            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env, value.CString()));
         } else {
             v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
         }
@@ -82,14 +106,14 @@ DEFINE_NATIVE_FUNC(void, NativeGetVideoUrl, jobject j_obj_param, jobject callbac
         delete value_callback;
     });
 
-    v2im::V2IMEngine::GetInstance()->GetVideoUrl(param,value_callback);
+    v2im::V2IMEngine::GetInstance()->GetVideoUrl(param, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetSnapshotUrl, jobject j_obj_param, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMString>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMString &value) {
@@ -97,7 +121,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetSnapshotUrl, jobject j_obj_param, jobject call
         auto _env = scopedJEnv.GetEnv();
 
         if (V2TIMErrorCode::ERR_SUCC == error_code) {
-            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env,value.CString()));
+            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env, value.CString()));
         } else {
             v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
         }
@@ -105,30 +129,30 @@ DEFINE_NATIVE_FUNC(void, NativeGetSnapshotUrl, jobject j_obj_param, jobject call
         delete value_callback;
     });
 
-    v2im::V2IMEngine::GetInstance()->GetSnapshotUrl(param,value_callback);
+    v2im::V2IMEngine::GetInstance()->GetSnapshotUrl(param, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDownloadVideo, jobject j_obj_param, jstring path, jobject callback) {
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
-    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env,path).c_str();
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
+    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env, path).c_str();
 
-    v2im::V2IMEngine::GetInstance()->DownloadVideo(param,pathStr,new v2im::DownloadCallbackImpl(callback));
+    v2im::V2IMEngine::GetInstance()->DownloadVideo(param, pathStr, new v2im::DownloadCallbackImpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDownloadSnapshot, jobject j_obj_param, jstring path, jobject callback) {
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
-    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env,path).c_str();
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
+    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env, path).c_str();
 
-    v2im::V2IMEngine::GetInstance()->DownloadSnapshot(param,pathStr,new v2im::DownloadCallbackImpl(callback));
+    v2im::V2IMEngine::GetInstance()->DownloadSnapshot(param, pathStr, new v2im::DownloadCallbackImpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetFileUrl, jobject j_obj_param, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
 
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMString>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMString &value) {
@@ -136,7 +160,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetFileUrl, jobject j_obj_param, jobject callback
         auto _env = scopedJEnv.GetEnv();
 
         if (V2TIMErrorCode::ERR_SUCC == error_code) {
-            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env,value.CString()));
+            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::StringJni::Cstring2Jstring(env, value.CString()));
         } else {
             v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
         }
@@ -144,15 +168,15 @@ DEFINE_NATIVE_FUNC(void, NativeGetFileUrl, jobject j_obj_param, jobject callback
         delete value_callback;
     });
 
-    v2im::V2IMEngine::GetInstance()->GetFileUrl(param,value_callback);
+    v2im::V2IMEngine::GetInstance()->GetFileUrl(param, value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDownloadFile, jobject j_obj_param, jstring path, jobject callback) {
     DownloadParam param;
-    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param,param);
-    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env,path).c_str();
+    v2im::jni::DownloadParamJni::Convert2CoreObject(j_obj_param, param);
+    V2TIMString pathStr = v2im::jni::StringJni::Jstring2Cstring(env, path).c_str();
 
-    v2im::V2IMEngine::GetInstance()->DownloadFile(param,pathStr,new v2im::DownloadCallbackImpl(callback));
+    v2im::V2IMEngine::GetInstance()->DownloadFile(param, pathStr, new v2im::DownloadCallbackImpl(callback));
 }
 
 // 图片
@@ -162,8 +186,9 @@ static JNINativeMethod gImageMethods[] = {
 
 // 语音
 static JNINativeMethod gSoundMethods[] = {
-        {"nativeGetSoundUrl",   "(Lcom/tencent/imsdk/common/DownloadParam;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeGetSoundUrl},
-        {"nativeDownloadSound", "(Lcom/tencent/imsdk/common/DownloadParam;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeDownloadSound},
+        {"nativeGetSoundUrl",        "(Lcom/tencent/imsdk/common/DownloadParam;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeGetSoundUrl},
+        {"nativeDownloadSound",      "(Lcom/tencent/imsdk/common/DownloadParam;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeDownloadSound},
+        {"nativeConvertVoiceToText", "(Lcom/tencent/imsdk/common/DownloadParam;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeConvertVoiceToText},
 };
 
 // 视频

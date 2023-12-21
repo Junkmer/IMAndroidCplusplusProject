@@ -2,31 +2,26 @@ package com.tencent.qcloud.tuikit.tuisearch.presenter;
 
 import android.text.TextUtils;
 import android.util.Pair;
-
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuicore.ServiceInitializer;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuisearch.R;
-import com.tencent.qcloud.tuikit.tuisearch.TUISearchService;
+import com.tencent.qcloud.tuikit.tuisearch.TUISearchConstants;
+import com.tencent.qcloud.tuikit.tuisearch.bean.ConversationInfo;
+import com.tencent.qcloud.tuikit.tuisearch.bean.GroupInfo;
 import com.tencent.qcloud.tuikit.tuisearch.bean.SearchDataBean;
 import com.tencent.qcloud.tuikit.tuisearch.bean.SearchMessageBean;
 import com.tencent.qcloud.tuikit.tuisearch.bean.TUISearchGroupParam;
 import com.tencent.qcloud.tuikit.tuisearch.bean.TUISearchGroupResult;
-import com.tencent.qcloud.tuikit.tuisearch.bean.ConversationInfo;
-import com.tencent.qcloud.tuikit.tuisearch.bean.GroupInfo;
+import com.tencent.qcloud.tuikit.tuisearch.interfaces.ISearchResultAdapter;
 import com.tencent.qcloud.tuikit.tuisearch.model.SearchDataProvider;
-import com.tencent.qcloud.tuikit.tuisearch.ui.interfaces.ISearchResultAdapter;
 import com.tencent.qcloud.tuikit.tuisearch.util.TUISearchLog;
 import com.tencent.qcloud.tuikit.tuisearch.util.TUISearchUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.tencent.qcloud.tuikit.tuisearch.ui.view.SearchResultAdapter.CONTACT_TYPE;
-import static com.tencent.qcloud.tuikit.tuisearch.ui.view.SearchResultAdapter.CONVERSATION_TYPE;
-import static com.tencent.qcloud.tuikit.tuisearch.ui.view.SearchResultAdapter.GROUP_TYPE;
 
 public class SearchMainPresenter {
     private static final String TAG = SearchMainPresenter.class.getSimpleName();
@@ -70,27 +65,26 @@ public class SearchMainPresenter {
         }
 
         final List<SearchDataBean> contactSearchDataList = new ArrayList<>();
-        //search contact
+        // search contact
         contactProvider.searchContact(keywordList, new IUIKitCallback<List<SearchDataBean>>() {
             @Override
             public void onSuccess(List<SearchDataBean> searchDataBeanList) {
                 if (searchDataBeanList == null || searchDataBeanList.isEmpty()) {
                     contactSearchDataList.clear();
                     TUISearchLog.d(TAG, "searchFriends is null, mContactSearchData.size() = " + contactSearchDataList.size());
-                    contactAdapter.onDataSourceChanged(null, CONTACT_TYPE);
+                    contactAdapter.onDataSourceChanged(null, TUISearchConstants.CONTACT_TYPE);
                     if (callback != null) {
                         callback.onSuccess(contactSearchDataList);
                     }
                     return;
                 }
 
-
                 for (int i = 0; i < searchDataBeanList.size(); i++) {
                     SearchDataBean searchDataBean = searchDataBeanList.get(i);
                     SearchDataBean dataBean = new SearchDataBean();
                     dataBean.setIconPath(searchDataBean.getIconPath());
                     dataBean.setTitle(searchDataBean.getUserID());
-                    dataBean.setSubTitleLabel(TUISearchService.getAppContext().getString(R.string.nick_name));
+                    dataBean.setSubTitleLabel(ServiceInitializer.getAppContext().getString(R.string.nick_name));
                     if (!TextUtils.isEmpty(searchDataBean.getRemark())) {
                         dataBean.setSubTitle(searchDataBean.getRemark());
                     } else if (!TextUtils.isEmpty(searchDataBean.getNickName())) {
@@ -98,7 +92,7 @@ public class SearchMainPresenter {
                     } else if (!TextUtils.isEmpty(searchDataBean.getUserID())) {
                         dataBean.setSubTitle(searchDataBean.getUserID());
                     }
-                    dataBean.setType(CONTACT_TYPE);
+                    dataBean.setType(TUISearchConstants.CONTACT_TYPE);
 
                     dataBean.setUserID(searchDataBean.getUserID());
                     dataBean.setNickName(searchDataBean.getNickName());
@@ -106,7 +100,7 @@ public class SearchMainPresenter {
                     contactSearchDataList.add(dataBean);
                 }
 
-                contactAdapter.onDataSourceChanged(contactSearchDataList, CONTACT_TYPE);
+                contactAdapter.onDataSourceChanged(contactSearchDataList, TUISearchConstants.CONTACT_TYPE);
                 if (callback != null) {
                     callback.onSuccess(contactSearchDataList);
                 }
@@ -141,13 +135,12 @@ public class SearchMainPresenter {
         searchParam.setSearchMemberRemark(true);
 
         groupProvider.searchGroups(searchParam, new IUIKitCallback<List<TUISearchGroupResult>>() {
-
             @Override
             public void onSuccess(List<TUISearchGroupResult> tuiSearchGroupResults) {
                 groupSearchDataList.clear();
                 if (tuiSearchGroupResults == null || tuiSearchGroupResults.isEmpty()) {
                     TUISearchLog.d(TAG, "searchGroups is null, tuiSearchGroupResults.size() = " + tuiSearchGroupResults.size());
-                    groupAdapter.onDataSourceChanged(null, GROUP_TYPE);
+                    groupAdapter.onDataSourceChanged(null, TUISearchConstants.GROUP_TYPE);
 
                     if (callback != null) {
                         callback.onSuccess(groupSearchDataList);
@@ -156,7 +149,6 @@ public class SearchMainPresenter {
                 }
 
                 TUISearchLog.d(TAG, "tuiSearchGroupResults.size() = " + tuiSearchGroupResults.size());
-
 
                 for (int i = 0; i < tuiSearchGroupResults.size(); i++) {
                     TUISearchGroupResult searchGroupResult = tuiSearchGroupResults.get(i);
@@ -171,7 +163,7 @@ public class SearchMainPresenter {
                     dataBean.setIconPath(groupInfo.getFaceUrl());
                     if (searchGroupResult.getMatchField() == TUISearchGroupParam.TUISearchGroupMatchField.SEARCH_FIELD_GROUP_ID) {
                         dataBean.setTitle(groupInfo.getGroupName());
-                        dataBean.setSubTitleLabel(TUISearchService.getAppContext().getString(R.string.include_group_id));
+                        dataBean.setSubTitleLabel(ServiceInitializer.getAppContext().getString(R.string.include_group_id));
                         dataBean.setSubTitle(groupId);
                     } else if (searchGroupResult.getMatchField() == TUISearchGroupParam.TUISearchGroupMatchField.SEARCH_FIELD_GROUP_NAME) {
                         dataBean.setTitle(groupInfo.getGroupName());
@@ -179,19 +171,20 @@ public class SearchMainPresenter {
                         dataBean.setTitle(groupInfo.getGroupName());
                         if (searchGroupResult.getMatchMembers() != null && !searchGroupResult.getMatchMembers().isEmpty()) {
                             TUISearchGroupResult.TUISearchGroupMemberMatchResult searchGroupMemberMatchResult = searchGroupResult.getMatchMembers().get(0);
-                            if (searchGroupMemberMatchResult.getMemberMatchField() != TUISearchGroupParam.TUISearchGroupMemberMatchField.SEARCH_FIELD_MEMBER_NONE) {
-                                dataBean.setSubTitleLabel(TUISearchService.getAppContext().getString(R.string.include_group_member));
+                            if (searchGroupMemberMatchResult.getMemberMatchField()
+                                != TUISearchGroupParam.TUISearchGroupMemberMatchField.SEARCH_FIELD_MEMBER_NONE) {
+                                dataBean.setSubTitleLabel(ServiceInitializer.getAppContext().getString(R.string.include_group_member));
                                 dataBean.setSubTitle(searchGroupMemberMatchResult.getMemberMatchValue());
                             } else {
                                 dataBean.setSubTitle("");
                             }
                         }
                     }
-                    dataBean.setType(GROUP_TYPE);
+                    dataBean.setType(TUISearchConstants.GROUP_TYPE);
                     groupSearchDataList.add(dataBean);
                 }
 
-                groupAdapter.onDataSourceChanged(groupSearchDataList, GROUP_TYPE);
+                groupAdapter.onDataSourceChanged(groupSearchDataList, TUISearchConstants.GROUP_TYPE);
 
                 if (callback != null) {
                     callback.onSuccess(groupSearchDataList);
@@ -200,7 +193,7 @@ public class SearchMainPresenter {
 
             @Override
             public void onError(String module, int code, String desc) {
-                groupAdapter.onDataSourceChanged(groupSearchDataList, GROUP_TYPE);
+                groupAdapter.onDataSourceChanged(groupSearchDataList, TUISearchConstants.GROUP_TYPE);
                 if (callback != null) {
                     callback.onSuccess(groupSearchDataList);
                 }
@@ -222,7 +215,7 @@ public class SearchMainPresenter {
                     conversationSearchDataBeans.clear();
                     msgCountInConversationMap.clear();
                     if (totalCount == 0) {
-                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, CONVERSATION_TYPE);
+                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, TUISearchConstants.CONVERSATION_TYPE);
                         TUISearchUtils.callbackOnError(callback, -1, "search conversation , total count is 0");
                         return;
                     }
@@ -246,7 +239,9 @@ public class SearchMainPresenter {
                 conversationProvider.getConversationList(conversationIdList, new IUIKitCallback<List<ConversationInfo>>() {
                     @Override
                     public void onSuccess(List<ConversationInfo> conversationInfoList) {
-
+//                        if (pageIndex == 0) {
+//                            conversationSearchDataBeans.clear();
+//                        }
                         for (ConversationInfo conversationInfo : conversationInfoList) {
                             SearchDataBean searchDataBean = new SearchDataBean();
                             searchDataBean.setConversationID(conversationInfo.getConversationId());
@@ -263,28 +258,29 @@ public class SearchMainPresenter {
                         TUISearchLog.i(TAG, "searchDataBeans.size() = " + conversationSearchDataBeans.size());
                         TUISearchLog.i(TAG, "mMsgsInConversationMap.size() = " + msgCountInConversationMap.size());
                         if (conversationSearchDataBeans.size() > 0) {
-
                             for (int i = 0; i < conversationSearchDataBeans.size(); i++) {
                                 SearchMessageBean searchMessageBean = msgCountInConversationMap.get(conversationSearchDataBeans.get(i).getConversationID());
                                 if (searchMessageBean != null) {
                                     int count = searchMessageBean.getMessageCount();
                                     if (count == 1) {
-                                        conversationSearchDataBeans.get(i).setSubTitle(conversationProvider.getMessageText(searchMessageBean.getMessageInfoList().get(0)));
+                                        conversationSearchDataBeans.get(i).setSubTitle(
+                                            conversationProvider.getMessageText(searchMessageBean.getMessageInfoList().get(0)));
                                         conversationSearchDataBeans.get(i).setSubTextMatch(1);
                                     } else if (count > 1) {
-                                        conversationSearchDataBeans.get(i).setSubTitle(count + TUISearchService.getAppContext().getString(R.string.chat_records));
+                                        conversationSearchDataBeans.get(i).setSubTitle(
+                                            count + ServiceInitializer.getAppContext().getString(R.string.chat_records));
                                         conversationSearchDataBeans.get(i).setSubTextMatch(0);
                                     }
                                 }
                             }
                         }
-                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, CONVERSATION_TYPE);
+                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, TUISearchConstants.CONVERSATION_TYPE);
                         TUISearchUtils.callbackOnSuccess(callback, conversationSearchDataBeans);
                     }
 
                     @Override
                     public void onError(String module, int errCode, String errMsg) {
-                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, CONVERSATION_TYPE);
+                        conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, TUISearchConstants.CONVERSATION_TYPE);
                         TUISearchUtils.callbackOnError(callback, module, errCode, errMsg);
                     }
                 });
@@ -292,11 +288,10 @@ public class SearchMainPresenter {
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, CONVERSATION_TYPE);
+                conversationAdapter.onDataSourceChanged(conversationSearchDataBeans, TUISearchConstants.CONVERSATION_TYPE);
                 conversationAdapter.onTotalCountChanged(conversationSearchDataBeans.size());
                 TUISearchUtils.callbackOnError(callback, module, errCode, errMsg);
             }
         });
     }
-
 }

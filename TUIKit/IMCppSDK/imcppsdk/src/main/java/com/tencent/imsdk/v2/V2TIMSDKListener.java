@@ -34,4 +34,16 @@ public abstract class V2TIMSDKListener {
     public void onUserStatusChanged(List<V2TIMUserStatus> userStatusList) {
 
     }
+
+    public void onUserInfoChanged(List<V2TIMUserFullInfo> userInfoList) {
+
+    }
+
+    public void onAllReceiveMessageOptChanged(V2TIMReceiveMessageOptInfo receiveMessageOptInfo) {
+
+    }
+
+    public void onExperimentalNotify(String key, Object param) {
+
+    }
 }

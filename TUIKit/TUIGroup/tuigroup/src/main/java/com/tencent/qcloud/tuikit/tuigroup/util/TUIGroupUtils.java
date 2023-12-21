@@ -1,23 +1,27 @@
 package com.tencent.qcloud.tuikit.tuigroup.util;
 
+import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_C2C_PREFIX;
+import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_GROUP_PREFIX;
+
+import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMGroupInfo;
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.imsdk.v2.V2TIMManager;
 import com.tencent.imsdk.v2.V2TIMValueCallback;
+import com.tencent.qcloud.tuicore.TUIConstants;
+import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUILogin;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.ErrorMessageConverter;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuigroup.R;
 import com.tencent.qcloud.tuikit.tuigroup.TUIGroupService;
+import com.tencent.qcloud.tuikit.tuigroup.bean.GroupInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_C2C_PREFIX;
-import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_GROUP_PREFIX;
 
 public class TUIGroupUtils {
     private static final String TAG = "TUIGroupUtils";
@@ -68,7 +72,8 @@ public class TUIGroupUtils {
                     }
                     toastGroupEventByName(type, groupName);
                 } else {
-                    TUIGroupLog.e(TAG, "toastGroupEvent failed, code=" + v2TIMGroupInfoResult.getResultCode() + ", msg=" + v2TIMGroupInfoResult.getResultMessage());
+                    TUIGroupLog.e(
+                        TAG, "toastGroupEvent failed, code=" + v2TIMGroupInfoResult.getResultCode() + ", msg=" + v2TIMGroupInfoResult.getResultMessage());
                 }
             }
 
@@ -89,10 +94,23 @@ public class TUIGroupUtils {
         } else if (type == GROUP_EVENT_TIP_KICKED) {
             toastString = TUIGroupService.getAppContext().getString(R.string.kick_group) + groupName;
         } else if (type == GROUP_EVENT_TIP_DISBANDED) {
-            toastString = TUIGroupService.getAppContext().getString(R.string.dismiss_tip_before) + groupName + TUIGroupService.getAppContext().getString(R.string.dismiss_tip_after);
+            toastString = TUIGroupService.getAppContext().getString(R.string.dismiss_tip_before) + groupName
+                + TUIGroupService.getAppContext().getString(R.string.dismiss_tip_after);
         }
         if (toastString != null) {
             ToastUtil.toastLongMessage(toastString);
         }
+    }
+
+    public static void startGroupChatActivity(GroupInfo groupInfo) {
+        if (groupInfo == null || TextUtils.isEmpty(groupInfo.getId())) {
+            return;
+        }
+        Bundle param = new Bundle();
+        param.putInt(TUIConstants.TUIChat.CHAT_TYPE, V2TIMConversation.V2TIM_GROUP);
+        param.putString(TUIConstants.TUIChat.CHAT_ID, groupInfo.getId());
+        param.putString(TUIConstants.TUIChat.CHAT_NAME, groupInfo.getGroupName());
+        param.putString(TUIConstants.TUIChat.FACE_URL, groupInfo.getFaceUrl());
+        TUICore.startActivity("TUIGroupChatMinimalistActivity", param);
     }
 }

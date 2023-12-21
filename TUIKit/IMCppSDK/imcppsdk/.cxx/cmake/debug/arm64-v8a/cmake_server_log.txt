@@ -37,20 +37,20 @@ CMAKE SERVER: {
   "type": "configure",
   "cacheArguments": [
     "",
-    "-DANDROID_ABI\u003darm64-v8a",
-    "-DANDROID_PLATFORM\u003dandroid-19",
-    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dC:\\Users\\EDY\\junker_zhaofei\\MyWorkApplication\\AndroidStudioProjects\\GitObject\\IMAndroidCplusplusProject\\TUIKit\\IMCppSDK\\imcppsdk\\build\\intermediates\\cmake\\debug\\obj\\arm64-v8a",
+    "-DCMAKE_FIND_ROOT_PATH\u003dC:\\Users\\EDY\\junker_zhaofei\\MyWorkApplication\\AndroidStudioProjects\\GitObject\\IMAndroidCplusplusProject\\TUIKit\\IMCppSDK\\imcppsdk\\.cxx\\cmake\\debug\\prefab\\arm64-v8a\\prefab",
     "-DCMAKE_BUILD_TYPE\u003dDebug",
-    "-DANDROID_NDK\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\ndk\\21.4.7075529",
-    "-DCMAKE_CXX_FLAGS\u003d",
-    "-DCMAKE_SYSTEM_NAME\u003dAndroid",
-    "-DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a",
-    "-DCMAKE_SYSTEM_VERSION\u003d19",
-    "-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON",
-    "-DCMAKE_ANDROID_NDK\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\ndk\\21.4.7075529",
     "-DCMAKE_TOOLCHAIN_FILE\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\ndk\\21.4.7075529\\build\\cmake\\android.toolchain.cmake",
-    "-G Ninja",
-    "-DCMAKE_MAKE_PROGRAM\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe"
+    "-DANDROID_ABI\u003darm64-v8a",
+    "-DANDROID_NDK\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\ndk\\21.4.7075529",
+    "-DANDROID_PLATFORM\u003dandroid-19",
+    "-DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a",
+    "-DCMAKE_ANDROID_NDK\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\ndk\\21.4.7075529",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON",
+    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dC:\\Users\\EDY\\junker_zhaofei\\MyWorkApplication\\AndroidStudioProjects\\GitObject\\IMAndroidCplusplusProject\\TUIKit\\IMCppSDK\\imcppsdk\\build\\intermediates\\cmake\\debug\\obj\\arm64-v8a",
+    "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dC:\\Users\\EDY\\junker_zhaofei\\MyWorkApplication\\AndroidStudioProjects\\GitObject\\IMAndroidCplusplusProject\\TUIKit\\IMCppSDK\\imcppsdk\\build\\intermediates\\cmake\\debug\\obj\\arm64-v8a",
+    "-DCMAKE_MAKE_PROGRAM\u003dC:\\Users\\EDY\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+    "-DCMAKE_SYSTEM_NAME\u003dAndroid",
+    "-DCMAKE_SYSTEM_VERSION\u003d19"
   ]
 }
 
@@ -324,22 +324,6 @@ CMAKE SERVER: ]== "CMake Server" ==]
 CMAKE SERVER: [== "CMake Server" ==[
 
 CMAKE SERVER: {"type":"cmakeInputs"}
-
-CMAKE SERVER: ]== "CMake Server" ==]
-
-CMAKE SERVER: 
-
-CMAKE SERVER: [== "CMake Server" ==[
-
-CMAKE SERVER: {"cookie":"","inReplyTo":"","name":"dirty","type":"signal"}
-
-CMAKE SERVER: ]== "CMake Server" ==]
-
-CMAKE SERVER: 
-
-CMAKE SERVER: [== "CMake Server" ==[
-
-CMAKE SERVER: {"cookie":"","inReplyTo":"","name":"fileChange","path":"C:/Users/EDY/junker_zhaofei/MyWorkApplication/AndroidStudioProjects/GitObject/IMAndroidCplusplusProject/TUIKit/IMCppSDK/imcppsdk/src/main/cpp/CMakeLists.txt","properties":["change"],"type":"signal"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 

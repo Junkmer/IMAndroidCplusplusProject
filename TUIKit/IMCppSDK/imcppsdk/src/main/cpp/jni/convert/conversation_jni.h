@@ -35,6 +35,8 @@ namespace v2im {
                 FieldIDMarkList,
                 FieldIDCustomData,
                 FieldIDConversationGroupList,
+                FieldIDC2CReadTimestamp,
+                FieldIDGroupReadSequence,
 
                 FieldIDMax,
             };

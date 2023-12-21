@@ -26,7 +26,7 @@ namespace v2im {
                 FieldIDAddTime,
                 FieldIDRequestMsg,
                 FieldIDHandledMsg,
-                FieldIDType,
+                FieldIDApplicationType,
                 FieldIDHandleStatus,
                 FieldIDHandleResult,
 

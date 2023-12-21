@@ -32,6 +32,14 @@ public abstract class V2TIMGroupManager {
 
     public abstract void getGroupOnlineMemberCount(String groupID, V2TIMValueCallback<Integer> callback);
 
+    public abstract void setGroupCounters(String groupID, HashMap<String, Long> counters, V2TIMValueCallback<Map<String, Long>> callback);
+
+    public abstract void getGroupCounters(String groupID, List<String> keys, V2TIMValueCallback<Map<String, Long>> callback);
+
+    public abstract void increaseGroupCounter(String groupID, String key, long value, V2TIMValueCallback<Map<String, Long>> callback);
+
+    public abstract void decreaseGroupCounter(String groupID, String key, long value, V2TIMValueCallback<Map<String, Long>> callback);
+
     public abstract void getGroupMemberList(String groupID, int filter, long nextSeq, V2TIMValueCallback<V2TIMGroupMemberInfoResult> callback);
 
     public abstract void getGroupMembersInfo(String groupID, List<String> memberList, V2TIMValueCallback<List<V2TIMGroupMemberFullInfo>> callback);
@@ -42,15 +50,19 @@ public abstract class V2TIMGroupManager {
 
     public abstract void muteGroupMember(String groupID, String userID, int seconds, V2TIMCallback callback);
 
+    public abstract void muteAllGroupMembers(String groupID, boolean isMute, V2TIMCallback callback);
+
     public abstract void inviteUserToGroup(String groupID, List<String> userList, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
-    public abstract void kickGroupMember(String groupID, List<String> memberList, String reason, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> callback);
+    public abstract void kickGroupMember(String groupID, List<String> memberList, String reason, int duration, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
     public abstract void setGroupMemberRole(String groupID, String userID, int role, V2TIMCallback callback);
 
     public abstract void markGroupMemberList(String groupID, List<String> memberIDList, int markType, boolean enableMark, V2TIMCallback callback);
 
     public abstract void transferGroupOwner(String groupID, String userID, V2TIMCallback callback);
+
+    public abstract void kickGroupMember(String groupID, List<String> memberList, String reason, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
     public abstract void getGroupApplicationList(V2TIMValueCallback<V2TIMGroupApplicationResult> callback);
 
@@ -94,6 +106,14 @@ public abstract class V2TIMGroupManager {
 
     native void nativeGetGroupOnlineMemberCount(String groupID, IMCallback<Integer> callback);
 
+    native void nativeSetGroupCounters(String groupID, HashMap<String, Long> counters, IMCallback<Map<String, Long>> callback);
+
+    native void nativeGetGroupCounters(String groupID, List<String> keys, IMCallback<Map<String, Long>> callback);
+
+    native void nativeIncreaseGroupCounter(String groupID, String key, long value, IMCallback<Map<String, Long>> callback);
+
+    native void nativeDecreaseGroupCounter(String groupID, String key, long value, IMCallback<Map<String, Long>> callback);
+
     native void nativeGetGroupMemberList(String groupID, int filter, long nextSeq, IMCallback<V2TIMGroupMemberInfoResult> callback);
 
     native void nativeGetGroupMembersInfo(String groupID, List<String> memberList, IMCallback<List<V2TIMGroupMemberFullInfo>> callback);
@@ -104,15 +124,19 @@ public abstract class V2TIMGroupManager {
 
     native void nativeMuteGroupMember(String groupID, String userID, int seconds, IMCallback callback);
 
+    native void nativeMuteAllGroupMembers(String groupID, boolean isMute, IMCallback callback);
+
     native void nativeInviteUserToGroup(String groupID, List<String> userList, IMCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
-    native void nativeKickGroupMember(String groupID, List<String> memberList, String reason, IMCallback<List<V2TIMGroupMemberOperationResult>> callback);
+    native void nativeKickGroupMember(String groupID, List<String> memberList, String reason, int duration, IMCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
     native void nativeSetGroupMemberRole(String groupID, String userID, int role, IMCallback callback);
 
     native void nativeMarkGroupMemberList(String groupID, List<String> memberIDList, int markType, boolean enableMark, IMCallback callback);
 
     native void nativeTransferGroupOwner(String groupID, String userID, IMCallback callback);
+
+    native void nativeKickGroupMember(String groupID, List<String> memberList, String reason, IMCallback<List<V2TIMGroupMemberOperationResult>> callback);
 
     native void nativeGetGroupApplicationList(IMCallback<V2TIMGroupApplicationResult> callback);
 

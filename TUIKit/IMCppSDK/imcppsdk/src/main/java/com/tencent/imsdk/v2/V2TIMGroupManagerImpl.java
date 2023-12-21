@@ -167,6 +167,66 @@ public class V2TIMGroupManagerImpl extends V2TIMGroupManager {
     }
 
     @Override
+    public void setGroupCounters(String groupID, HashMap<String, Long> counters, V2TIMValueCallback<Map<String, Long>> _callback_) {
+        nativeSetGroupCounters(groupID, counters, new IMCallback<Map<String, Long>>(_callback_) {
+            @Override
+            public void success(Map<String, Long> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void getGroupCounters(String groupID, List<String> keys, V2TIMValueCallback<Map<String, Long>> _callback_) {
+        nativeGetGroupCounters(groupID, keys, new IMCallback<Map<String, Long>>(_callback_) {
+            @Override
+            public void success(Map<String, Long> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void increaseGroupCounter(String groupID, String key, long value, V2TIMValueCallback<Map<String, Long>> _callback_) {
+        nativeIncreaseGroupCounter(groupID, key, value, new IMCallback<Map<String, Long>>(_callback_) {
+            @Override
+            public void success(Map<String, Long> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void decreaseGroupCounter(String groupID, String key, long value, V2TIMValueCallback<Map<String, Long>> _callback_) {
+        nativeDecreaseGroupCounter(groupID, key, value, new IMCallback<Map<String, Long>>(_callback_) {
+            @Override
+            public void success(Map<String, Long> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
     public void getGroupMemberList(String groupID, int filter, long nextSeq, V2TIMValueCallback<V2TIMGroupMemberInfoResult> _callback_) {
         nativeGetGroupMemberList(groupID, filter, nextSeq, new IMCallback<V2TIMGroupMemberInfoResult>(_callback_) {
             @Override
@@ -242,6 +302,21 @@ public class V2TIMGroupManagerImpl extends V2TIMGroupManager {
     }
 
     @Override
+    public void muteAllGroupMembers(String groupID, boolean isMute, V2TIMCallback _callback_) {
+        nativeMuteAllGroupMembers(groupID, isMute, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
     public void inviteUserToGroup(String groupID, List<String> userList, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> _callback_) {
         nativeInviteUserToGroup(groupID, userList, new IMCallback<List<V2TIMGroupMemberOperationResult>>(_callback_) {
             @Override
@@ -257,8 +332,8 @@ public class V2TIMGroupManagerImpl extends V2TIMGroupManager {
     }
 
     @Override
-    public void kickGroupMember(String groupID, List<String> memberList, String reason, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> _callback_) {
-        nativeKickGroupMember(groupID, memberList, reason, new IMCallback<List<V2TIMGroupMemberOperationResult>>(_callback_) {
+    public void kickGroupMember(String groupID, List<String> memberList, String reason, int duration, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> callback) {
+        nativeKickGroupMember(groupID, memberList, reason, duration, new IMCallback<List<V2TIMGroupMemberOperationResult>>(callback) {
             @Override
             public void success(List<V2TIMGroupMemberOperationResult> data) {
                 super.success(data);
@@ -306,6 +381,21 @@ public class V2TIMGroupManagerImpl extends V2TIMGroupManager {
         nativeTransferGroupOwner(groupID, userID, new IMCallback(_callback_) {
             @Override
             public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void kickGroupMember(String groupID, List<String> memberList, String reason, V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> _callback_) {
+        nativeKickGroupMember(groupID, memberList, reason, new IMCallback<List<V2TIMGroupMemberOperationResult>>(_callback_) {
+            @Override
+            public void success(List<V2TIMGroupMemberOperationResult> data) {
                 super.success(data);
             }
 

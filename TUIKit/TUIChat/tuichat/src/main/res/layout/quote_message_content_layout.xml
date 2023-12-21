@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.tencent.qcloud.tuikit.tuichat.ui.view.message.MaxWidthLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<com.tencent.qcloud.tuikit.timcommon.component.MaxWidthLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="7.68dp"
-    android:orientation="horizontal">
+    android:orientation="vertical">
 
     <TextView
+        android:layout_weight="1"
         android:id="@+id/sender_name_tv"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="#FF999999"
+        android:textDirection="locale"
+        android:ellipsize="middle"
+        android:singleLine="true" />
 
     <FrameLayout
         android:id="@+id/text_msg_area"
@@ -18,6 +22,7 @@
         android:layout_height="wrap_content">
         <TextView
             android:id="@+id/msg_abstract_tv"
+            android:textColor="#FF999999"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </FrameLayout>
@@ -47,6 +52,7 @@
         android:layout_height="wrap_content">
         <TextView
             android:id="@+id/file_name_tv"
+            android:textColor="#FF999999"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -59,17 +65,25 @@
     <FrameLayout
         android:id="@+id/sound_msg_area"
         android:visibility="gone"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <ImageView
             android:id="@+id/sound_msg_icon_iv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:src="@drawable/chat_voice_reply_icon"
+            android:scaleType="centerInside"
+            android:layout_gravity="center_vertical|start"
+            android:layout_width="18dp"
+            android:layout_height="18dp"/>
 
         <TextView
             android:id="@+id/sound_msg_time_tv"
+            android:textColor="#FF999999"
+            android:layout_marginStart="22dp"
+            android:layout_gravity="center_vertical|start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </FrameLayout>
 
-</com.tencent.qcloud.tuikit.tuichat.ui.view.message.MaxWidthLinearLayout>
+</com.tencent.qcloud.tuikit.timcommon.component.MaxWidthLinearLayout>

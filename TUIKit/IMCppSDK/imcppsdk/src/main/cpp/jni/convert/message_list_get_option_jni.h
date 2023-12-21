@@ -26,6 +26,7 @@ namespace v2im {
                 FieldIDGetTimeBegin,
                 FieldIDGetTimePeriod,
                 FieldIDMessageTypeList,
+                FieldIDMessageSeqList,
 
                 FieldIDMax,
             };

@@ -45,6 +45,8 @@
 #include "friend_search_param_jni.h"
 #include "user_full_info_jni.h"
 #include "user_status_jni.h"
+#include "user_info_jni.h"
+#include "official_account_info_jni.h"
 
 //群组相关
 #include "create_group_member_info_jni.h"
@@ -81,6 +83,12 @@
 #include "message_search_result_jni.h"
 #include "receive_message_opt_info_jni.h"
 #include "download_param_jni.h"
+#include "message_extension_jni.h"
+#include "message_extension_result_jni.h"
+#include "message_reaction_jni.h"
+#include "message_reaction_result_jni.h"
+#include "message_reaction_user_result_jni.h"
+#include "message_reaction_change_info_jni.h"
 
 //信令相关
 #include "signaling_info_jni.h"
@@ -204,6 +212,12 @@ static void InitJNI(JNIEnv *env) {
     success = v2im::jni::UserStatusJni::InitIDs(env);
     CHECK_INITIDS_RESULT(success, "UserStatusJni")
 
+    success = v2im::jni::UserInfoJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "UserInfoJni")
+
+    success = v2im::jni::OfficialAccountInfoJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "OfficialAccountInfoJni")
+
     //群组相关
     success = v2im::jni::CreateGroupMemberInfoJni::InitIDs(env);
     CHECK_INITIDS_RESULT(success, "CreateGroupMemberInfoJni")
@@ -293,6 +307,24 @@ static void InitJNI(JNIEnv *env) {
 
     success = v2im::jni::DownloadParamJni::InitIDs(env);
     CHECK_INITIDS_RESULT(success, "DownloadParamJni")
+
+    success = v2im::jni::MessageExtensionJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageExtensionJni")
+
+    success = v2im::jni::MessageExtensionResultJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageExtensionResultJni")
+
+    success = v2im::jni::MessageReactionJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageReactionJni")
+
+    success = v2im::jni::MessageReactionResultJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageReactionResultJni")
+
+    success = v2im::jni::MessageReactionUserResultJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageReactionUserResultJni")
+
+    success = v2im::jni::MessageReactionChangeInfoJni::InitIDs(env);
+    CHECK_INITIDS_RESULT(success, "MessageReactionChangeInfoJni")
 
     v2im::jni::ElemProcessor::GetInstance().RegisterElemHandler();
 }

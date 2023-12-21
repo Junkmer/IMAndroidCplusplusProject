@@ -8,41 +8,69 @@ import java.util.Map;
  */
 public abstract class V2TIMGroupListener {
 
-    public void onMemberEnter(String groupID, List<V2TIMGroupMemberInfo> memberList){}
+    public void onMemberEnter(String groupID, List<V2TIMGroupMemberInfo> memberList) {
+    }
 
-    public void onMemberLeave(String groupID, V2TIMGroupMemberInfo member){}
+    public void onMemberLeave(String groupID, V2TIMGroupMemberInfo member) {
+    }
 
-    public void onMemberInvited(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList){}
+    public void onMemberInvited(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList) {
+    }
 
-    public void onMemberKicked(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList){}
+    public void onMemberKicked(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList) {
+    }
 
-    public void onMemberInfoChanged(String groupID, List<V2TIMGroupMemberChangeInfo> v2TIMGroupMemberChangeInfoList){}
+    public void onMemberInfoChanged(String groupID, List<V2TIMGroupMemberChangeInfo> v2TIMGroupMemberChangeInfoList) {
+    }
 
-    public void onGroupCreated(String groupID){}
+    public void onAllGroupMembersMuted(String groupID, boolean isMute) {
+    }
 
-    public void onGroupDismissed(String groupID, V2TIMGroupMemberInfo opUser){}
+    public void onMemberMarkChanged(String groupID, List<String> memberIDList, int markType, boolean enableMark) {
+    }
 
-    public void onGroupRecycled(String groupID, V2TIMGroupMemberInfo opUser){}
+    public void onGroupCreated(String groupID) {
+    }
 
-    public void onGroupInfoChanged(String groupID, List<V2TIMGroupChangeInfo> changeInfos){}
+    public void onGroupDismissed(String groupID, V2TIMGroupMemberInfo opUser) {
+    }
 
-    public void onReceiveJoinApplication(String groupID, V2TIMGroupMemberInfo member, String opReason){}
+    public void onGroupRecycled(String groupID, V2TIMGroupMemberInfo opUser) {
+    }
 
-    public void onApplicationProcessed(String groupID, V2TIMGroupMemberInfo opUser, boolean isAgreeJoin, String opReason){}
+    public void onGroupInfoChanged(String groupID, List<V2TIMGroupChangeInfo> changeInfos) {
+    }
 
-    public void onGrantAdministrator(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList){}
+    public void onReceiveJoinApplication(String groupID, V2TIMGroupMemberInfo member, String opReason) {
+    }
 
-    public void onRevokeAdministrator(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList){}
+    public void onApplicationProcessed(String groupID, V2TIMGroupMemberInfo opUser, boolean isAgreeJoin, String opReason) {
+    }
 
-    public void onQuitFromGroup(String groupID){}
+    public void onGrantAdministrator(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList) {
+    }
 
-    public void onReceiveRESTCustomData(String groupID, byte[] customData){}
+    public void onRevokeAdministrator(String groupID, V2TIMGroupMemberInfo opUser, List<V2TIMGroupMemberInfo> memberList) {
+    }
 
-    public void onGroupAttributeChanged(String groupID, Map<String, String> groupAttributeMap){}
+    public void onQuitFromGroup(String groupID) {
+    }
 
-    public void onTopicCreated(String groupID, String topicID){}
+    public void onReceiveRESTCustomData(String groupID, byte[] customData) {
+    }
 
-    public void onTopicDeleted(String groupID, List<String> topicIDList){}
+    public void onGroupAttributeChanged(String groupID, Map<String, String> groupAttributeMap) {
+    }
 
-    public void onTopicInfoChanged(String groupID, V2TIMTopicInfo topicInfo){}
+    public void onGroupCounterChanged(String groupID, String key, long newValue) {
+    }
+
+    public void onTopicCreated(String groupID, String topicID) {
+    }
+
+    public void onTopicDeleted(String groupID, List<String> topicIDList) {
+    }
+
+    public void onTopicInfoChanged(String groupID, V2TIMTopicInfo topicInfo) {
+    }
 }

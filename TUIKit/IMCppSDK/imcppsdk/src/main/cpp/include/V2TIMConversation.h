@@ -71,7 +71,7 @@ struct TIM_API V2TIMConversation {
     V2TIMGroupAtInfoVector groupAtInfolist;
     /// 草稿信息，设置草稿信息请调用 SetConversationDraft() 接口
     V2TIMString draftText;
-    /// 草稿编辑时间，草稿设置的时候自动生成
+    /// 上次设置草稿时的 UTC 时间戳
     uint64_t draftTimestamp;
     /// 是否置顶
     bool isPinned;
@@ -86,11 +86,15 @@ struct TIM_API V2TIMConversation {
     // 不会改变；如果想保持会话的排序位置不变，可以使用该字段对所有会话进行排序
     uint64_t orderKey;
     /// 会话标记列表，取值详见 @V2TIMConversationMarkType（从 6.5 版本开始支持）
-    UInt64Vector markList;
+    TXV2TIMUInt64Vector markList;
     /// 会话自定义数据（从 6.5 版本开始支持）
     V2TIMBuffer customData;
     /// 会话所属分组列表（从 6.5 版本开始支持）
     V2TIMStringVector conversationGroupList;
+    /// 最新已读消息的 UTC 时间戳，仅对单聊会话生效（从 7.1 版本开始支持）
+    uint64_t c2cReadTimestamp;
+    /// 已读消息的 sequence，仅对群聊会话生效（从 7.1 版本开始支持）
+    uint64_t groupReadSequence;
 
     V2TIMConversation();
     V2TIMConversation(const V2TIMConversation& conversation);
@@ -109,7 +113,11 @@ struct TIM_API V2TIMConversationListFilter {
     V2TIMString conversationGroup;
     /// 标记类型，取值详见 @V2TIMConversationMarkType(填 0 代表不过滤此项)
     uint64_t markType;
-
+    /// 设置为 true 时返回包含未读数的会话；设置为 false 时返回所有会话（默认值是 false）
+    bool hasUnreadCount;
+    /// 设置为 true 时返回包含群 @ 消息的会话；设置为 false 时返回所有会话（默认值是 false）
+    bool hasGroupAtInfo;
+    
     V2TIMConversationListFilter();
     V2TIMConversationListFilter(const V2TIMConversationListFilter& filter);
     V2TIMConversationListFilter& operator =(const V2TIMConversationListFilter& filter);

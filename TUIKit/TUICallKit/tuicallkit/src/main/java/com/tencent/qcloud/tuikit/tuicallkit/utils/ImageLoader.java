@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.text.TextUtils;
 import android.widget.ImageView;
 
 import androidx.annotation.DrawableRes;
@@ -19,6 +18,7 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 import com.bumptech.glide.request.RequestOptions;
+import com.tencent.qcloud.tuikit.tuicallkit.R;
 
 import java.security.MessageDigest;
 import java.util.concurrent.ExecutionException;
@@ -30,73 +30,45 @@ public class ImageLoader {
         Glide.with(context).clear(imageView);
     }
 
-    public static void loadImage(Context context, ImageView imageView, String url) {
-        loadImage(context, imageView, url, 0, radius);
+    public static void loadImage(Context context, ImageView imageView, Object url) {
+        loadImage(context, imageView, url, R.drawable.tuicalling_ic_avatar);
     }
 
-    public static void loadImage(Context context, ImageView imageView, String url, @DrawableRes int errorResId) {
-        loadImage(context, imageView, url, errorResId, radius);
-    }
-
-    public static void loadImage(Context context, ImageView imageView, String url, @DrawableRes int errorResId,
-                                 int radius) {
-        if (TextUtils.isEmpty(url)) {
-            if (imageView != null && errorResId != 0) {
-                imageView.setImageResource(errorResId);
+    public static void loadImage(Context context, ImageView imageView, Object url, @DrawableRes int resId) {
+        if (url == null || url == "") {
+            if (imageView != null && resId != 0) {
+                imageView.setImageResource(resId);
             }
             return;
         }
-        Glide.with(context).load(url).error(loadTransform(context, errorResId, radius)).into(imageView);
+        Glide.with(context).load(url).placeholder(resId).error(loadTransform(context, resId, radius)).into(imageView);
     }
 
     public static void loadImage(Context context, ImageView imageView, @RawRes @DrawableRes Integer resourceId) {
         Glide.with(context).load(resourceId).into(imageView);
     }
 
-    public static Bitmap getImage(Context context, String url, int width, int height) {
-        if (TextUtils.isEmpty(url)) {
+    public static Bitmap loadBitmap(Context context, Object imageUrl, int targetImageSize) throws InterruptedException,
+            ExecutionException {
+        if (imageUrl == null) {
             return null;
         }
-        try {
-            Bitmap bitmap = Glide.with(context)
-                    .asBitmap()
-                    .load(url)
-                    .into(width, height)
-                    .get();
-            return bitmap;
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static void loadGifImage(Context context, ImageView imageView, String url) {
-        loadGifImage(context, imageView, url, 0);
-    }
-
-    public static void loadGifImage(Context context, ImageView imageView, String url, @DrawableRes int errorResId) {
-        if (TextUtils.isEmpty(url)) {
-            if (imageView != null && errorResId != 0) {
-                imageView.setImageResource(errorResId);
-            }
-            return;
-        }
-        Glide.with(context).asGif().load(url).into(imageView);
+        return Glide.with(context).asBitmap().load(imageUrl)
+                .apply(loadTransform(context, R.drawable.tuicalling_ic_avatar, radius))
+                .into(targetImageSize, targetImageSize)
+                .get();
     }
 
     public static void loadGifImage(Context context, ImageView imageView, @RawRes @DrawableRes int resourceId) {
         Glide.with(context).asGif().load(resourceId).into(imageView);
     }
 
-    private static RequestBuilder<Drawable> loadTransform(Context context, @DrawableRes int placeholderId, int radius) {
-        return Glide.with(context).load(placeholderId)
+    private static RequestBuilder<Drawable> loadTransform(Context context, @DrawableRes int resId, int radius) {
+        return Glide.with(context).load(resId).placeholder(resId)
                 .apply(new RequestOptions().centerCrop().transform(new GlideRoundTransform(context, radius)));
     }
 
     public static class GlideRoundTransform extends BitmapTransformation {
-
         private static float radius = 0f;
 
         public GlideRoundTransform(Context context, int dp) {

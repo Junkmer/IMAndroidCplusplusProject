@@ -37,7 +37,9 @@ public:
      * @param memberList 指定初始的群成员（直播群 AVChatRoom 不支持指定初始群成员，memberList
      * 请传一个大小为 0 的 V2TIMCreateGroupMemberInfoVector）
      *
-     * @note 其他限制请参考 @ref V2TIMManager.h -> CreateGroup 注释
+     * @note
+     * - 后台限制邀请的群成员个数不能超过 20
+     * - 其他限制请参考 @ref V2TIMManager.h -> CreateGroup 注释
      */
     virtual void CreateGroup(const V2TIMGroupInfo& info,
                              const V2TIMCreateGroupMemberInfoVector& memberList,
@@ -134,8 +136,8 @@ public:
      * 2.8 获取指定群在线人数
      *
      * @note 请注意：
-     *   - 目前只支持：直播群（AVChatRoom）。
-     *   - 该接口有频限检测，SDK 限制调用频率为60秒1次。
+     * - IMSDK 7.3 以前的版本仅支持直播群（ AVChatRoom）；
+     * - IMSDK 7.3 及其以后的版本支持所有群类型。
      */
     virtual void GetGroupOnlineMemberCount(const V2TIMString& groupID,
                                            V2TIMValueCallback<uint32_t>* callback) = 0;
@@ -205,18 +207,22 @@ public:
      *                 不为零，需要分页，传入再次拉取，直至为0。
      *
      *  @note
-     *  - 普通群（工作群、会议群、公开群、社群）的限制：
+     *  - 普通群（工作群、会议群、公开群）的限制：
      *  1. filter 只能设置为 V2TIMGroupMemberFilter 定义的数值，SDK 会返回指定角色的成员。
      *
      *  - 直播群（AVChatRoom）的限制：
      *  1. 如果设置 filter 为 V2TIMGroupMemberFilter 定义的数值，SDK 返回全部成员。
-     *    返回的人数规则为：旗舰版支持拉取最近入群群成员最多 1000 人，新进来的成员排在前面（6.3 及以上版本支持，
-     *    需要先在 [控制台](https://console.cloud.tencent.com/im) 开启开关；
-     *    非旗舰版支持拉取最近入群群成员最多 31 人，新进来的 成员排在前面。
+     *     返回的人数规则为：拉取最近入群群成员最多 1000 人，新进来的成员排在前面。
+     *     需要升级旗舰版，并且在 [控制台](https://console.cloud.tencent.com/im) 开启“直播群在线成员列表”开关。
+     *    （6.3 及以上版本支持）。
      *  2. 如果设置 filter 为群成员自定义标记，旗舰版支持拉取指定标记的成员列表。
      *    标记群成员的设置请参考 MarkGroupMemberList API。
      *  3. 程序重启后，请重新加入群组，否则拉取群成员会报 10007 错误码。
      *  4. 群成员资料信息仅支持 userID | nickName | faceURL | role 字段。
+     *
+     *  - 社群（Community）的限制：
+     *  1. 如果设置 filter 为 V2TIMGroupMemberFilter 定义的数值，SDK 返回指定角色的成员。
+     *  2. 如果设置 filter 为群成员自定义标记，旗舰版支持拉取指定标记的成员列表(7.5 及以上版本支持）。标记群成员的设置请参考 markGroupMemberList API。
      */
     virtual void GetGroupMemberList(const V2TIMString& groupID, uint32_t filter,
                                     uint64_t nextSeq,
@@ -247,41 +253,62 @@ public:
                                     V2TIMCallback* callback) = 0;
 
     /**
-     * 3.5 禁言（只有管理员或群主能够调用）
+     * 3.5 禁言群成员（只有管理员或群主能够调用）
      *
      * @param seconds 禁言时间长度，单位秒，表示调用该接口成功后多少秒内不允许被禁言用户再发言。
      */
     virtual void MuteGroupMember(const V2TIMString& groupID, const V2TIMString& userID,
                                  uint32_t seconds,
                                  V2TIMCallback* callback) = 0;
+    
+    /**
+     * 3.6 禁言全体群成员，只有管理员或群主能够调用（7.5 及以上版本支持）
+     *
+     * @param groupID 群组 ID
+     * @param isMute true 表示禁言，false 表示解除禁言
+     *
+     * @note
+     * - 禁言全体群成员没有时间限制，设置 isMute 为 false 则解除禁言。
+     * - 禁言或解除禁言后，会触发 V2TIMGroupListener 中的 onAllGroupMembersMuted 回调。
+     * - 群主和管理员可以禁言普通成员。普通成员不能操作禁言/解除禁言。
+     */
+    virtual void MuteAllGroupMembers(const V2TIMString& groupID, bool isMute, V2TIMCallback* callback) = 0;
 
     /**
-     * 3.6 邀请他人入群
+     * 3.7 邀请他人入群
      *
      * @note 请注意不同类型的群有如下限制：
      * - 工作群（Work）：群里的任何人都可以邀请其他人进群。
-     * - 会议群（Meeting）和公开群（Public）：只有通过rest api 使用 App
-     * 管理员身份才可以邀请其他人进群。
+     * - 会议群（Meeting）和公开群（Public）：默认不允许邀请加入群，您可以修改群资料 V2TIMGroupInfo 的 groupApproveOpt 字段打开邀请入群方式。打开该选项之后，群里的任何人都可以邀请其他人进群。
      * - 直播群（AVChatRoom）：不支持此功能。
+     * - 后台限制单次邀请的群成员个数不能超过 20。
      */
     virtual void InviteUserToGroup(
         const V2TIMString& groupID, const V2TIMStringVector& userList,
         V2TIMValueCallback<V2TIMGroupMemberOperationResultVector>* callback) = 0;
 
     /**
-     * 3.7 踢人（直播群踢人从 6.6 版本开始支持，需要您购买旗舰版套餐）
+     *  3.8 踢人
      *
-     * @note 请注意不同类型的群有如下限制：
-     * - 工作群（Work）：只有群主或 APP 管理员可以踢人。
-     * - 公开群（Public）、会议群（Meeting）：群主、管理员和 APP 管理员可以踢人
-     * - 直播群（AVChatRoom）：6.6 之前版本只支持禁言（MuteGroupMember），不支持踢人（KickGroupMember）。6.6 及以上版本支持禁言和踢人。
+     *  @param groupID 群 id
+     *  @param memberList 被踢用户的 userID 列表
+     *  @param reason 被踢的原因
+     *  @param duration 指定自被踢出群组开始算起，禁止被踢用户重新申请加群的时长，单位：秒
+     *  @param callback 回调
+     *
+     *  @note
+     *  - 从 7.2 版本开始，支持设置一个时长参数，用于指定用户从被踢出群组开始算起，禁止重新申请加群的时长;
+     *  - 工作群（Work）：只有群主或 APP 管理员可以踢人；
+     *  - 公开群（Public）、会议群（Meeting）：群主、管理员和 APP 管理员可以踢人；
+     *  - 直播群（AVChatRoom）：6.6 之前版本只支持禁言（muteGroupMember），不支持踢人。6.6 及以上版本支持禁言和踢人。需要您购买旗舰版套餐；
+     *  - 该接口其他使用限制请查阅：https://cloud.tencent.com/document/product/269/75400#.E8.B8.A2.E4.BA.BA。
      */
     virtual void KickGroupMember(
         const V2TIMString& groupID, const V2TIMStringVector& memberList, const V2TIMString& reason,
-        V2TIMValueCallback<V2TIMGroupMemberOperationResultVector>* callback) = 0;
+        uint32_t duration, V2TIMValueCallback<V2TIMGroupMemberOperationResultVector>* callback) = 0;
 
     /**
-     * 3.8 切换群成员的角色。
+     * 3.9 切换群成员的角色。
      *
      * @note 请注意不同类型的群有如下限制：
      *  -
@@ -297,15 +324,16 @@ public:
         uint32_t role, V2TIMCallback* callback) = 0;
 
     /**
-     *  3.9 标记群成员(从 6.6 版本开始支持，需要您购买旗舰版套餐)
+     *  3.10 标记群成员(需要您购买旗舰版套餐)
      *
      *  @param groupID 群 ID。
      *  @param memberList 群成员 ID 列表。
-     *  @param markType 标记类型。数字类型，大于等于 1000，您可以自定义，一个直播群里最多允许定义 10 个标记。
+     *  @param markType 标记类型。数字类型，大于等于 1000，您可以自定义，一个群组里最多允许定义 10 个标记。
      *  @param enableMark true 表示添加标记，false 表示移除标记。
      *
      *  @note 请注意
-     *  - 仅支持直播群。
+     *  - 直播群从 6.6 版本开始支持。
+     *  - 社群从 7.5 版本开始支持。
      *  - 只有群主才有权限标记群组中其他人。
      */
     virtual void MarkGroupMemberList(const V2TIMString& groupID,
@@ -313,7 +341,7 @@ public:
         bool enableMark, V2TIMCallback* callback) = 0;
 
     /**
-     * 3.10 转让群主
+     * 3.11 转让群主
      *
      * @note 请注意不同类型的群有如下限制：
      *  - 普通类型的群（Work、Public、Meeting）：只有群主才有权限进行群转让操作。
@@ -321,6 +349,20 @@ public:
      */
     virtual void TransferGroupOwner(const V2TIMString& groupID, const V2TIMString& userID,
                                     V2TIMCallback* callback) = 0;
+
+    /**
+     * 3.12 踢人（直播群踢人从 6.6 版本开始支持，需要您购买旗舰版套餐）
+     * 
+     * @note 使用限制如下：
+     * - 待废弃接口，请使用 KickGroupMember(const V2TIMString&, const V2TIMStringVector &, const V2TIMString&, uint32_t, V2TIMValueCallback) 接口；
+     * - 工作群（Work）：只有群主或 APP 管理员可以踢人；
+     * - 公开群（Public）、会议群（Meeting）：群主、管理员和 APP 管理员可以踢人；
+     * - 直播群（AVChatRoom）：6.6 之前版本只支持禁言（MuteGroupMember），不支持踢人（KickGroupMember）。6.6 及以上版本支持禁言和踢人；
+     * - 该接口其他使用限制请查阅：https://cloud.tencent.com/document/product/269/75400#.E8.B8.A2.E4.BA.BA。
+     */
+    virtual void KickGroupMember(
+        const V2TIMString& groupID, const V2TIMStringVector& memberList, const V2TIMString& reason,
+        V2TIMValueCallback<V2TIMGroupMemberOperationResultVector>* callback) = 0;
 
     /////////////////////////////////////////////////////////////////////////////////
     //                         加群申请
@@ -363,6 +405,8 @@ public:
 
     /**
      * 5.2 创建话题
+     *
+     * @param groupID 社群 ID，必须以 @TGS#_ 开头。
      */
     virtual void CreateTopicInCommunity(const V2TIMString &groupID, const V2TIMTopicInfo &topicInfo,
         V2TIMValueCallback<V2TIMString> *callback) = 0;
