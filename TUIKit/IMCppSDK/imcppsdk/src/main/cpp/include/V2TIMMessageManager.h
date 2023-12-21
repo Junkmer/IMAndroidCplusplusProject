@@ -281,6 +281,43 @@ public:
     virtual void SetGroupReceiveMessageOpt(const V2TIMString &groupID, V2TIMReceiveMessageOpt opt,
                                            V2TIMCallback *callback) = 0;
 
+    /**
+     * 4.4 设置全局消息接收选项，从 7.4 版本开始支持。
+     *
+     * @param opt 全局消息接收选项，支持两种取值：
+     *              V2TIMReceiveMessageOpt.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知，默认为该选项
+     *              V2TIMReceiveMessageOpt.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知，可用于实现消息免打扰功能
+     * @param startHour   免打扰开始时间：小时，取值范围[0 - 23]
+     * @param startMinute 免打扰开始时间：分钟，取值范围[0 - 59]
+     * @param startSecond 免打扰开始时间：秒，取值范围[0 - 59]
+     * @param duration    免打扰持续时长：单位：秒，取值范围 [0 - 24*60*60].
+     *
+     * @note 请注意
+     *  - 当 duration 的取值小于 24*60*60 时，可用于实现重复免打扰，即消息免打扰从每天的 startHour:startMinute:startSecond 表示的时间点开始，持续时长为 druation 秒
+     *  - 当 duration 取值不小于 24*60*60 时，可用于实现永久免打扰，即从调用该 API 当天 startHour:startMinute:startSecond 表示的时间点开始永久消息免打扰
+     */
+    virtual void SetAllReceiveMessageOpt(V2TIMReceiveMessageOpt opt, int32_t startHour, int32_t startMinute,
+                                         int32_t startSecond, uint32_t duration, V2TIMCallback *callback) = 0;
+
+    /**
+     * 4.5 设置全局消息接收选项，从 7.4 版本开始支持。
+     *
+     * @param opt 全局消息接收选项，支持两种取值：
+     *              V2TIMReceiveMessageOpt.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知，默认为该选项
+     *              V2TIMReceiveMessageOpt.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知，可用于实现消息免打扰功能
+     * @param startTimeStamp 免打扰开始时间，UTC 时间戳，单位：秒
+     * @param duration       免打扰持续时长，单位：秒
+     *
+     */
+    virtual void SetAllReceiveMessageOpt(V2TIMReceiveMessageOpt opt, uint32_t startTimeStamp, uint32_t duration,
+                                         V2TIMCallback *callback) = 0;
+
+    /**
+     *  4.5 获取登录用户全局消息接收选项，从 7.4 版本开始支持
+     *
+     */
+    virtual void GetAllReceiveMessageOpt(V2TIMValueCallback<V2TIMReceiveMessageOptInfo> *callback) = 0;
+
     /////////////////////////////////////////////////////////////////////////////////
     //
     //                         获取历史消息、撤回、删除、标记已读等高级接口
@@ -306,8 +343,10 @@ public:
      * @note 请注意：
      *  - 撤回消息的时间限制默认 2 minutes，超过 2 minutes 的消息不能撤回，您也可以在 [控制台](https://console.cloud.tencent.com/im)（功能配置 -> 登录与消息 ->
      * 消息撤回设置）自定义撤回时间限制。
-     *  - 仅支持单聊和群组中发送的普通消息，无法撤销 onlineUserOnly 为 true 即仅在线用户才能收到的消息，也无法撤销直播群（AVChatRoom）中的消息。
+     *  - 仅支持单聊和群组中发送的普通消息，无法撤销 onlineUserOnly 为 true 即仅在线用户才能收到的消息。
      *  - 如果发送方撤回消息，已经收到消息的一方会收到 V2TIMAdvancedMsgListener::OnRecvMessageRevoked 回调。
+     *  - 从 IMSDK 7.4 版本开始，支持撤回包括直播群（AVChatRoom）、社群在内的所有群类型的消息。
+     *  - 在单聊场景中，仅能撤回自己的消息；在群聊场景中，除了可以撤回自己的消息外，管理员或者群主也可以撤回其他群成员的消息。
      */
     virtual void RevokeMessage(const V2TIMMessage &message, V2TIMCallback *callback) = 0;
 
@@ -322,31 +361,10 @@ public:
     virtual void ModifyMessage(const V2TIMMessage &message, V2TIMCompleteCallback<V2TIMMessage> *callback) = 0;
 
     /**
-     * 5.4 标记单聊会话已读
-     * @note 请注意：
-     *  - 该接口调用成功后，自己的未读数会清 0，对端用户会收到 OnRecvC2CReadReceipt 回调，回调里面会携带标记会话已读的时间。
-     *  - 从 5.8 版本开始，当 userID 为 nil 时，标记所有单聊会话为已读状态。
-     */
-    virtual void MarkC2CMessageAsRead(const V2TIMString &userID, V2TIMCallback *callback) = 0;
-
-    /**
-     * 5.5 标记群组会话已读
-      *  @note 请注意：
-      *  - 该接口调用成功后，自己的未读数会清 0。
-      *  - 从 5.8 版本开始，当 groupID 为 nil 时，标记所有群组会话为已读状态。
-     */
-    virtual void MarkGroupMessageAsRead(const V2TIMString &groupID, V2TIMCallback *callback) = 0;
-
-    /**
-     * 5.6 标记所有会话为已读 （5.8 及其以上版本支持）
-     */
-    virtual void MarkAllMessageAsRead(V2TIMCallback *callback) = 0;
-
-    /**
-     * 5.7 删除本地及云端的消息
+     * 5.4 删除本地及云端的消息
      *
      *  @note 该接口删除本地及云端的消息，且无法恢复。需要注意的是：
-     *  - 一次最多只能删除 30 条消息
+     *  - 一次最多只能删除 50 条消息
      *  - 要删除的消息必须属于同一会话
      *  - 一秒钟最多只能调用一次该接口
      *  -
@@ -355,7 +373,7 @@ public:
     virtual void DeleteMessages(const V2TIMMessageVector &messages, V2TIMCallback *callback) = 0;
 
     /**
-     * 5.8 清空单聊本地及云端的消息（不删除会话）
+     * 5.5 清空单聊本地及云端的消息（不删除会话）
      * <p> 5.4.666 及以上版本支持
      *
      * @note 请注意：
@@ -365,7 +383,7 @@ public:
     virtual void ClearC2CHistoryMessage(const V2TIMString &userID, V2TIMCallback *callback) = 0;
 
     /**
-     * 5.9 清空群聊本地及云端的消息（不删除会话）
+     * 5.6 清空群聊本地及云端的消息（不删除会话）
      * <p> 5.4.666 及以上版本支持
      *
      * @note 请注意：
@@ -374,7 +392,7 @@ public:
     virtual void ClearGroupHistoryMessage(const V2TIMString &groupID, V2TIMCallback *callback) = 0;
 
     /**
-     * 5.10 向群组消息列表中添加一条消息
+     * 5.7 向群组消息列表中添加一条消息
      *
      * 该接口主要用于满足向群组聊天会话中插入一些提示性消息的需求，比如“您已经退出该群”，这类消息有展示
      * 在聊天消息区的需求，但并没有发送给其他人的必要。
@@ -389,7 +407,7 @@ public:
         V2TIMValueCallback<V2TIMMessage> *callback) = 0;
 
     /**
-     *  5.11 向C2C消息列表中添加一条消息
+     *  5.8 向C2C消息列表中添加一条消息
      *
      *  该接口主要用于满足向C2C聊天会话中插入一些提示性消息的需求，比如“您已成功发送消息”，这类消息有展示
      *  在聊天消息去的需求，但并没有发送给对方的必要。
@@ -403,14 +421,14 @@ public:
         V2TIMValueCallback<V2TIMMessage> *callback) = 0;
 
     /**
-     * 5.12 根据 messageID 查询指定会话中的本地消息
+     * 5.9 根据 messageID 查询指定会话中的本地消息
      * @param messageIDList 消息 ID 列表
      */
     virtual void FindMessages(const V2TIMStringVector &messageIDList,
                               V2TIMValueCallback<V2TIMMessageVector> *callback) = 0;
 
     /**
-     * 5.13 搜索本地消息（5.4.666 及以上版本支持，需要您购买旗舰版套餐）
+     * 5.10 搜索本地消息（5.4.666 及以上版本支持，需要您购买旗舰版套餐）
      * @param searchParam 消息搜索参数，详见 V2TIMMessageSearchParam 的定义
      * @note 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17474)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17176#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
      */
@@ -418,7 +436,17 @@ public:
                                      V2TIMValueCallback<V2TIMMessageSearchResult> *callback) = 0;
 
     /**
-     *  5.14 发送消息已读回执（6.1 及其以上版本支持）
+     * 5.11 搜索云端消息（7.3 及以上版本支持）
+     * @param searchParam 消息搜索参数，详见 V2TIMMessageSearchParam 的定义
+     * @note
+     * - 该功能为 IM 增值功能，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17176#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
+     * - 如果您没有开通该服务，调用接口会返回 60020 错误码
+     */
+    virtual void SearchCloudMessages(const V2TIMMessageSearchParam &searchParam,
+                                     V2TIMValueCallback<V2TIMMessageSearchResult> *callback) = 0;
+
+    /**
+     *  5.12 发送消息已读回执（6.1 及其以上版本支持）
      * 
      * @note 请注意：
      * - 该功能为旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17485)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17221#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
@@ -429,7 +457,7 @@ public:
     virtual void SendMessageReadReceipts(const V2TIMMessageVector &messageList, V2TIMCallback *callback) = 0;
 
     /**
-     *  5.15 获取消息已读回执（6.1 及其以上版本支持）
+     *  5.13 获取消息已读回执（6.1 及其以上版本支持）
      * @param messageList 消息列表
      *
      * @note 请注意：
@@ -440,7 +468,7 @@ public:
     virtual void GetMessageReadReceipts(const V2TIMMessageVector &messageList, V2TIMValueCallback<V2TIMMessageReceiptVector> *callback) = 0;
 
     /**
-     * 5.16 获取群消息已读群成员列表（6.1 及其以上版本支持）
+     * 5.14 获取群消息已读群成员列表（6.1 及其以上版本支持）
      * @param message 群消息
      * @param filter  指定拉取已读或未读群成员列表。
      * @param nextSeq 分页拉取的游标，第一次默认取传 0，后续分页拉取时，传上一次分页拉取成功回调里的 nextSeq。
@@ -453,8 +481,8 @@ public:
     virtual void GetGroupMessageReadMemberList(const V2TIMMessage &message, V2TIMGroupMessageReadMembersFilter filter, uint64_t nextSeq, uint32_t count, V2TIMValueCallback<V2TIMGroupMessageReadMemberList> *callback) = 0;
 
     /**
-     * 5.17 设置消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
-     * @param message 消息对象，消息需满足三个条件：1、消息发送前需设置 supportMessageExtension 为 true，2、消息必须是发送成功的状态，3、消息不能是社群（Community）和直播群（AVChatRoom）消息。
+     * 5.15 设置消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
+     * @param message 消息对象，消息需满足三个条件：1、消息发送前需设置 supportMessageExtension 为 true，2、消息必须是发送成功的状态，3、消息不能是直播群（AVChatRoom）消息。
      * @param extensions 扩展信息，如果扩展 key 已经存在，则修改扩展的 value 信息，如果扩展 key 不存在，则新增扩展。
      *
      * @note
@@ -465,30 +493,128 @@ public:
     virtual void SetMessageExtensions(const V2TIMMessage &message, const V2TIMMessageExtensionVector &extensions, V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback) = 0;
 
     /**
-     * 5.18 获取消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
+     * 5.16 获取消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
      */
     virtual void GetMessageExtensions(const V2TIMMessage &message, V2TIMValueCallback<V2TIMMessageExtensionVector> *callback) = 0;
 
     /**
-     * 5.19 删除消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
+     * 5.17 删除消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
      * @param keys 消息扩展 key 列表, 单次最大支持删除 20 个消息扩展，如果设置为 nil ，表示删除所有消息扩展
      *
      * @note
      * - 当多个用户同时设置或删除同一个扩展 key 时，只有第一个用户可以执行成功，其它用户会收到 23001 错误码和最新的扩展信息，在收到错误码和扩展信息后，请按需重新发起删除操作。
      */
     virtual void DeleteMessageExtensions(const V2TIMMessage &message, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback) = 0;
+    
+    /**
+     * 5.18 添加消息回应（可以用于实现表情回应）（7.4 及其以上版本支持，需要您购买旗舰版套餐）
+     *
+     *  <p> 表情回应功能是指对某条消息通过表情符号进行互动回应，我们可以看到每种表情的回应人数和回应人列表。
+     *  <p> 目前常见的消息回应展示方式会有如下两种风格：
+     *  <p> 风格一：
+     *  <p>  ----------------------------
+     *  <p> |   lucy, happy birthday!    |
+     *  <p>  ----------------------------
+     *  <p> |   😄 1  💐 2  👍🏻 10        |
+     *  <p>  ----------------------------
+     *  <p> 风格二：
+     *  <p>  ------------------------------------------------
+     *  <p> |   lucy, happy birthday!                        |
+     *  <p>  ------------------------------------------------
+     *  <p> |  😁 bob 💐olivia 🎂david                       |
+     *  <p> |  👍🏻 denny、james、lucy、linda、thomas 等10人     |
+     *  <p>  ------------------------------------------------
+     *  <p>
+     *  <p> 当用户点击某个表情后，会跳转到表情回应详情界面：
+     *  <p>  |  😄   |   💐    |   👍🏻   |
+     *  <p>  |  bob  |  olivia |  lucy   |
+     *  <p>  |  ...  |   ...   |  denny  |
+     *  <p>  |  ...  |   ...   |  ...    |
+     *  <p> 用户可以根据某个表情分页拉取使用该表情的用户信息。
+     *  <p>
+     *  <p> 您可以基于 SDK API 实现表情回应能力:
+     *  <p> 1、调用 AddMessageReaction    接口为一条消息添加一个 emoji，添加成功后，emoji 下就会存储当前操作用户。
+     *  <p> 2、调用 RemoveMessageReaction 接口删除已经添加的 emoji，删除成功后，emoji 下就不再存储当前操作用户。
+     *  <p> 3、调用 GetMessageReactions   接口批量拉取多条消息的 emoji 列表，其中每个 emoji 都包含了当前使用者总人数以及前 N（默认 10）个使用者用户资料。
+     *  <p> 4、调用 GetAllUserListOfMessageReaction 接口分页拉取消息 emoji 的全量使用者用户资料。
+     *  <p> 5、监听 onRecvMessageReactionsChanged 回调，感知 emoji 的使用者信息变更，该回调会携带 emoji 最新的使用者信息（包含使用者总人数以及前 N 个使用者用户资料）。
+     *  <p>
+     *
+     * @param reactionID 消息回应 ID，在表情回应场景，reactionID 为表情 ID，单条消息最大支持 10 个 Reaction，单个 Reaction 最大支持 100 个用户。
+     *
+     * @note
+     * - 该功能为旗舰版功能，需要您购买旗舰版套餐。
+     * - 如果单条消息 Reaction 数量超过最大限制，调用接口会报 ERR_SVR_MSG_REACTION_COUNT_LIMIT 错误。
+     * - 如果单个 Reaction 用户数量超过最大限制，调用接口会报 ERR_SVR_MSG_REACTION_USER_COUNT_LIMIT 错误。
+     * - 如果 Reaction 已经包含当前用户，调用接口会报 ERR_SVR_MSG_REACTION_ALREADY_CONTAIN_USER 错误。
+     */
+    virtual void AddMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID,
+                                    V2TIMCallback *callback) = 0;
 
     /**
-     *  5.20 翻译文本消息
+     * 5.19 删除消息回应（7.4 及其以上版本支持，需要您购买旗舰版套餐）
+     *
+     * @note
+     * - 如果 Reaction 不存在，调用接口会报 ERR_SVR_MSG_REACTION_NOT_EXISTS 错误。
+     * - 如果 Reaction 不包含当前用户，调用接口会报 ERR_SVR_MSG_REACTION_NOT_CONTAIN_USER 错误。
+     */
+    virtual void RemoveMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID,
+                                       V2TIMCallback *callback) = 0;
+
+    /**
+     * 5.20 批量拉取多条消息回应信息（7.4 及其以上版本支持，需要您购买旗舰版套餐）
+     *
+     * @param messageList 消息列表，一次最大支持 20 条消息，消息必须属于同一个会话。
+     * @param maxUserCountPerReaction 取值范围 【0,10】，每个 Reaction 最多只返回前 10 个用户信息，如需更多用户信息，可以按需调用 GetAllUserListOfMessageReaction 接口分页拉取。
+     *
+     */
+    virtual void GetMessageReactions(const V2TIMMessageVector &messageList, uint32_t maxUserCountPerReaction,
+                                     V2TIMValueCallback<V2TIMMessageReactionResultVector> *callback) = 0;
+
+    /**
+     * 5.21 分页拉取使用指定消息回应用户信息（7.4 及其以上版本支持，需要您购买旗舰版套餐）
+     *
+     * @param message 消息对象
+     * @param reactionID 消息回应 ID
+     * @param nextSeq 分页拉取的游标，第一次传 0，后续分页传 succ 返回的 nextSeq。
+     * @param count 一次分页最大拉取个数，最大支持 100 个。
+     *
+     */
+    virtual void GetAllUserListOfMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID, uint32_t nextSeq,
+                                                 uint32_t count, V2TIMValueCallback<V2TIMMessageReactionUserResult> *callback) = 0;
+
+    /**
+     *  5.22 翻译文本消息
      *
      *  @param sourceTextList 待翻译文本数组。
      *  @param sourceLanguage 源语言。可以设置为特定语言或 ”auto“。“auto“ 表示自动识别源语言。传空默认为 ”auto“。
-     *  @param targetLanguage 目标语言。支持的目标语言有多种，例如：英语-“en“，简体中文-”zh“，法语-”fr“，德语-”de“等。
+     *  @param targetLanguage 目标语言。支持的目标语言有多种，例如：英语-“en“，简体中文-”zh“，法语-”fr“，德语-”de“等。详情请参考文档：[文本翻译语言支持](https://cloud.tencent.com/document/product/269/85380#.E6.96.87.E6.9C.AC.E7.BF.BB.E8.AF.91.E8.AF.AD.E8.A8.80.E6.94.AF.E6.8C.81)。
      *  @param callback 翻译结果回调。其中 result 的 key 为待翻译文本, value 为翻译后文本。
      */
     virtual void TranslateText(const V2TIMStringVector &sourceTextList,
                                const V2TIMString &sourceLanguage, const V2TIMString &targetLanguage,
                                V2TIMValueCallback<V2TIMStringToV2TIMStringMap> *callback) = 0;
+
+    /**
+     * 5.23 标记单聊会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+     * @note 请注意：
+     *  - 该接口调用成功后，自己的未读数会清 0，对端用户会收到 OnRecvC2CReadReceipt 回调，回调里面会携带标记会话已读的时间。
+     *  - 从 5.8 版本开始，当 userID 为 nil 时，标记所有单聊会话为已读状态。
+     */
+    virtual void MarkC2CMessageAsRead(const V2TIMString &userID, V2TIMCallback *callback) = 0;
+
+    /**
+     * 5.24 标记群组会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+      *  @note 请注意：
+      *  - 该接口调用成功后，自己的未读数会清 0。
+      *  - 从 5.8 版本开始，当 groupID 为 nil 时，标记所有群组会话为已读状态。
+     */
+    virtual void MarkGroupMessageAsRead(const V2TIMString &groupID, V2TIMCallback *callback) = 0;
+
+    /**
+     * 5.25 标记所有会话为已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+     */
+    virtual void MarkAllMessageAsRead(V2TIMCallback *callback) = 0;
 };
 
 #endif  // __V2TIM_MESSAGE_MANAGER_H__

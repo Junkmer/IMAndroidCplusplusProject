@@ -43,17 +43,17 @@ namespace v2im {
             }
             j_field_array_[FieldIDKeywordList] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "type", "I");
+            jfield = env->GetFieldID(j_cls_, "keywordListMatchType", "I");
             if (nullptr == jfield) {
                 return false;
             }
-            j_field_array_[FieldIDType] = jfield;
+            j_field_array_[FieldIDKeywordListMatchType] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "userIDList", "Ljava/util/List;");
+            jfield = env->GetFieldID(j_cls_, "senderUserIDList", "Ljava/util/List;");
             if (nullptr == jfield) {
                 return false;
             }
-            j_field_array_[FieldIDUserIDList] = jfield;
+            j_field_array_[FieldIDSenderUserIDList] = jfield;
 
             jfield = env->GetFieldID(j_cls_, "messageTypeList", "Ljava/util/List;");
             if (nullptr == jfield) {
@@ -85,6 +85,18 @@ namespace v2im {
             }
             j_field_array_[FieldIDPageIndex] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "searchCount", "I");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDSearchCount] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "searchCursor", "Ljava/lang/String;");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDSearchCursor] = jfield;
+
             return true;
         }
 
@@ -114,9 +126,9 @@ namespace v2im {
             }
             env->DeleteLocalRef(j_obj_keywordList);
 
-            searchParam.keywordListMatchType = V2TIMKeywordListMatchType(env->GetIntField(j_obj_searchParam, j_field_array_[FieldIDType]));
+            searchParam.keywordListMatchType = V2TIMKeywordListMatchType(env->GetIntField(j_obj_searchParam, j_field_array_[FieldIDMessageTypeList]));
 
-            jobject j_obj_userIDList = env->GetObjectField(j_obj_searchParam, j_field_array_[FieldIDUserIDList]);
+            jobject j_obj_userIDList = env->GetObjectField(j_obj_searchParam, j_field_array_[FieldIDSenderUserIDList]);
             size = ArrayListJni::Size(j_obj_userIDList);
             for (int i = 0; i < size; ++i) {
                 auto j_str_userID = (jstring) ArrayListJni::Get(j_obj_keywordList, i);
@@ -138,6 +150,13 @@ namespace v2im {
             searchParam.searchTimePeriod = (uint32_t) env->GetLongField(j_obj_searchParam, j_field_array_[FieldIDSearchTimePeriod]);
             searchParam.pageSize = (uint32_t) env->GetIntField(j_obj_searchParam, j_field_array_[FieldIDPageSize]);
             searchParam.pageIndex = (uint32_t) env->GetIntField(j_obj_searchParam, j_field_array_[FieldIDPageIndex]);
+
+            searchParam.searchCount = (uint32_t) env->GetIntField(j_obj_searchParam, j_field_array_[FieldIDSearchCount]);
+            jStr = (jstring) env->GetObjectField(j_obj_searchParam, j_field_array_[FieldIDSearchCursor]);
+            if (jStr) {
+                searchParam.searchCursor = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
 
             return true;
         }

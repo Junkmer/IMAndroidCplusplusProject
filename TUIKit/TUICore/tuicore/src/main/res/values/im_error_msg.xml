@@ -122,9 +122,9 @@
     <string name="TUIKitErrorSVRCommonSDkappidForbidden">SDKAppID is disabled.</string>
     <string name="TUIKitErrorSVRCommonReqForbidden">Request is disabled.</string>
     <string name="TUIKitErrorSVRCommonReqFreqLimit">Too many requests. Try again later.</string>
-    <string name="TUIKitErrorSVRCommonInvalidService">Your professional package has expired and been deactivated. Please log in to the im purchase page to re purchase the package. After purchase, it will take effect in 5 minutes.</string>
+    <string name="TUIKitErrorSVRCommonInvalidService">The package has not been purchased, or the package has expired, or the purchased package is being configured and has not yet taken effect. Please log in to the im purchase page to re purchase the package. After purchase, it will take effect in 5 minutes.</string>
     <string name="TUIKitErrorSVRCommonSensitiveText">Text is filtered due to security reasons, which may contain sensitive words.</string>
-    <string name="TUIKitErrorSVRCommonBodySizeLimit">The sending message package is too long. Currently, the maximum 8K message package length is supported. Please reduce the package size and try again.</string>
+    <string name="TUIKitErrorSVRCommonBodySizeLimit">The sending message package is too long. Currently, the maximum 12K message package length is supported. Please reduce the package size and try again.</string>
     <string name="TUIKitErrorSVRAccountUserSigExpired">UserSig has expired. Generate a new one.</string>
     <string name="TUIKitErrorSVRAccountUserSigEmpty">UserSig length is 0.</string>
     <string name="TUIKitErrorSVRAccountUserSigCheckFailed">UserSig verification failed.</string>
@@ -140,6 +140,7 @@
     <string name="TUIKitErrorSVRAccountInvalidCount">Invalid batch quantity in the request.</string>
     <string name="TUIkitErrorSVRAccountINvalidParameters">Invalid parameter. Check whether the fields are entered as required in the protocol.</string>
     <string name="TUIKitErrorSVRAccountAdminRequired">The request requires app admin permissions.</string>
+    <string name="TUIKitErrorSVRAccountLowSDKVersion">Your sdk version is too low, Please upgrade to the latest version.</string>
     <string name="TUIKitErrorSVRAccountFreqLimit">Restricted due to too many failures and retries. Check if the UserSig is correct and try again after one minute.</string>
     <string name="TUIKitErrorSVRAccountBlackList">The account is added to the blocked list.</string>
     <string name="TUIKitErrorSVRAccountCountLimit">The number of accounts created exceeds that allowed in the free trial version. Upgrade to the professional version.</string>
@@ -200,9 +201,10 @@
     <string name="TUIKitErrorSVRMsgTimeLimit">Invalid offline message storage time (up to 7 days).</string>
     <string name="TUIKitErrorSVRMsgInvalidSyncOtherMachine">The type of the SyncOtherMachine field in the JSON request packet body is not Integer.</string>
     <string name="TUIkitErrorSVRMsgInvalidMsgLifeTime">The type of the MsgLifeTime field in the JSON request packet body is not Integer.</string>
-    <string name="TUIKitErrorSVRMsgBodySizeLimit">The length of JSON data packet exceeds the limit. The message packet body shall not exceed 8 KB.</string>
+    <string name="TUIKitErrorSVRMsgBodySizeLimit">The length of JSON data packet exceeds the limit. The message packet body shall not exceed 12 KB.</string>
     <string name="TUIKitErrorSVRmsgLongPollingCountLimit">Forced logout on the Web page during long polling (the number of online instances on the Web page exceeds the limit).</string>
-    <string name="TUIKitErrorUnsupporInterface">The package you purchased does not support the feature</string>
+    <string name="TUIKitErrorUnsupporInterface">This feature is available only to the Ultimate edition. Please upgrade.</string>
+    <string name="TUIKitErrorUnsupporInterfaceSuffix"> feature is available only to the Ultimate edition. Please upgrade.</string>
 
     <string name="TUIKitErrorSVRGroupApiNameError">The API name in the request is incorrect.</string>
     <string name="TUIKitErrorSVRGroupAccountCountLimit">The number of accounts in the request packet body exceeds the limit.</string>

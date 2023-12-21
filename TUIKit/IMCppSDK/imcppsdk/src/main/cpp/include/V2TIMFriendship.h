@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021 Tencent. All rights reserved.
+// Copyright (c) 2021 Tencent. All rights reserved.
 
 #ifndef __V2TIM_FRIENDSHIP_H__
 #define __V2TIM_FRIENDSHIP_H__
@@ -135,6 +135,9 @@ struct TIM_API V2TIMUserInfo {
     virtual ~V2TIMUserInfo();
 };
 
+DEFINE_VECTOR(V2TIMUserInfo)
+typedef TXV2TIMUserInfoVector V2TIMUserInfoVector;
+
 /// 用户详细资料
 struct TIM_API V2TIMUserFullInfo : public V2TIMUserInfo {
     /// 用户签名
@@ -179,7 +182,10 @@ struct TIM_API V2TIMUserStatus {
 
     /// 用户的自定义状态, 最大 50 字节
     V2TIMString customStatus;
-
+    
+    /// 在线终端列表
+    V2TIMStringVector onlineDevices;
+    
     V2TIMUserStatus();
     V2TIMUserStatus(const V2TIMUserStatus &);
     ~V2TIMUserStatus();
@@ -197,7 +203,7 @@ struct TIM_API V2TIMFriendInfo {
     /// 字段描述详见
     /// [控制台](https://cloud.tencent.com/document/product/269/1501#.E6.A0.87.E9.85.8D.E5.A5.BD.E5.8F.8B.E5.AD.97.E6.AE.B5)。
     V2TIMString friendRemark;
-    /// 好友添加时间
+    /// 添加好友的 UTC 时间戳
     uint64_t friendAddTime;
     /// 好友自定义字段
     /// 首先要在 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 好友自定义字段)
@@ -233,7 +239,7 @@ typedef TXV2TIMFriendInfoVector V2TIMFriendInfoVector;
 struct TIM_API V2TIMFriendInfoResult {
     /// 返回码
     int resultCode;
-    /// 返结果表述
+    /// 返回结果表述
     V2TIMString resultInfo;
     /// 好友类型
     V2TIMFriendRelationType relation;
@@ -276,7 +282,7 @@ struct TIM_API V2TIMFriendApplication {
     V2TIMString nickName;
     /// 用户头像
     V2TIMString faceUrl;
-    /// 添加时间
+    /// 添加好友的 UTC 时间戳
     uint64_t addTime;
     /// 来源
     V2TIMString addSource;

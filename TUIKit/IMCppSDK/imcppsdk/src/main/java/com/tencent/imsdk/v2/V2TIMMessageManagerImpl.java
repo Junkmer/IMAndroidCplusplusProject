@@ -1,10 +1,13 @@
 package com.tencent.imsdk.v2;
 
 import com.tencent.imsdk.common.IMCallback;
+import com.tencent.imsdk.common.IMLog;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
+    private static final String TAG = "V2TIMMessageManagerImpl";
 
     private static class V2TIMMessageManagerImplHolder {
         private static final V2TIMMessageManagerImpl v2TIMMessageManagerImpl = new V2TIMMessageManagerImpl();
@@ -90,6 +93,24 @@ public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
     }
 
     @Override
+    public V2TIMMessage createAtSignedGroupMessage(V2TIMMessage message, List<String> atUserList) {
+        if (atUserList == null || atUserList.size() == 0) {
+            IMLog.e(TAG, "atUserList invalid, atUserList must is not null and size > 0");
+            return null;
+        }
+        if (message.getElemList().size() == 0) {
+            IMLog.e(TAG, "elemList invalid, elemList must have data");
+            return null;
+        }
+        V2TIMMessage newMessage = new V2TIMMessage();
+        for (V2TIMElem v2TIMElem : message.getElemList()) {
+            newMessage.addElem(v2TIMElem);
+        }
+        newMessage.setGroupAtUserList(atUserList);
+        return message;
+    }
+
+    @Override
     public String sendMessage(V2TIMMessage message, String receiver, String groupID, int priority, boolean onlineUserOnly, V2TIMOfflinePushInfo offlinePushInfo, V2TIMSendCallback<V2TIMMessage> _callback_) {
 
         return nativeSendMessage(message, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, new IMCallback<V2TIMMessage>(_callback_) {
@@ -145,6 +166,51 @@ public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
         nativeSetGroupReceiveMessageOpt(groupID, opt, new IMCallback(_callback_) {
             @Override
             public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void setAllReceiveMessageOpt(int opt, int startHour, int startMinute, int startSecond, long duration, V2TIMCallback _callback_) {
+        nativeSetAllReceiveMessageOpt(opt, startHour, startMinute, startSecond, duration, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void setAllReceiveMessageOpt(int opt, long startTimeStamp, long duration, V2TIMCallback _callback_) {
+        nativeSetAllReceiveMessageOpt(opt, startTimeStamp, duration, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void getAllReceiveMessageOpt(V2TIMValueCallback<V2TIMReceiveMessageOptInfo> _callback_) {
+        nativeGetAllReceiveMessageOpt(new IMCallback<V2TIMReceiveMessageOptInfo>(_callback_) {
+            @Override
+            public void success(V2TIMReceiveMessageOptInfo data) {
                 super.success(data);
             }
 
@@ -391,6 +457,21 @@ public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
     }
 
     @Override
+    public void searchCloudMessages(V2TIMMessageSearchParam searchParam, V2TIMValueCallback<V2TIMMessageSearchResult> _callback_) {
+        nativeSearchCloudMessages(searchParam, new IMCallback<V2TIMMessageSearchResult>(_callback_) {
+            @Override
+            public void success(V2TIMMessageSearchResult data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
     public void sendMessageReadReceipts(List<V2TIMMessage> messageList, V2TIMCallback _callback_) {
         nativeSendMessageReadReceipts(messageList, new IMCallback(_callback_) {
             @Override
@@ -435,4 +516,123 @@ public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
         });
     }
 
+    @Override
+    public void setMessageExtensions(V2TIMMessage message, List<V2TIMMessageExtension> extensions, V2TIMValueCallback<List<V2TIMMessageExtensionResult>> _callback_) {
+        nativeSetMessageExtensions(message, extensions, new IMCallback<List<V2TIMMessageExtensionResult>>(_callback_) {
+            @Override
+            public void success(List<V2TIMMessageExtensionResult> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void getMessageExtensions(V2TIMMessage message, V2TIMValueCallback<List<V2TIMMessageExtension>> _callback_) {
+        nativeGetMessageExtensions(message, new IMCallback<List<V2TIMMessageExtension>>(_callback_) {
+            @Override
+            public void success(List<V2TIMMessageExtension> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void deleteMessageExtensions(V2TIMMessage message, List<String> keys, V2TIMValueCallback<List<V2TIMMessageExtensionResult>> _callback_) {
+        nativeDeleteMessageExtensions(message, keys, new IMCallback<List<V2TIMMessageExtensionResult>>(_callback_) {
+            @Override
+            public void success(List<V2TIMMessageExtensionResult> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void addMessageReaction(V2TIMMessage message, String reactionID, V2TIMCallback _callback_) {
+        nativeAddMessageReaction(message, reactionID, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void removeMessageReaction(V2TIMMessage message, String reactionID, V2TIMCallback _callback_) {
+        nativeRemoveMessageReaction(message, reactionID, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void getMessageReactions(List<V2TIMMessage> messageList, int maxUserCountPerReaction, V2TIMValueCallback<List<V2TIMMessageReactionResult>> _callback_) {
+        nativeGetMessageReactions(messageList, maxUserCountPerReaction, new IMCallback<List<V2TIMMessageReactionResult>>(_callback_) {
+            @Override
+            public void success(List<V2TIMMessageReactionResult> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void getAllUserListOfMessageReaction(V2TIMMessage message, String reactionID, int nextSeq, int count, V2TIMValueCallback<V2TIMMessageReactionUserResult> _callback_) {
+        nativeGetAllUserListOfMessageReaction(message, reactionID, nextSeq, count, new IMCallback<V2TIMMessageReactionUserResult>(_callback_) {
+            @Override
+            public void success(V2TIMMessageReactionUserResult data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void translateText(List<String> sourceTextList, String sourceLanguage, String targetLanguage, V2TIMValueCallback<HashMap<String, String>> _callback_) {
+        nativeTranslateText(sourceTextList, sourceLanguage, targetLanguage, new IMCallback<HashMap<String, String>>(_callback_) {
+            @Override
+            public void success(HashMap<String, String> data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
 }

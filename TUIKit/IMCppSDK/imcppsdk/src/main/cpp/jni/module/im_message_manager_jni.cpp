@@ -268,6 +268,43 @@ DEFINE_NATIVE_FUNC(void, NativeSetGroupReceiveMessageOpt, jstring group_id, jint
     v2im::V2IMEngine::GetInstance()->SetGroupReceiveMessageOpt(groupIDStr, messageOpt, new v2im::CallbackIMpl(callback));
 }
 
+DEFINE_NATIVE_FUNC(void, NativeSetAllReceiveMessageOpt, jint opt, jint start_hour, jint start_minute, jint start_second, jlong duration, jobject callback) {
+    auto messageOpt = V2TIMReceiveMessageOpt(opt);
+    v2im::V2IMEngine::GetInstance()->SetAllReceiveMessageOpt(messageOpt,start_hour,start_minute,start_second,duration, new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeSetAllReceiveMessageOpt2Time, jint opt, jlong start_time_stamp, jlong duration, jobject callback) {
+    auto messageOpt = V2TIMReceiveMessageOpt(opt);
+    v2im::V2IMEngine::GetInstance()->SetAllReceiveMessageOpt2(messageOpt, start_time_stamp, duration, new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetAllReceiveMessageOpt, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    tim::TIMEngine::GetInstance()->GetAllReceiveMessageOpt([](int32_t code, const char *desc, const char *json_params, const void *user_data) {
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto *_env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array opt_array = json::Deserialize(json_params);
+            jobject messageObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (const auto &item: opt_array) {
+                jobject optObj = tim::jni::ReceiveMessageOptInfoJni::Convert2JObject_AllRecvMsg(item);
+                tim::jni::ArrayListJni::Add(messageObjList, optObj);
+                _env->DeleteLocalRef(optObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, messageObjList);
+            _env->DeleteLocalRef(messageObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    }, jni_callback);
+
+    v2im::V2IMEngine::GetInstance()->GetAllReceiveMessageOpt()
+}
+
 DEFINE_NATIVE_FUNC(void, NativeGetC2CHistoryMessageList, jstring user_id, jint count, jobject last_msg, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
     V2TIMMessageListGetOption option;
@@ -570,6 +607,32 @@ DEFINE_NATIVE_FUNC(void, NativeSearchLocalMessages, jobject search_param, jobjec
     v2im::V2IMEngine::GetInstance()->SearchLocalMessages(searchParam, value_callback);
 }
 
+DEFINE_NATIVE_FUNC(void, NativeSearchCloudMessages, jobject search_param, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    json::Object search_param_json;
+    tim::jni::MessageSearchParamJni::Convert2CoreObject(search_param, search_param_json);
+    std::string paramStr = json::Serialize(search_param_json);
+
+    tim::TIMEngine::GetInstance()->SearchCloudMessages(paramStr.c_str(),
+                                                       [](int32_t code, const char *desc, const char *json_params, const void *user_data) {
+                                                           tim::jni::ScopedJEnv scopedJEnv;
+                                                           auto _env = scopedJEnv.GetEnv();
+                                                           auto _callback = (jobject) user_data;
+
+                                                           if (TIMErrCode::ERR_SUCC == code) {
+                                                               json::Object result_json = json::Deserialize(json_params);
+                                                               jobject searchResultObj = tim::jni::MessageSearchResultJni::Convert2JObject(
+                                                                       result_json);
+                                                               tim::jni::IMCallbackJNI::Success(_callback, searchResultObj);
+                                                               _env->DeleteLocalRef(searchResultObj);
+                                                           } else {
+                                                               tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+                                                           }
+                                                           _env->DeleteGlobalRef(_callback);
+                                                       }, jni_callback);
+}
+
 DEFINE_NATIVE_FUNC(void, NativeSendMessageReadReceipts, jobject message_list, jobject callback) {
     V2TIMMessageVector messageVector;
     int size;
@@ -656,11 +719,234 @@ DEFINE_NATIVE_FUNC(void, NativeGetGroupMessageReadMemberList, jobject message, j
                                                                    value_callback);
 }
 
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMMessageManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusAdvancedMsgListener", "()V");
-//}
+DEFINE_NATIVE_FUNC(void, NativeSetMessageExtensions, jobject message, jobject extensions, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+
+    json::Array json_extension_array;
+    int size = tim::jni::ArrayListJni::Size(extensions);
+    for (int i = 0; i < size; ++i){
+        json::Object extension_json;
+        jobject extension_obj = tim::jni::ArrayListJni::Get(extensions,i);
+        bool flag = tim::jni::MessageExtensionJni::Convert2CoreObject(extension_obj,extension_json);
+        if (flag){
+            json_extension_array.push_back(extension_json);
+        }
+    }
+    std::string paramStr = json::Serialize(json_extension_array);
+
+    tim::TIMEngine::GetInstance()->SetMessageExtensions(messageStr.c_str(),paramStr.c_str(),[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array extensionResult_array = json::Deserialize(json_params);
+            jobject extensionResultObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < extensionResult_array.size(); ++i) {
+                jobject extensionResultObj = tim::jni::MessageExtensionResultJni::Convert2JObject(extensionResult_array[i]);
+                tim::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetMessageExtensions, jobject message, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+
+    tim::TIMEngine::GetInstance()->GetMessageExtensions(messageStr.c_str(),[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array extensionResult_array = json::Deserialize(json_params);
+            jobject extensionResultObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < extensionResult_array.size(); ++i) {
+                jobject extensionResultObj = tim::jni::MessageExtensionJni::Convert2JObject(extensionResult_array[i]);
+                tim::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeDeleteMessageExtensions, jobject message, jobject keys, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+
+    json::Array key_array;
+    int size = tim::jni::ArrayListJni::Size(keys);
+    for (int i = 0; i < size; ++i){
+        json::Object extension_json;
+        auto keyStr = (jstring)tim::jni::ArrayListJni::Get(keys,i);
+        key_array.push_back(tim::jni::StringJni::Jstring2Cstring(env,keyStr));
+    }
+    std::string paramStr = json::Serialize(key_array);
+    tim::TIMEngine::GetInstance()->DeleteMessageExtensions(messageStr.c_str(),paramStr.c_str(),[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array extensionResult_array = json::Deserialize(json_params);
+            jobject extensionResultObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < extensionResult_array.size(); ++i) {
+                jobject extensionResultObj = tim::jni::MessageExtensionResultJni::Convert2JObject(extensionResult_array[i]);
+                tim::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeAddMessageReaction, jobject message, jstring reaction_id, jobject callback) {
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+    std::string reactionIdStr = tim::jni::StringJni::Jstring2Cstring(env,reaction_id);
+    tim::TIMEngine::GetInstance()->AddMessageReaction(messageStr.c_str(),reactionIdStr.c_str(),new tim::TIMCallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeRemoveMessageReaction, jobject message, jstring reaction_id, jobject callback) {
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+    std::string reactionIdStr = tim::jni::StringJni::Jstring2Cstring(env,reaction_id);
+    tim::TIMEngine::GetInstance()->RemoveMessageReaction(messageStr.c_str(),reactionIdStr.c_str(),new tim::TIMCallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetMessageReactions, jobject message_list, jint max_user_count_per_reaction, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    json::Array message_array;
+    int size;
+    size = tim::jni::ArrayListJni::Size(message_list);
+    for (int i = 0; i < size; ++i) {
+        jobject messageObj = tim::jni::ArrayListJni::Get(message_list, i);
+        if (messageObj) {
+            std::unique_ptr<json::Object> message = tim::jni::MessageJni::Convert2CoreObject(messageObj);
+            if (message) {
+                message_array.push_back(*message);
+            }
+            env->DeleteLocalRef(messageObj);
+        }
+    }
+    std::string paramStr = json::Serialize(message_array);
+    tim::TIMEngine::GetInstance()->GetMessageReactions(paramStr.c_str(),max_user_count_per_reaction,[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array reactionsResult_array = json::Deserialize(json_params);
+            jobject reactionsResultObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (const auto & i : reactionsResult_array) {
+                jobject reactionsResultObj = tim::jni::MessageReactionResultJni::Convert2JObject(i);
+                tim::jni::ArrayListJni::Add(reactionsResultObjList, reactionsResultObj);
+                _env->DeleteLocalRef(reactionsResultObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, reactionsResultObjList);
+            _env->DeleteLocalRef(reactionsResultObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetAllUserListOfMessageReaction, jobject message, jstring reaction_id, jint next_seq, jint count, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    std::unique_ptr<json::Object> message_json = tim::jni::MessageJni::Convert2CoreObject(message);
+    std::string messageStr = json::Serialize(*message_json);
+    std::string reactionIdStr = tim::jni::StringJni::Jstring2Cstring(env,reaction_id);
+
+    tim::TIMEngine::GetInstance()->GetAllUserListOfMessageReaction(messageStr.c_str(),reactionIdStr.c_str(),next_seq,count,[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array reactionUserResult_array = json::Deserialize(json_params);
+            jobject reactionUserResultObjList = tim::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < reactionUserResult_array.size(); ++i) {
+                jobject reactionUserResultObj = tim::jni::MessageReactionUserResultJni::Convert2JObject(reactionUserResult_array[i]);
+                tim::jni::ArrayListJni::Add(reactionUserResultObjList, reactionUserResultObj);
+                _env->DeleteLocalRef(reactionUserResultObj);
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, reactionUserResultObjList);
+            _env->DeleteLocalRef(reactionUserResultObjList);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeTranslateText, jobject source_text_list, jstring source_language, jstring target_language, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    json::Array source_text_array;
+    int size = tim::jni::ArrayListJni::Size(source_text_list);
+    for (int i = 0; i < size; ++i){
+        json::Object extension_json;
+        auto keyStr = (jstring)tim::jni::ArrayListJni::Get(source_text_list,i);
+        source_text_array.push_back(tim::jni::StringJni::Jstring2Cstring(env,keyStr));
+    }
+    std::string paramStr = json::Serialize(source_text_array);
+
+    std::string souLan = tim::jni::StringJni::Jstring2Cstring(env,source_language);
+    std::string tarLan = tim::jni::StringJni::Jstring2Cstring(env,target_language);
+
+    tim::TIMEngine::GetInstance()->TranslateText(paramStr.c_str(),souLan.c_str(),tarLan.c_str(),[](int32_t code, const char* desc, const char* json_params, const void* user_data){
+        tim::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+        auto _callback = (jobject) user_data;
+
+        if (TIMErrCode::ERR_SUCC == code) {
+            json::Array translate_array = json::Deserialize(json_params);
+            jobject j_obj_translateHashMap = tim::jni::HashMapJni::NewHashMap();
+            for (const auto &item: translate_array) {
+                jstring sourceTextKey = tim::jni::StringJni::Cstring2Jstring(_env,item[kTIMMsgTranslateTextSourceText]);
+                if (sourceTextKey) {
+                    jstring targetTextValue = tim::jni::StringJni::Cstring2Jstring(_env,item[kTIMMsgTranslateTextTargetText]);
+                    if (targetTextValue) {
+                        tim::jni::HashMapJni::Put(j_obj_translateHashMap, sourceTextKey, targetTextValue);
+                        _env->DeleteLocalRef(targetTextValue);
+                    }
+                    _env->DeleteLocalRef(sourceTextKey);
+                }
+            }
+            tim::jni::IMCallbackJNI::Success(_callback, j_obj_translateHashMap);
+            _env->DeleteLocalRef(j_obj_translateHashMap);
+        } else {
+            tim::jni::IMCallbackJNI::Fail(_callback, code, desc);
+        }
+        _env->DeleteGlobalRef(_callback);
+    },jni_callback);
+}
 
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
@@ -686,6 +972,9 @@ static JNINativeMethod gMethods[] = {
         {"nativeSetC2CReceiveMessageOpt",          "(Ljava/util/List;ILcom/tencent/imsdk/common/IMCallback;)V",                                                 (void *) NativeSetC2CReceiveMessageOpt},
         {"nativeGetC2CReceiveMessageOpt",          "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeGetC2CReceiveMessageOpt},
         {"nativeSetGroupReceiveMessageOpt",        "(Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)V",                                               (void *) NativeSetGroupReceiveMessageOpt},
+        {"nativeSetAllReceiveMessageOpt",         "(IIIIJLcom/tencent/imsdk/common/IMCallback;)V",                                                         (void *) NativeSetAllReceiveMessageOpt},
+        {"nativeSetAllReceiveMessageOpt",         "(IJJLcom/tencent/imsdk/common/IMCallback;)V",                                                           (void *) NativeSetAllReceiveMessageOpt2Time},
+        {"nativeGetAllReceiveMessageOpt",         "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                              (void *) NativeGetAllReceiveMessageOpt},
         {"nativeGetC2CHistoryMessageList",         "(Ljava/lang/String;ILcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",            (void *) NativeGetC2CHistoryMessageList},
         {"nativeGetGroupHistoryMessageList",       "(Ljava/lang/String;ILcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",            (void *) NativeGetGroupHistoryMessageList},
         {"nativeGetHistoryMessageList",            "(Lcom/tencent/imsdk/v2/V2TIMMessageListGetOption;Lcom/tencent/imsdk/common/IMCallback;)V",                  (void *) NativeGetHistoryMessageList},
@@ -706,9 +995,18 @@ static JNINativeMethod gMethods[] = {
                                                    "Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                                (jstring *) NativeInsertC2CMessageToLocalStorage},
         {"nativeFindMessages",                     "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeFindMessages},
         {"nativeSearchLocalMessages",              "(Lcom/tencent/imsdk/v2/V2TIMMessageSearchParam;Lcom/tencent/imsdk/common/IMCallback;)V",                    (void *) NativeSearchLocalMessages},
+        {"nativeSearchCloudMessages",             "(Lcom/tencent/imsdk/v2/V2TIMMessageSearchParam;Lcom/tencent/imsdk/common/IMCallback;)V",                (void *) NativeSearchCloudMessages},
         {"nativeSendMessageReadReceipts",          "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeSendMessageReadReceipts},
         {"nativeGetMessageReadReceipts",           "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeGetMessageReadReceipts},
         {"nativeGetGroupMessageReadMemberList",    "(Lcom/tencent/imsdk/v2/V2TIMMessage;IJILcom/tencent/imsdk/common/IMCallback;)V",                            (void *) NativeGetGroupMessageReadMemberList},
+        {"nativeSetMessageExtensions",            "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",           (void *) NativeSetMessageExtensions},
+        {"nativeGetMessageExtensions",            "(Lcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",                           (void *) NativeGetMessageExtensions},
+        {"nativeDeleteMessageExtensions",         "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",           (void *) NativeDeleteMessageExtensions},
+        {"nativeAddMessageReaction",              "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",         (void *) NativeAddMessageReaction},
+        {"nativeRemoveMessageReaction",           "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",         (void *) NativeRemoveMessageReaction},
+        {"nativeGetMessageReactions",             "(Ljava/util/List;ILcom/tencent/imsdk/common/IMCallback;)V",                                             (void *) NativeGetMessageReactions},
+        {"nativeGetAllUserListOfMessageReaction", "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;IILcom/tencent/imsdk/common/IMCallback;)V",       (void *) NativeGetAllUserListOfMessageReaction},
+        {"nativeTranslateText",                   "(Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",          (void *) NativeTranslateText},
 };
 
 //注册 native 方法

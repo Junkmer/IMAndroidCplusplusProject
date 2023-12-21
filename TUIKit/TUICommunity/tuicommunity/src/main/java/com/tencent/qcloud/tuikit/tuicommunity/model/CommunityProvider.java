@@ -14,10 +14,8 @@ import com.tencent.imsdk.v2.V2TIMCallback;
 import com.tencent.imsdk.v2.V2TIMGroupInfo;
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo;
-import com.tencent.imsdk.v2.V2TIMGroupMemberInfo;
 import com.tencent.imsdk.v2.V2TIMGroupMemberInfoResult;
 import com.tencent.imsdk.v2.V2TIMGroupMemberOperationResult;
-import com.tencent.imsdk.v2.V2TIMGroupSearchParam;
 import com.tencent.imsdk.v2.V2TIMManager;
 import com.tencent.imsdk.v2.V2TIMTopicInfo;
 import com.tencent.imsdk.v2.V2TIMTopicInfoResult;
@@ -27,8 +25,8 @@ import com.tencent.imsdk.v2.V2TIMValueCallback;
 import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUILogin;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuicore.util.ErrorMessageConverter;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityBean;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityMemberBean;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.TopicBean;
@@ -38,14 +36,11 @@ import com.tencent.qcloud.tuikit.tuicommunity.utils.TUICommunityLog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class CommunityProvider {
-
     public static final String TAG = CommunityProvider.class.getSimpleName();
-
 
     public void getJoinedCommunityList(IUIKitCallback<List<CommunityBean>> callback) {
         V2TIMManager.getGroupManager().getJoinedCommunityList(new V2TIMValueCallback<List<V2TIMGroupInfo>>() {
@@ -273,7 +268,7 @@ public class CommunityProvider {
 
     public void loadCommunityMembers(String groupID, int filter, long nextSeq, final IUIKitCallback<Pair<List<CommunityMemberBean>, Long>> callBack) {
         if (filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ALL && filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_OWNER
-                && filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ADMIN && filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_COMMON) {
+            && filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ADMIN && filter != V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_COMMON) {
             filter = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ALL;
         }
         V2TIMManager.getGroupManager().getGroupMemberList(groupID, filter, nextSeq, new V2TIMValueCallback<V2TIMGroupMemberInfoResult>() {
@@ -463,7 +458,7 @@ public class CommunityProvider {
             return;
         }
 
-        V2TIMManager.getGroupManager().kickGroupMember(groupId, members, "", new V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>>() {
+        V2TIMManager.getGroupManager().kickGroupMember(groupId, members, "",0, new V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>>() {
             @Override
             public void onError(int code, String desc) {
                 TUICommunityLog.e(TAG, "removeGroupMembers failed, code: " + code + "|desc: " + ErrorMessageConverter.convertIMError(code, desc));
@@ -620,7 +615,7 @@ public class CommunityProvider {
     }
 
     public void modifyCommunitySelfNameCard(String groupID, String nameCard, IUIKitCallback<Void> callback) {
-        V2TIMGroupMemberFullInfo v2TIMGroupMemberInfo= new V2TIMGroupMemberFullInfo();
+        V2TIMGroupMemberFullInfo v2TIMGroupMemberInfo = new V2TIMGroupMemberFullInfo();
         v2TIMGroupMemberInfo.setUserID(TUILogin.getLoginUser());
         v2TIMGroupMemberInfo.setNameCard(nameCard);
         V2TIMManager.getGroupManager().setGroupMemberInfo(groupID, v2TIMGroupMemberInfo, new V2TIMCallback() {

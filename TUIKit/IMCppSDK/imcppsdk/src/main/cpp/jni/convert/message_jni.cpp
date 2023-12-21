@@ -203,6 +203,18 @@ namespace v2im {
             }
             j_filed_id_array[FieldIDIsExcludedFromLastMessage] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "isSupportMessageExtension", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDIsSupportMessageExtension] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "isExcludedFromContentModeration", "Z");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_filed_id_array[FieldIDIsExcludedFromContentModeration] = jfield;
+
             return true;
         }
 
@@ -249,15 +261,11 @@ namespace v2im {
                 env->DeleteLocalRef(offlinePushObj);
             }
 
-//            LOGE(" loading - userID = %s | groupID = %s",v2TimMessage.userID.CString(),v2TimMessage.groupID.CString());
-
             for (int i = 0; i < v2TimMessage.elemList.Size(); ++i) {
                 auto *jElemObj = ElemProcessor::GetInstance().ParseElem(v2TimMessage,i);
                 if (jElemObj) {
-//                    LOGE("start - conversationID = %s | elemType = %d",v2TimMessage.sender.CString(),v2TimMessage.elemList[i]->elemType);
                     env->CallVoidMethod(j_obj_message, j_method_id_array[MethodIDAddMessageElem], jElemObj);
                     env->DeleteLocalRef(jElemObj);
-//                    LOGE("end - conversationID = %s | elemType = %d",v2TimMessage.sender.CString(),v2TimMessage.elemList[i]->elemType);
                 }
             }
 
@@ -275,7 +283,8 @@ namespace v2im {
             env->SetLongField(j_obj_message, j_filed_id_array[FieldIDRandom], (jlong) v2TimMessage.random);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromUnreadCount], v2TimMessage.isExcludedFromUnreadCount);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromLastMessage], v2TimMessage.isExcludedFromLastMessage);
-
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsExcludedFromContentModeration], v2TimMessage.isExcludedFromLastMessage);
+            env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSupportMessageExtension], v2TimMessage.supportMessageExtension);
             return j_obj_message;
         }
 
@@ -400,7 +409,8 @@ namespace v2im {
             message.random = (uint64_t) env->GetLongField(messageObj, j_filed_id_array[FieldIDRandom]);
             message.isExcludedFromUnreadCount = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromUnreadCount]);
             message.isExcludedFromLastMessage = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromLastMessage]);
-
+            message.isExcludedFromContentModeration = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsExcludedFromContentModeration]);
+            message.supportMessageExtension = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsSupportMessageExtension]);
             return true;
         }
 

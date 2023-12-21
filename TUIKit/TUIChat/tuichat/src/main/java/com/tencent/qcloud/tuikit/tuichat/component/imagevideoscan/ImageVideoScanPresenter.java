@@ -1,27 +1,24 @@
 package com.tencent.qcloud.tuikit.tuichat.component.imagevideoscan;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tencent.qcloud.tuicore.TUIConfig;
 import com.tencent.qcloud.tuicore.TUICore;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification;
-import com.tencent.qcloud.tuicore.util.ThreadHelper;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.bean.TUIMessageBean;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ThreadUtils;
 import com.tencent.qcloud.tuikit.tuichat.R;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatConstants;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.ImageMessageBean;
-import com.tencent.qcloud.tuikit.tuichat.bean.message.TUIMessageBean;
 import com.tencent.qcloud.tuikit.tuichat.bean.message.VideoMessageBean;
+import com.tencent.qcloud.tuikit.tuichat.presenter.ChatFileDownloadPresenter;
 import com.tencent.qcloud.tuikit.tuichat.util.FileUtil;
 import com.tencent.qcloud.tuikit.tuichat.util.TUIChatLog;
-import com.tencent.qcloud.tuikit.tuichat.util.TUIChatUtils;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +44,7 @@ public class ImageVideoScanPresenter {
 
     private RecyclerView mRecyclerView;
     private ImageVideoScanAdapter mAdapter;
+    private ImageVideoScanActivity activity;
     private ViewPagerLayoutManager mViewPagerLayoutManager;
     private ImageVideoScanProvider mImageVideoScanProvider;
     private String mChatID;
@@ -54,9 +52,13 @@ public class ImageVideoScanPresenter {
     private int mIndex = 0;
     private boolean mIsForwardMode = false;
 
-    public ImageVideoScanPresenter () {
+    public ImageVideoScanPresenter() {
         messageChangedListener.presenterWeakReference = new WeakReference<>(this);
         TUICore.registerEvent(TUIChatConstants.EVENT_KEY_MESSAGE_STATUS_CHANGED, TUIChatConstants.EVENT_SUB_KEY_MESSAGE_SEND, messageChangedListener);
+    }
+
+    public void setActivity(ImageVideoScanActivity activity) {
+        this.activity = activity;
     }
 
     public void onMessageStatusChanged(TUIMessageBean messageBean) {
@@ -125,19 +127,18 @@ public class ImageVideoScanPresenter {
         }
 
         mViewPagerLayoutManager.setOnViewPagerListener(new OnViewPagerListener() {
-
             @Override
             public void onInitComplete() {
-                Log.i(TAG,"onInitComplete");
+                Log.i(TAG, "onInitComplete");
             }
 
             @Override
             public void onPageRelease(boolean isNext, int position) {
-                Log.i(TAG,"release position :"+position +" next page:"+isNext);
+                Log.i(TAG, "release position :" + position + " next page:" + isNext);
                 int index = 0;
-                if (isNext){
+                if (isNext) {
                     index = 0;
-                }else {
+                } else {
                     index = 1;
                 }
                 mIndex = index;
@@ -145,8 +146,8 @@ public class ImageVideoScanPresenter {
             }
 
             @Override
-            public void onPageSelected(int position,boolean isBottom, boolean isLeftScroll) {
-                Log.i(TAG,"select:"+position+" isBottom:"+isBottom + "isLeftScroll:"+isBottom);
+            public void onPageSelected(int position, boolean isBottom, boolean isLeftScroll) {
+                Log.i(TAG, "select:" + position + " isBottom:" + isBottom + "isLeftScroll:" + isBottom);
                 mCurrentPosition = position;
                 if (mIsForwardMode) {
                     return;
@@ -154,50 +155,66 @@ public class ImageVideoScanPresenter {
                 if (isLeftScroll) {
                     if (position == 0) {
                         if (mAdapter.getOldLocateMessage() != null) {
+                            onItemSelected(mAdapter.getOldLocateMessage());
                             Log.d(TAG, "mAdapter.getOldLocateMessage() seq:" + mAdapter.getOldLocateMessage().getV2TIMMessage().getSeq());
                         }
-                        mImageVideoScanProvider.loadLocalMediaMessageForward(mChatID, messageBean.isGroup(), mAdapter.getOldLocateMessage(), new IUIKitCallback<List<TUIMessageBean>>() {
-                            @Override
-                            public void onSuccess(List<TUIMessageBean> messageBeans) {
-                                if (messageBeans == null || messageBeans.isEmpty()) {
-                                    return;
+                        mImageVideoScanProvider.loadLocalMediaMessageForward(
+                            mChatID, messageBean.isGroup(), mAdapter.getOldLocateMessage(), new IUIKitCallback<List<TUIMessageBean>>() {
+                                @Override
+                                public void onSuccess(List<TUIMessageBean> messageBeans) {
+                                    if (messageBeans == null || messageBeans.isEmpty()) {
+                                        return;
+                                    }
+                                    int newPositon = mAdapter.addDataToSource(messageBeans, TUIChatConstants.GET_MESSAGE_FORWARD, position);
+                                    mRecyclerView.scrollToPosition(newPositon);
+                                    onItemSelected(mAdapter.getItem(newPositon));
+                                    mAdapter.notifyDataSetChanged();
                                 }
-                                int newPositon = mAdapter.addDataToSource(messageBeans, TUIChatConstants.GET_MESSAGE_FORWARD, position);
-                                mRecyclerView.scrollToPosition(newPositon);
-                                mAdapter.notifyDataSetChanged();
-                            }
 
-                            @Override
-                            public void onError(String module, int errCode, String errMsg) {
-                                TUIChatLog.e(TAG, "onPageSelected loadLocalMediaMessageForward failed, code = " + errCode + ", desc = " + errMsg);
-                            }
-                        });
+                                @Override
+                                public void onError(String module, int errCode, String errMsg) {
+                                    TUIChatLog.e(TAG, "onPageSelected loadLocalMediaMessageForward failed, code = " + errCode + ", desc = " + errMsg);
+                                }
+                            });
+                    } else {
+                        onItemSelected(mAdapter.getItem(position));
                     }
                 } else {
-                    if (position == mAdapter.getItemCount() -1) {
+                    if (position == mAdapter.getItemCount() - 1) {
                         if (mAdapter.getNewLocateMessage() != null) {
+                            onItemSelected(mAdapter.getNewLocateMessage());
                             Log.d(TAG, "mAdapter.getNewLocateMessage() seq:" + mAdapter.getNewLocateMessage().getV2TIMMessage().getSeq());
                         }
-                        mImageVideoScanProvider.loadLocalMediaMessageBackward(mChatID, messageBean.isGroup(), mAdapter.getNewLocateMessage(), new IUIKitCallback<List<TUIMessageBean>>() {
-                            @Override
-                            public void onSuccess(List<TUIMessageBean> messageBeans) {
-                                if (messageBeans == null || messageBeans.isEmpty()) {
-                                    return;
+                        mImageVideoScanProvider.loadLocalMediaMessageBackward(
+                            mChatID, messageBean.isGroup(), mAdapter.getNewLocateMessage(), new IUIKitCallback<List<TUIMessageBean>>() {
+                                @Override
+                                public void onSuccess(List<TUIMessageBean> messageBeans) {
+                                    if (messageBeans == null || messageBeans.isEmpty()) {
+                                        return;
+                                    }
+                                    int newPositon = mAdapter.addDataToSource(messageBeans, TUIChatConstants.GET_MESSAGE_BACKWARD, position);
+                                    mRecyclerView.scrollToPosition(newPositon);
+                                    onItemSelected(mAdapter.getItem(newPositon));
+                                    mAdapter.notifyDataSetChanged();
                                 }
-                                int newPositon = mAdapter.addDataToSource(messageBeans, TUIChatConstants.GET_MESSAGE_BACKWARD, position);
-                                mRecyclerView.scrollToPosition(newPositon);
-                                mAdapter.notifyDataSetChanged();
-                            }
 
-                            @Override
-                            public void onError(String module, int errCode, String errMsg) {
-                                TUIChatLog.e(TAG, "onPageSelected loadLocalMediaMessageBackward failed, code = " + errCode + ", desc = " + errMsg);
-                            }
-                        });
+                                @Override
+                                public void onError(String module, int errCode, String errMsg) {
+                                    TUIChatLog.e(TAG, "onPageSelected loadLocalMediaMessageBackward failed, code = " + errCode + ", desc = " + errMsg);
+                                }
+                            });
+                    } else {
+                        onItemSelected(mAdapter.getItem(position));
                     }
                 }
             }
         });
+    }
+
+    private void onItemSelected(TUIMessageBean messageBean) {
+        if (activity != null) {
+            activity.onItemSelected(messageBean);
+        }
     }
 
     public void releaseUI() {
@@ -211,20 +228,11 @@ public class ImageVideoScanPresenter {
         if (mAdapter != null && mCurrentPosition >= 0 && mCurrentPosition < mAdapter.getItemCount()) {
             TUIMessageBean messageBean = mAdapter.getDataSource().get(mCurrentPosition);
             if (messageBean instanceof ImageMessageBean) {
-                ImageMessageBean imageMessageBean = (ImageMessageBean) messageBean;
-                String imagePath = imageMessageBean.getDataPath();
-                TUIChatLog.d(TAG, "imagePath = " + imagePath);
-                String originImagePath = TUIChatUtils.getOriginImagePath(imageMessageBean);
-                TUIChatLog.d(TAG, "originImagePath = " + originImagePath);
-                if (!TextUtils.isEmpty(originImagePath)) {
-                    imagePath = originImagePath;
-                }
+                String imagePath = ChatFileDownloadPresenter.getImagePath((ImageMessageBean) messageBean, ImageMessageBean.IMAGE_TYPE_ORIGIN);
                 saveImage(context, imagePath);
             } else if (messageBean instanceof VideoMessageBean) {
-                VideoMessageBean videoMessageBean = (VideoMessageBean) messageBean;
-                final String videoPath = TUIConfig.getVideoDownloadDir() + videoMessageBean.getVideoUUID();
-                File file = new File(videoPath);
-                if (file.exists() && file.length() == videoMessageBean.getVideoSize()) {
+                String videoPath = ChatFileDownloadPresenter.getVideoPath((VideoMessageBean) messageBean);
+                if (com.tencent.qcloud.tuikit.timcommon.util.FileUtil.isFileExists(videoPath)) {
                     saveVideo(context, videoPath);
                 } else {
                     ToastUtil.toastShortMessage(context.getString(R.string.downloading));
@@ -236,7 +244,7 @@ public class ImageVideoScanPresenter {
     }
 
     private void saveImage(Context context, String imagePath) {
-        ThreadHelper.INST.execute(new Runnable() {
+        ThreadUtils.execute(new Runnable() {
             @Override
             public void run() {
                 boolean success = FileUtil.saveImageToGallery(context, imagePath);
@@ -250,7 +258,7 @@ public class ImageVideoScanPresenter {
     }
 
     private void saveVideo(Context context, String videoPath) {
-        ThreadHelper.INST.execute(new Runnable() {
+        ThreadUtils.execute(new Runnable() {
             @Override
             public void run() {
                 boolean success = FileUtil.saveVideoToGallery(context, videoPath);

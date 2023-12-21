@@ -60,7 +60,7 @@ public:
      * 1.4 获取单个会话
      *
      * @param conversationID  会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
-     * 群聊组成方式为: "group_groupID")
+     * 群聊组成方式为: "group_groupID"
      */
     virtual void GetConversation(const V2TIMString& conversationID,
                                  V2TIMValueCallback<V2TIMConversation>* callback) = 0;
@@ -69,7 +69,7 @@ public:
      * 1.5 获取指定会话列表
      *
      * @param conversationIDList 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
-     * 群聊组成方式为: "group_groupID")
+     * 群聊组成方式为: "group_groupID"
      */
     virtual void GetConversationList(const V2TIMStringVector& conversationIDList,
                                      V2TIMValueCallback<V2TIMConversationVector>* callback) = 0;
@@ -90,7 +90,7 @@ public:
      * 1.7 删除会话
      *
      * @param conversationID 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
-     * 群聊组成方式为: "group_groupID")
+     * 群聊组成方式为: "group_groupID"
      *
      * @note 请注意:
      * - 删除会话会在本地删除的同时，在服务器也会同步删除。
@@ -99,10 +99,21 @@ public:
     virtual void DeleteConversation(const V2TIMString& conversationID, V2TIMCallback* callback) = 0;
 
     /**
-     * 1.8 设置会话草稿
+     * 1.8 删除会话列表（7.1 及以上版本支持）
      *
-     * @param conversationID 会话唯一 ID，C2C 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
-     * 群聊组成方式为: "group_groupID")
+     * @param conversationIDList 会话唯一 ID 列表，C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为: "group_groupID"
+     * @param clearMessage 是否删除会话中的消息；设置为 false 时，保留会话消息；设置为 true 时，本地和服务器的消息会一起删除，并且不可恢复
+     *
+     * @note 请注意: 每次最多支持删除 100 个会话
+     */
+    virtual void DeleteConversationList(const V2TIMStringVector& conversationIDList, bool clearMessage,
+                                        V2TIMValueCallback<V2TIMConversationOperationResultVector>* callback) = 0;
+
+    /**
+     * 1.9 设置会话草稿
+     *
+     * @param conversationID 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
+     * 群聊组成方式为: "group_groupID"
      *
      * 只在本地保存，不会存储 Server，不能多端同步，程序卸载重装会失效。
      *
@@ -112,7 +123,7 @@ public:
                                       const V2TIMString& draftText, V2TIMCallback* callback) = 0;
 
     /**
-     * 1.9 设置会话自定义数据（从 6.5 版本开始支持）
+     * 1.10 设置会话自定义数据（从 6.5 版本开始支持）
      *
      * @param customData 自定义数据，最大支持 256 bytes
      */
@@ -120,10 +131,10 @@ public:
                                            V2TIMValueCallback<V2TIMConversationOperationResultVector>* callback) = 0;
 
     /**
-     * 1.10 设置会话置顶（5.3.425 及以上版本支持）
+     * 1.11 设置会话置顶（5.3.425 及以上版本支持）
      *
      * @param conversationID 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
-     * 群聊组成方式为: "group_groupID")
+     * 群聊组成方式为: "group_groupID"
      *
      * @param isPinned 是否置顶
      */
@@ -131,7 +142,7 @@ public:
                                  V2TIMCallback* callback) = 0;
 
     /**
-     * 1.11 标记会话（从 6.5 版本开始支持，需要您购买旗舰版套餐）
+     * 1.12 标记会话（从 6.5 版本开始支持，需要您购买旗舰版套餐）
      *
      * @param conversationIDList 会话列表
      * @param markType 会话标记类型，取值详见 @V2TIMConversationMarkType。
@@ -148,7 +159,7 @@ public:
                                   V2TIMValueCallback<V2TIMConversationOperationResultVector>* callback) = 0;
 
     /**
-     * 1.12 获取全部会话的未读总数（5.3.425 及以上版本支持）
+     * 1.13 获取全部会话的未读总数（5.3.425 及以上版本支持）
      * @note
      *  - 调用该接口以后，任意会话的未读数发生变化时，SDK 都会给您抛 OnTotalUnreadMessageCountChanged 回调。
      *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为
@@ -157,7 +168,7 @@ public:
     virtual void GetTotalUnreadMessageCount(V2TIMValueCallback<uint64_t>* callback) = 0;
 
     /**
-     * 1.13 获取按会话 filter 过滤的未读总数（7.0 及以上版本支持）
+     * 1.14 获取按会话 filter 过滤的未读总数（7.0 及以上版本支持）
      *
      * @param filter 会话 filter
      *
@@ -169,7 +180,7 @@ public:
         V2TIMValueCallback<uint64_t>* callback) = 0;
 
     /**
-     *  1.14 注册监听指定 filter 的会话未读总数变化（7.0 及以上版本支持）
+     *  1.15 注册监听指定 filter 的会话未读总数变化（7.0 及以上版本支持）
      *
      * @param filter 会话 filter
      *
@@ -179,12 +190,26 @@ public:
     virtual void SubscribeUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter) = 0;
 
     /**
-     *  1.15 取消监听指定 filter 的会话未读总数变化（7.0 及以上版本支持）
+     *  1.16 取消监听指定 filter 的会话未读总数变化（7.0 及以上版本支持）
      *
      * @param filter 会话 filter
      *
      */
     virtual void UnsubscribeUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter) = 0;
+
+    /**  1.17 清理会话的未读消息计数（7.1 及以上版本支持）
+     *
+     * @param conversationID  会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"；群聊组成方式为: "group_groupID"
+     * @param cleanTimestamp  清理时间戳，单位为秒，仅对单聊会话生效，指定清理哪一个 timestamp 之前的未读消息计数；当传入为 0 时，对应会话所有的未读消息将被清理，会话的未读数会清 0
+     * @param cleanSequence  清理 sequence，仅对群聊会话生效，指定清理哪一个 sequence 之前的未读消息计数；当传入为 0 时，对应会话所有的未读消息将被清理，会话的未读数会清 0
+     *
+     * @note
+     *  - 当您想清理所有单聊会话的未读消息计数，conversationID 请传入 "c2c"，即不指定具体的 userID；
+     *  - 当您想清理所有群聊会话的未读消息计数，conversationID 请传入 "group"，即不指定具体的 groupID；
+     *  - 当您想清理所有会话的未读消息计数，conversationID 请传入 ""；
+     *  - 该接口调用成功后，SDK 会通过 onConversationChanged 回调将对应会话的最新未读数通知给您。
+     */
+    virtual void CleanConversationUnreadMessageCount(const V2TIMString& conversationID, uint64_t cleanTimestamp, uint64_t cleanSequence, V2TIMCallback* callback) = 0;
 
     /////////////////////////////////////////////////////////////////////////////////
     //
@@ -205,6 +230,8 @@ public:
 
     /**
      * 2.2 获取会话分组列表
+     *
+     * @note 该接口获取的是本地缓存的会话分组，建议在 onSyncServerFinish 之后调用。
      */
     virtual void GetConversationGroupList(V2TIMValueCallback<V2TIMStringVector>* callback) = 0;
 

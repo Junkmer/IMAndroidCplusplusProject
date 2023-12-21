@@ -1,18 +1,20 @@
 package com.tencent.qcloud.tuikit.tuicontact.bean;
 
 import android.text.TextUtils;
-
 import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMFriendInfo;
 import com.tencent.imsdk.v2.V2TIMGroupInfo;
 import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo;
 import com.tencent.imsdk.v2.V2TIMUserStatus;
-import com.tencent.qcloud.tuikit.tuicontact.component.indexlib.IndexBar.bean.BaseIndexPinyinBean;
+import com.tencent.qcloud.tuikit.tuicontact.component.indexlib.indexbar.bean.BaseIndexPinyinBean;
 
 public class ContactItemBean extends BaseIndexPinyinBean {
     public static final int TYPE_C2C = V2TIMConversation.V2TIM_C2C;
     public static final int TYPE_GROUP = V2TIMConversation.V2TIM_GROUP;
     public static final int TYPE_INVALID = V2TIMConversation.CONVERSATION_TYPE_INVALID;
+
+    public static final int ITEM_BEAN_TYPE_CONTACT = 1;
+    public static final int ITEM_BEAN_TYPE_CONTROLLER = 2;
 
     public static final String INDEX_STRING_TOP = "↑";
     private String id;
@@ -28,9 +30,9 @@ public class ContactItemBean extends BaseIndexPinyinBean {
     private boolean isFriend = false;
     private boolean isEnable = true;
     private int statusType = V2TIMUserStatus.V2TIM_USER_STATUS_UNKNOWN;
+    private int itemBeanType = ITEM_BEAN_TYPE_CONTACT;
 
-    public ContactItemBean() {
-    }
+    public ContactItemBean() {}
 
     public ContactItemBean(String id) {
         this.id = id;
@@ -43,6 +45,15 @@ public class ContactItemBean extends BaseIndexPinyinBean {
     public ContactItemBean setId(String id) {
         this.id = id;
         return this;
+    }
+
+    public ContactItemBean setItemBeanType(int itemBeanType) {
+        this.itemBeanType = itemBeanType;
+        return this;
+    }
+
+    public int getItemBeanType() {
+        return itemBeanType;
     }
 
     public boolean isTop() {
@@ -192,10 +203,10 @@ public class ContactItemBean extends BaseIndexPinyinBean {
             return this;
         }
         setId(member.getUserID());
-        if(TextUtils.isEmpty(member.getNickName())){
+        if (TextUtils.isEmpty(member.getNickName())) {
             setRemark(member.getNameCard());
             setNickName(member.getNameCard());
-        }else{
+        } else {
             setRemark(member.getNickName());
             setNickName(member.getNickName());
         }

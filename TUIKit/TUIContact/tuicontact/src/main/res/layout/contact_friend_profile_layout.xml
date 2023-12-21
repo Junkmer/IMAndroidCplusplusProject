@@ -7,7 +7,7 @@
     android:background="?attr/core_bg_color"
     android:orientation="vertical">
 
-    <com.tencent.qcloud.tuicore.component.TitleBarLayout
+    <com.tencent.qcloud.tuikit.timcommon.component.TitleBarLayout
         android:id="@+id/friend_titlebar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/page_title_height" />
@@ -30,14 +30,14 @@
                 android:orientation="horizontal"
                 android:padding="@dimen/page_margin">
 
-                <com.tencent.qcloud.tuicore.component.gatherimage.ShadeImageView
+                <com.tencent.qcloud.tuikit.timcommon.component.gatherimage.ShadeImageView
                     android:id="@+id/friend_icon"
                     android:layout_width="@dimen/contact_profile_face_size"
                     android:layout_height="@dimen/contact_profile_face_size"
                     android:layout_gravity="start"
-                    android:layout_marginLeft="@dimen/contact_profile_face_margin_left"
+                    android:layout_marginStart="@dimen/contact_profile_face_margin_left"
                     android:layout_marginTop="@dimen/contact_profile_face_margin_top"
-                    android:layout_marginRight="@dimen/contact_profile_face_margin_right"
+                    android:layout_marginEnd="@dimen/contact_profile_face_margin_right"
                     android:scaleType="centerCrop" />
 
                 <TextView
@@ -61,6 +61,7 @@
                     android:layout_marginTop="@dimen/contact_profile_text_margin"
                     android:gravity="center_vertical"
                     android:text="@string/contact_account_tag"
+                    android:textDirection="locale"
                     android:textSize="@dimen/contact_profile_account_text_size" />
 
                 <TextView
@@ -82,6 +83,7 @@
                     android:layout_alignStart="@id/friend_account_tag"
                     android:layout_marginTop="@dimen/contact_profile_text_margin"
                     android:gravity="center_vertical"
+                    android:textDirection="locale"
                     android:text="@string/contact_signature_tag"
                     android:textSize="@dimen/contact_profile_account_text_size" />
 
@@ -113,7 +115,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="15.36dp"
+                    android:layout_marginStart="15.36dp"
+                    android:textDirection="locale"
                     android:text="@string/contact_add_wording" />
 
                 <TextView
@@ -135,7 +138,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="15.36dp"
+                    android:layout_marginStart="15.36dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="10dp"
                     android:text="@string/contact_set_add_wording" />
@@ -152,11 +155,11 @@
                     android:id="@+id/remark_and_group_tip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="15.36dp"
+                    android:layout_marginStart="15.36dp"
                     android:layout_marginTop="10dp"
                     android:text="@string/contact_set_remark_and_group" />
 
-                <com.tencent.qcloud.tuicore.component.LineControllerView
+                <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                     android:id="@+id/friend_remark_lv"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_item_height"
@@ -164,7 +167,7 @@
                     app:canNav="true"
                     app:name="@string/contact_friend_remark" />
 
-                <com.tencent.qcloud.tuicore.component.LineControllerView
+                <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                     android:id="@+id/friend_group_lv"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_item_height"
@@ -173,7 +176,7 @@
 
             </LinearLayout>
 
-            <com.tencent.qcloud.tuicore.component.LineControllerView
+            <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                 android:id="@+id/remark"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_profile_item_height"
@@ -183,7 +186,7 @@
                 app:name="@string/profile_remark"
                 tools:visibility="visible" />
 
-            <com.tencent.qcloud.tuicore.component.LineControllerView
+            <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                 android:id="@+id/msg_rev_opt"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_profile_item_height"
@@ -192,7 +195,7 @@
                 app:isSwitch="true"
                 app:name="@string/profile_msgrev_opt" />
 
-            <com.tencent.qcloud.tuicore.component.LineControllerView
+            <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                 android:id="@+id/chat_to_top"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_profile_item_height"
@@ -201,7 +204,7 @@
                 app:isTop="true"
                 app:name="@string/chat_to_top" />
 
-            <com.tencent.qcloud.tuicore.component.LineControllerView
+            <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                 android:id="@+id/chat_background"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_profile_item_height"
@@ -210,7 +213,7 @@
                 app:name="@string/profile_chat_background"
                 tools:visibility="visible" />
 
-            <com.tencent.qcloud.tuicore.component.LineControllerView
+            <com.tencent.qcloud.tuikit.timcommon.component.LineControllerView
                 android:id="@+id/blackList"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_profile_item_height"
@@ -230,7 +233,6 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/contact_add"
@@ -245,7 +247,6 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/accept"
@@ -255,12 +256,21 @@
                     android:visibility="gone"
                     tools:visibility="visible" />
 
+                <LinearLayout
+                    android:id="@+id/extension_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                </LinearLayout>
+
                 <Button
-                    android:id="@+id/btn_chat"
+                    android:id="@+id/agree_button"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/profile_chat"
@@ -268,45 +278,14 @@
                     android:textSize="@dimen/contact_profile_btn_text_size"
                     android:textAllCaps="false"
                     android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <Button
-                    android:id="@+id/btn_voice"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
-                    android:layout_marginTop="0.68dp"
-                    android:background="@drawable/btn_bg_color"
-                    android:text="@string/profile_voice_chat"
-                    android:textColor="?attr/core_primary_color"
-                    android:textSize="@dimen/contact_profile_btn_text_size"
-                    android:textAllCaps="false"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <Button
-                    android:id="@+id/btn_video"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
-                    android:layout_marginTop="0.68dp"
-                    android:background="@drawable/btn_bg_color"
-                    android:text="@string/profile_video_chat"
-                    android:textColor="?attr/core_primary_color"
-                    android:textSize="@dimen/contact_profile_btn_text_size"
-                    android:textAllCaps="false"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    tools:visibility="visible"/>
 
                 <Button
                     android:id="@+id/btn_clear_chat_history"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
-                    android:layout_marginTop="0.68dp"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/profile_clear_message"
                     android:textColor="?attr/core_error_tip_color"
@@ -320,7 +299,6 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
                     android:layout_marginTop="0.68dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/profile_delete_friend"
@@ -335,7 +313,6 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_profile_btn_height"
-                    android:layout_alignParentBottom="true"
                     android:layout_marginTop="0.6dp"
                     android:background="@drawable/btn_bg_color"
                     android:text="@string/refuse"

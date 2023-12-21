@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.tencent.qcloud.tuicore.TUILogin;
 import com.tencent.qcloud.tuikit.TUICommonDefine;
 import com.tencent.qcloud.tuikit.tuicallengine.TUICallDefine;
-import com.tencent.qcloud.tuikit.tuicallengine.impl.base.TUILog;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
 import com.tencent.qcloud.tuikit.tuicallkit.base.CallingUserModel;
 import com.tencent.qcloud.tuikit.tuicallkit.base.Constants;
@@ -27,17 +26,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class TUICallingGroupView extends BaseCallView {
-    private static final String TAG = "TUICallingGroupView";
-
-    private TextView                mTextCallHint;
-    private RelativeLayout          mLayoutFunction;
-    private TextView                mTextTime;
-    private UserLayoutFactory       mUserLayoutFactory;
-    private TUICallDefine.MediaType mCallMediaType;
-    private View                    mRootView;
-    private RelativeLayout          mLayoutFloatView;
-    private RelativeLayout          mLayoutAddUserView;
-    private RelativeLayout          mLayoutGroupManager;
+    private TextView          mTextCallHint;
+    private RelativeLayout    mLayoutFunction;
+    private TextView          mTextTime;
+    private UserLayoutFactory mUserLayoutFactory;
+    private View              mRootView;
+    private RelativeLayout    mLayoutFloatView;
+    private RelativeLayout    mLayoutAddUserView;
+    private RelativeLayout    mLayoutGroupManager;
 
     private int     mCount     = 0;
     private boolean mInitParam = false;
@@ -48,10 +44,9 @@ public class TUICallingGroupView extends BaseCallView {
     private ArrayList<LayoutParams> mGrid4ParamList;
     private ArrayList<LayoutParams> mGrid9ParamList;
 
-    public TUICallingGroupView(Context context, UserLayoutFactory factory, TUICallDefine.MediaType type) {
+    public TUICallingGroupView(Context context, UserLayoutFactory factory) {
         super(context);
         mUserLayoutFactory = factory;
-        mCallMediaType = type;
         initView();
         initData();
     }
@@ -72,8 +67,9 @@ public class TUICallingGroupView extends BaseCallView {
                 continue;
             }
             UserLayout layout = allocUserLayout(entity.userModel);
+            TUICallDefine.MediaType mediaType = TUICallingStatusManager.sharedInstance(mContext).getMediaType();
             if (entity.userId.equals(TUILogin.getLoginUser())) {
-                if (TUICallDefine.MediaType.Video.equals(mCallMediaType)) {
+                if (TUICallDefine.MediaType.Video.equals(mediaType)) {
                     layout.setVideoAvailable(true);
                     TUICommonDefine.Camera camera = TUICallingStatusManager.sharedInstance(mContext).getFrontCamera();
                     mCallingAction.openCamera(camera, layout.getVideoView(), null);
@@ -84,25 +80,9 @@ public class TUICallingGroupView extends BaseCallView {
                 }
             } else {
                 if (null != entity.userModel) {
-                    if (TUICallDefine.MediaType.Video.equals(mCallMediaType) && entity.userModel.isVideoAvailable) {
+                    if (TUICallDefine.MediaType.Video.equals(mediaType) && entity.userModel.isVideoAvailable) {
                         layout.setVideoAvailable(true);
-                        mCallingAction.startRemoteView(entity.userId, layout.getVideoView(),
-                                new TUICommonDefine.PlayCallback() {
-                                    @Override
-                                    public void onPlaying(String userId) {
-
-                                    }
-
-                                    @Override
-                                    public void onLoading(String userId) {
-
-                                    }
-
-                                    @Override
-                                    public void onError(String userId, int errCode, String errMsg) {
-
-                                    }
-                                });
+                        mCallingAction.startRemoteView(entity.userId, layout.getVideoView(), null);
                     }
                     ImageLoader.loadImage(mContext, entity.layout.getAvatarImage(), entity.userModel.userAvatar,
                             R.drawable.tuicalling_ic_avatar);
@@ -120,61 +100,42 @@ public class TUICallingGroupView extends BaseCallView {
     @Override
     public void userEnter(CallingUserModel userModel) {
         super.userEnter(userModel);
-        UserLayout layout = findUserLayout(userModel.userId);
-        TUILog.i(TAG, "userEnter, layout: " + layout + " , userModel: " + userModel);
+        UserLayout layout = mUserLayoutFactory.findUserLayout(userModel.userId);
         if (null == layout) {
             layout = allocUserLayout(userModel);
         }
+        if (layout == null) {
+            return;
+        }
         layout.stopLoading();
-        if (TUICallDefine.MediaType.Video.equals(mCallMediaType)) {
-            layout.setVideoAvailable(true);
-            mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(),
-                    new TUICommonDefine.PlayCallback() {
-                        @Override
-                        public void onPlaying(String userId) {
-
-                        }
-
-                        @Override
-                        public void onLoading(String userId) {
-
-                        }
-
-                        @Override
-                        public void onError(String userId, int errCode, String errMsg) {
-
-                        }
-                    });
+        TUICallDefine.MediaType mediaType = TUICallingStatusManager.sharedInstance(mContext).getMediaType();
+        layout.setVideoAvailable(TUICallDefine.MediaType.Video.equals(mediaType));
+        if (TUICallDefine.MediaType.Video.equals(mediaType)) {
+            mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(), null);
+        } else {
+            ImageLoader.loadImage(mContext, layout.getAvatarImage(), userModel.userAvatar,
+                    R.drawable.tuicalling_ic_avatar);
         }
     }
 
     @Override
     public void userAdd(CallingUserModel userModel) {
         super.userAdd(userModel);
-        UserLayout layout = findUserLayout(userModel.userId);
-        TUILog.i(TAG, "userAdd, layout: " + layout + " , userModel: " + userModel);
+        UserLayout layout = mUserLayoutFactory.findUserLayout(userModel.userId);
         if (null == layout) {
             layout = allocUserLayout(userModel);
         }
+        if (layout == null) {
+            return;
+        }
         layout.startLoading();
-        if (TUICallDefine.MediaType.Video.equals(mCallMediaType)) {
-            mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(),
-                    new TUICommonDefine.PlayCallback() {
-                        @Override
-                        public void onPlaying(String userId) {
-
-                        }
-
-                        @Override
-                        public void onLoading(String userId) {
-
-                        }
-
-                        @Override
-                        public void onError(String userId, int errCode, String errMsg) {
-
-                        }
-                    });
+        TUICallDefine.MediaType mediaType = TUICallingStatusManager.sharedInstance(mContext).getMediaType();
+        layout.setVideoAvailable(TUICallDefine.MediaType.Video.equals(mediaType));
+        if (TUICallDefine.MediaType.Video.equals(mediaType)) {
+            mCallingAction.startRemoteView(userModel.userId, layout.getVideoView(), null);
+        } else {
+            ImageLoader.loadImage(mContext, layout.getAvatarImage(), userModel.userAvatar,
+                    R.drawable.tuicalling_ic_avatar);
         }
     }
 
@@ -193,6 +154,8 @@ public class TUICallingGroupView extends BaseCallView {
         UserLayout userLayout = mUserLayoutFactory.findUserLayout(userModel.userId);
         if (null != userLayout) {
             userLayout.setVideoAvailable(userModel.isVideoAvailable);
+            ImageLoader.loadImage(mContext, userLayout.getAvatarImage(), userModel.userAvatar,
+                    R.drawable.tuicalling_ic_avatar);
         }
     }
 
@@ -253,13 +216,6 @@ public class TUICallingGroupView extends BaseCallView {
         super.finish();
     }
 
-    private UserLayout findUserLayout(String userId) {
-        if (TextUtils.isEmpty(userId)) {
-            return null;
-        }
-        return (null == mUserLayoutFactory) ? null : mUserLayoutFactory.findUserLayout(userId);
-    }
-
     private UserLayout allocUserLayout(CallingUserModel userModel) {
         if (null == userModel || TextUtils.isEmpty(userModel.userId)) {
             return null;
@@ -305,7 +261,6 @@ public class TUICallingGroupView extends BaseCallView {
     }
 
     private void recyclerAllUserLayout() {
-        TUILog.i(TAG, "recyclerAllUserLayout");
         if (null == mUserLayoutFactory) {
             return;
         }

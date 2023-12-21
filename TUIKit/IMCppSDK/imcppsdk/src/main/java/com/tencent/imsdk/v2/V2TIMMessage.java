@@ -68,7 +68,11 @@ public class V2TIMMessage implements Serializable {
 
     private boolean isExcludedFromUnreadCount;
     private boolean isExcludedFromLastMessage;
-
+    private boolean isExcludedFromContentModeration;
+    private boolean isSupportMessageExtension;
+    private boolean riskContent;
+    private V2TIMUserFullInfo revokerInfo;
+    private String 	revokeReason;
     public String getMsgID() {
         return msgID;
     }
@@ -327,11 +331,46 @@ public class V2TIMMessage implements Serializable {
         this.isExcludedFromLastMessage = excludedFromLastMessage;
     }
 
+    public boolean isExcludedFromContentModeration() {
+        return isExcludedFromContentModeration;
+    }
+
+    public void setExcludedFromContentModeration(boolean excludedFromContentModeration) {
+        isExcludedFromContentModeration = excludedFromContentModeration;
+    }
+
+    public boolean isSupportMessageExtension() {
+        return isSupportMessageExtension;
+    }
+
+    public void setSupportMessageExtension(boolean supportMessageExtension) {
+        isSupportMessageExtension = supportMessageExtension;
+    }
+
+    public boolean hasRiskContent() {
+        return riskContent;
+    }
+
+    public V2TIMUserFullInfo getRevokerInfo() {
+        return revokerInfo;
+    }
+
+    public String getRevokeReason() {
+        return revokeReason;
+    }
+    protected void setGroupAtUserList(List<String> groupAtUserList) {
+        this.groupAtUserList = groupAtUserList;
+    }
+
     public void addElem(V2TIMElem elem){
         if (null == elem){
             return;
         }
         elemList.add(elem);
+    }
+
+    protected List<V2TIMElem> getElemList() {
+        return elemList;
     }
 
     @Override

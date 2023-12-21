@@ -1,15 +1,9 @@
 package com.tencent.qcloud.tuicore;
 
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
-
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Notification registration, removal and triggering
  */
 class EventManager {
-    private static final String TAG = ServiceManager.class.getSimpleName();
+    private static final String TAG = EventManager.class.getSimpleName();
 
     private static class EventManagerHolder {
         private static final EventManager eventManager = new EventManager();
@@ -89,10 +83,9 @@ class EventManager {
         Pair<String, String> keyPair = new Pair<>(key, subKey);
         List<ITUINotification> notificationList = eventMap.get(keyPair);
         if (notificationList != null) {
-            for(ITUINotification notification : notificationList) {
+            for (ITUINotification notification : notificationList) {
                 notification.onNotifyEvent(key, subKey, param);
             }
         }
     }
-
 }

@@ -1,210 +1,126 @@
 package com.tencent.qcloud.tuikit.tuicallkit.utils;
 
+import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.res.Resources;
-import android.net.Uri;
-import android.provider.Settings;
+import android.os.Build;
 import android.text.TextUtils;
 
-import androidx.annotation.IntDef;
-
-import com.tencent.qcloud.tuicore.util.PermissionRequester;
-import com.tencent.qcloud.tuikit.tuicallengine.utils.BrandUtils;
-import com.tencent.qcloud.tuikit.tuicallengine.utils.PermissionUtils;
+import com.tencent.qcloud.tuicore.TUIConstants;
+import com.tencent.qcloud.tuicore.TUICore;
+import com.tencent.qcloud.tuicore.permission.PermissionCallback;
+import com.tencent.qcloud.tuicore.permission.PermissionRequester;
+import com.tencent.qcloud.tuikit.tuicallengine.TUICallDefine;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PermissionRequest {
-    public static final int PERMISSION_MICROPHONE = 1;
-    public static final int PERMISSION_CAMERA     = 2;
 
-    @IntDef({PERMISSION_MICROPHONE, PERMISSION_CAMERA})
-    public @interface PermissionType {
-    }
+    public static void requestPermissions(Context context, TUICallDefine.MediaType type, PermissionCallback callback) {
+        StringBuilder title = new StringBuilder().append(context.getString(R.string.tuicalling_permission_microphone));
+        StringBuilder reason = new StringBuilder();
+        String microphonePermissionsDescription = (String) TUICore.createObject(
+                TUIConstants.Privacy.PermissionsFactory.FACTORY_NAME,
+                TUIConstants.Privacy.PermissionsFactory.PermissionsName.MICROPHONE_PERMISSIONS, null);
+        if (!TextUtils.isEmpty(microphonePermissionsDescription)) {
+            reason.append(microphonePermissionsDescription);
+        } else {
+            reason.append(context.getString(R.string.tuicalling_permission_mic_reason));
+        }
+        List<String> permissionList = new ArrayList<>();
+        permissionList.add(Manifest.permission.RECORD_AUDIO);
 
-    public static void requestPermission(Context context, @PermissionType int type1, @PermissionType int type2,
-                                         PermissionCallback callback) {
-        requestPermission(context, type2, new PermissionCallback() {
+        if (TUICallDefine.MediaType.Video.equals(type)) {
+            title.append(context.getString(R.string.tuicalling_permission_separator));
+            title.append(context.getString(R.string.tuicalling_permission_camera));
+            String cameraPermissionsDescription = (String) TUICore.createObject(
+                    TUIConstants.Privacy.PermissionsFactory.FACTORY_NAME,
+                    TUIConstants.Privacy.PermissionsFactory.PermissionsName.CAMERA_PERMISSIONS, null);
+            if (!TextUtils.isEmpty(cameraPermissionsDescription)) {
+                reason.append(cameraPermissionsDescription);
+            } else {
+                reason.append(context.getString(R.string.tuicalling_permission_camera_reason));
+            }
+            permissionList.add(Manifest.permission.CAMERA);
+        }
+
+        PermissionCallback permissionCallback = new PermissionCallback() {
             @Override
             public void onGranted() {
-                requestPermission(context, type1, new PermissionCallback() {
+                requestBluetoothPermission(context, new PermissionCallback() {
                     @Override
                     public void onGranted() {
-                        if (null != callback) {
+                        if (callback != null) {
                             callback.onGranted();
                         }
                     }
-
-                    @Override
-                    public void onDenied() {
-                        if (null != callback) {
-                            callback.onDenied();
-                        }
-                    }
-
-                    @Override
-                    public void onDialogApproved() {
-                        if (null != callback) {
-                            callback.onDialogApproved();
-                        }
-                    }
-
-                    @Override
-                    public void onDialogRefused() {
-                        if (null != callback) {
-                            callback.onDialogRefused();
-                        }
-                    }
                 });
-
             }
 
             @Override
             public void onDenied() {
-                if (null != callback) {
-                    callback.onDenied();
-                }
-            }
-
-            @Override
-            public void onDialogApproved() {
-                if (null != callback) {
-                    callback.onDialogApproved();
-                }
-            }
-
-            @Override
-            public void onDialogRefused() {
-                if (null != callback) {
-                    callback.onDialogRefused();
-                }
-            }
-        });
-    }
-
-    public static void requestPermission(Context context, @PermissionType int type, PermissionCallback callback) {
-        String permission = null;
-        String reason = null;
-        String reasonTitle = null;
-        String deniedAlert = null;
-        ApplicationInfo applicationInfo = context.getApplicationContext().getApplicationInfo();
-        Resources resources = context.getResources();
-        String appName = resources.getString(applicationInfo.labelRes);
-        switch (type) {
-            case PERMISSION_MICROPHONE: {
-                permission = PermissionRequester.PermissionConstants.MICROPHONE;
-                reasonTitle = resources.getString(R.string.tuicalling_permission_mic_reason_title, appName);
-                reason = resources.getString(R.string.tuicalling_permission_mic_reason);
-                deniedAlert = resources.getString(R.string.tuicalling_tips_start_audio);
-                break;
-            }
-            case PERMISSION_CAMERA: {
-                permission = PermissionRequester.PermissionConstants.CAMERA;
-                reasonTitle = resources.getString(R.string.tuicalling_permission_camera_reason_title, appName);
-                reason = resources.getString(R.string.tuicalling_permission_camera_reason);
-                deniedAlert = resources.getString(R.string.tuicalling_tips_start_camera);
-                break;
-            }
-            default:
-                break;
-        }
-
-        PermissionRequester.SimpleCallback simpleCallback = new PermissionRequester.SimpleCallback() {
-            @Override
-            public void onGranted() {
-                if (callback != null) {
-                    callback.onGranted();
-                }
-            }
-
-            @Override
-            public void onDenied() {
+                super.onDenied();
                 if (callback != null) {
                     callback.onDenied();
                 }
             }
         };
-        if (!TextUtils.isEmpty(permission)) {
-            PermissionRequester.permission(permission)
-                    .reason(reason)
-                    .reasonTitle(reasonTitle)
-                    .deniedAlert(deniedAlert)
-                    .callback(simpleCallback)
-                    .permissionDialogCallback(new PermissionRequester.PermissionDialogCallback() {
-                        @Override
-                        public void onApproved() {
-                            if (callback != null) {
-                                callback.onDialogApproved();
-                            }
-                        }
 
-                        @Override
-                        public void onRefused() {
-                            if (callback != null) {
-                                callback.onDialogRefused();
-                            }
-                        }
-                    })
-                    .request();
-        }
+        ApplicationInfo applicationInfo = context.getApplicationInfo();
+        String appName = context.getPackageManager().getApplicationLabel(applicationInfo).toString();
+
+        String[] permissions = permissionList.toArray(new String[0]);
+        PermissionRequester.newInstance(permissions)
+                .title(context.getString(R.string.tuicalling_permission_title, appName, title))
+                .description(reason.toString())
+                .settingsTip(context.getString(R.string.tuicalling_permission_tips, title) + "\n" + reason.toString())
+                .callback(permissionCallback)
+                .request();
     }
 
-    public abstract static class PermissionCallback {
-
-        public void onGranted() {
+    /**
+     * Android S(31) need apply for Nearby devices(Bluetooth) permission to support bluetooth headsets.
+     * Please refer to: https://developer.android.com/guide/topics/connectivity/bluetooth/permissions
+     */
+    private static void requestBluetoothPermission(Context context, PermissionCallback callback) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            callback.onGranted();
+            return;
         }
+        String title = context.getString(R.string.tuicalling_permission_bluetooth);
+        String reason = context.getString(R.string.tuicalling_permission_bluetooth_reason);
 
-        public void onDenied() {
-        }
+        ApplicationInfo applicationInfo = context.getApplicationInfo();
+        String appName = context.getPackageManager().getApplicationLabel(applicationInfo).toString();
 
-        public void onDialogApproved() {
-        }
+        PermissionRequester.newInstance(Manifest.permission.BLUETOOTH_CONNECT)
+                .title(context.getString(R.string.tuicalling_permission_title, appName, title))
+                .description(reason)
+                .settingsTip(reason)
+                .callback(new PermissionCallback() {
+                    @Override
+                    public void onGranted() {
+                        callback.onGranted();
+                    }
 
-        public void onDialogRefused() {
-        }
+                    @Override
+                    public void onDenied() {
+                        super.onDenied();
+                        //bluetooth is unnecessary permission, return permission granted
+                        callback.onGranted();
+                    }
+                })
+                .request();
     }
 
     public static void requestFloatPermission(Context context) {
-        if (PermissionUtils.hasPermission(context)) {
+        if (PermissionRequester.newInstance(PermissionRequester.FLOAT_PERMISSION).has()) {
             return;
         }
-        if (BrandUtils.isBrandVivo()) {
-            requestVivoFloatPermission(context);
-        } else {
-            startCommonSettings(context);
-        }
-    }
-
-    private static void startCommonSettings(Context context) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            intent.setData(Uri.parse("package:" + context.getPackageName()));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        }
-    }
-
-    private static void requestVivoFloatPermission(Context context) {
-        Intent vivoIntent = new Intent();
-        String model = BrandUtils.getModel();
-        boolean isVivoY85 = false;
-        if (!TextUtils.isEmpty(model)) {
-            isVivoY85 = model.contains("Y85") && !model.contains("Y85A");
-        }
-
-        if (!TextUtils.isEmpty(model) && (isVivoY85 || model.contains("vivo Y53L"))) {
-            vivoIntent.setClassName("com.vivo.permissionmanager",
-                    "com.vivo.permissionmanager.activity.PurviewTabActivity");
-            vivoIntent.putExtra("tabId", "1");
-        } else {
-            vivoIntent.setClassName("com.vivo.permissionmanager",
-                    "com.vivo.permissionmanager.activity.SoftPermissionDetailActivity");
-            vivoIntent.setAction("secure.intent.action.softPermissionDetail");
-        }
-
-        vivoIntent.putExtra("packagename", context.getPackageName());
-        vivoIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(vivoIntent);
+        //In TUICallKit,Please open both OverlayWindows and Background pop-ups permission.
+        PermissionRequester.newInstance(PermissionRequester.FLOAT_PERMISSION, PermissionRequester.BG_START_PERMISSION)
+                .request();
     }
 }

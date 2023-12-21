@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ui.page.GroupNoticeActivity">
+    tools:context=".classicui.page.GroupNoticeActivity">
 
-    <com.tencent.qcloud.tuicore.component.TitleBarLayout
+    <com.tencent.qcloud.tuikit.timcommon.component.TitleBarLayout
         android:id="@+id/group_notice_title_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/page_title_height" />
@@ -15,8 +14,8 @@
     <EditText
         android:id="@+id/group_notice_text"
         android:paddingTop="10dp"
-        android:paddingLeft="15.36dp"
-        android:paddingRight="15.36dp"
+        android:paddingStart="15.36dp"
+        android:paddingEnd="15.36dp"
         android:clickable="false"
         android:focusable="false"
         android:focusableInTouchMode="false"

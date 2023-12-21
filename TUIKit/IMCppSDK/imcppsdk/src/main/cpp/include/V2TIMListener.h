@@ -14,6 +14,7 @@
 #include "V2TIMFriendship.h"
 #include "V2TIMGroup.h"
 #include "V2TIMMessage.h"
+#include "V2TIMOfficialAccount.h"
 #include "V2TIMSignaling.h"
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +69,25 @@ public:
      * 3. 同一个账号多设备登录，当其中一台设备修改了自定义状态，所有设备都会收到该回调
      */
     virtual void OnUserStatusChanged(const V2TIMUserStatusVector &userStatusList) {}
+
+    /**
+     * 用户资料变更通知
+     * 
+     * @note
+     * 仅当通过 SubscribeUserInfo 成功订阅的用户（仅限非好友用户）的资料发生变更时，才会激活此回调函数
+     */
+    virtual void OnUserInfoChanged(const V2TIMUserFullInfoVector &infoList) {}
+
+    /**
+     * 全局消息接收选项变更通知
+     */
+    virtual void OnAllReceiveMessageOptChanged(const V2TIMReceiveMessageOptInfo &receiveMessageOptInfo) {}
+    
+    /**
+     * 实验性事件通知
+     */
+    virtual void onExperimentalNotify(const V2TIMString &key, const V2TIMString &param) {}
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -166,9 +186,11 @@ public:
     /**
      * 收到消息撤回的通知
      *
-     * @param messageID 消息唯一标识
+     * @param msgID 消息唯一标识
+     * @param operateUser 撤回者信息
+     * @param reason 撤回原因
      */
-    virtual void OnRecvMessageRevoked(const V2TIMString &messageID) {}
+    virtual void OnRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser, const V2TIMString &reason) {}
 
     /**
      * 消息内容被修改
@@ -186,6 +208,20 @@ public:
      */
     virtual void OnRecvMessageExtensionsDeleted(const V2TIMString &msgID,
                                                 const V2TIMStringVector &extensionKeys) {}
+
+    /**
+     * 消息回应信息更新
+     * 该回调是消息 Reaction 的增量回调，只会携带变更的 Reaction 信息。
+     * 当变更的 Reaction 信息里的 totalUserCount 字段值为 0 时，表明该 Reaction 已经没有用户在使用，您可以在 UI 上移除该 Reaction 的展示。
+     */
+    virtual void OnRecvMessageReactionsChanged(const V2TIMMessageReactionChangeInfoVector &changeInfos) {}
+
+    /**
+     * 收到消息撤回的通知（待废弃接口，请使用 onRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser, const V2TIMString &reason) 接口）
+     *
+     * @param msgID 消息唯一标识
+     */
+    virtual void OnRecvMessageRevoked(const V2TIMString &msgID) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -201,8 +237,10 @@ public:
     virtual ~V2TIMGroupListener();
 
     /**
-     * 有新成员加入群（该群所有的成员都能收到，会议群（Meeting）默认无此回调，如需回调请提交工单配置）
-     *
+     * 有新成员加入群（该群所有的成员都能收到）
+     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im) 
+     * (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员变更通知) 主动配置。
+     * 
      * @param groupID    群 ID
      * @param memberList 加入的成员
      */
@@ -210,7 +248,9 @@ public:
                                const V2TIMGroupMemberInfoVector &memberList) {}
 
     /**
-     * 有成员离开群（该群所有的成员都能收到，会议群（Meeting）默认无此回调，如需回调请提交工单配置）
+     * 有成员离开群（该群所有的成员都能收到）
+     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im) 
+     * (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员变更通知) 主动配置。
      *
      * @param groupID 群 ID
      * @param member  离开的成员
@@ -249,6 +289,20 @@ public:
         const V2TIMGroupMemberChangeInfoVector &v2TIMGroupMemberChangeInfoList) {}
 
     /**
+     * 群组全体成员被禁言/解除禁言了（该群所有的成员都能收到）
+     * 需要提前在 [控制台](https://console.cloud.tencent.com/im) 开启通知开关。开关路径：功能配置 -> 群组配置 -> 群系统通知配置 -> 群资料变更通知 -> 群禁言变更通知。
+     * 7.5 及以上版本支持。
+     */
+    virtual void OnAllGroupMembersMuted(const V2TIMString &groupID, bool isMute) {}
+    
+    /**
+     * 有成员被标记（该群所有的成员都能收到）
+     * 仅社群（Community）支持该回调。
+     * 7.5 及以上版本支持，需要您购买旗舰版套餐。
+     */
+    virtual void OnMemberMarkChanged(const V2TIMString &groupID, const V2TIMStringVector &memberIDList, uint32_t markType, bool enableMark) {}
+    
+    /**
      * 创建群（主要用于多端同步）
      *
      * @param groupID 群 ID
@@ -273,6 +327,8 @@ public:
 
     /**
      * 群信息被修改（全员能收到）
+     * 以下字段的修改可能会引发该通知 groupName & introduction & notification & faceUrl & owner & allMute & custom
+     * 控制指定字段 下发通知/存漫游 请前往 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 群组配置 -> 群系统通知配置 -> 群资料变更通知) 主动配置。
      *
      * @param changeInfos 修改的群信息
      */
@@ -344,7 +400,7 @@ public:
                                        const V2TIMGroupMemberInfoVector &memberList) {}
 
     /**
-     * 主动退出群组（主要用于多端同步，直播群（AVChatRoom）不支持）
+     * 主动退出群组（主要用于多端同步）
      *
      * @param groupID 群 ID
      */
@@ -445,6 +501,14 @@ public:
      * @param conversationList 会话列表
      */
     virtual void OnConversationChanged(const V2TIMConversationVector &conversationList) {}
+
+    /**
+     * 会话被删除的通知（7.2 及以上版本支持）
+     *
+     * @note
+     * conversationIDList 表示被删除的会话唯一 ID 列表。C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为: "group_groupID"
+     */
+    virtual void OnConversationDeleted(const V2TIMStringVector &conversationIDList) {}
 
     /**
      * 全部会话未读总数变更的通知（5.3.425 及以上版本支持）
@@ -561,6 +625,26 @@ public:
      * 好友资料更新通知
      */
     virtual void OnFriendInfoChanged(const V2TIMFriendInfoVector &infoList) {}
+
+    /**
+     * 订阅公众号通知
+     */
+    virtual void OnOfficialAccountSubscribed(const V2TIMOfficialAccountInfo &info) {}
+
+    /**
+     * 取消订阅公众号通知
+     */
+    virtual void OnOfficialAccountUnsubscribed(const V2TIMString &officialAccountID) {}
+
+    /**
+     * 订阅的公众号被删除通知
+     */
+    virtual void OnOfficialAccountDeleted(const V2TIMString &officialAccountID) {}
+
+    /**
+     * 订阅的公众号资料更新通知
+     */
+    virtual void OnOfficialAccountInfoChanged(const V2TIMOfficialAccountInfo &info) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////

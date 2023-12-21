@@ -42,8 +42,10 @@ enum V2TIMGroupInfoChangeType {
     V2TIM_GROUP_INFO_CHANGE_TYPE_SHUT_UP_ALL = 0x08,
     ///< 消息接收选项变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_RECEIVE_MESSAGE_OPT = 0x0A,
-    ///< 加群选项变更
+    ///< 申请加群方式下管理员审批选项变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_ADD_OPT = 0x0B,
+    ///< 邀请进群方式下管理员审批选项变更
+    V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_APPROVE_OPT = 0x0C,
 };
 
 /// 加群选项
@@ -54,6 +56,8 @@ enum V2TIMGroupAddOpt {
     V2TIM_GROUP_ADD_AUTH = 1,
     /// 任何人可以加入
     V2TIM_GROUP_ADD_ANY = 2,
+    /// 未定义
+    V2TIM_GROUP_ADD_UNKNOWN = 3,
 };
 
 // 群资料修改标记位
@@ -68,7 +72,7 @@ enum V2TIMGroupInfoModifyFlag {
     V2TIM_GROUP_INFO_MODIFY_FLAG_INTRODUCTION = 0x01 << 2,
     // 头像
     V2TIM_GROUP_INFO_MODIFY_FLAG_FACE_URL = 0x01 << 3,
-    // 加群选项
+    // 申请加群管理员审批选项
     V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_ADD_OPTION = 0x01 << 4,
     // 禁言
     V2TIM_GROUP_INFO_MODIFY_FLAG_SHUTUP_ALL = 0x01 << 8,
@@ -76,6 +80,8 @@ enum V2TIMGroupInfoModifyFlag {
     V2TIM_GROUP_INFO_MODIFY_FLAG_CUSTOM_INFO = 0x01 << 9,
     // 话题自定义字段
     V2TIM_TOPIC_INFO_MODIFY_FLAG_CUSTOM_STRING = 0x1 << 11,
+    // 邀请进群管理员审批选项
+    V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_APPROVE_OPTION = 0x1 << 12,
 };
 
 ///  群组操作结果
@@ -86,7 +92,7 @@ enum V2TIMGroupMemberResult {
     V2TIM_GROUP_MEMBER_RESULT_SUCC = 1,
     /// 无效操作，加群时已经是群成员，移除群组时不在群内
     V2TIM_GROUP_MEMBER_RESULT_INVALID = 2,
-    /// 等待处理，邀请入群时等待对方处理
+    /// 等待处理，邀请入群时等待审批
     V2TIM_GROUP_MEMBER_RESULT_PENDING = 3,
     /// 操作失败，创建群指定初始群成员列表或邀请入群时，被邀请者加入的群总数超限
     V2TIM_GROUP_MEMBER_RESULT_OVERLIMIT = 4,
@@ -119,11 +125,13 @@ enum V2TIMGroupMemberInfoModifyFlag {
 };
 
 /// 群组未决请求类型
-enum V2TIMGroupApplicationGetType {
+enum V2TIMGroupApplicationType {
     /// 申请入群
-    V2TIM_GROUP_APPLICATION_GET_TYPE_JOIN = 0x0,
-    /// 邀请入群
-    V2TIM_GROUP_APPLICATION_GET_TYPE_INVITE = 0x1,
+    V2TIM_GROUP_JOIN_APPLICATION_NEED_APPROVED_BY_ADMIN = 0x0,
+    /// 等待被邀请者同意的邀请入群请求
+    V2TIM_GROUP_INVITE_APPLICATION_NEED_APPROVED_BY_INVITEE = 0x1,
+    /// 等待被群主或管理员审批的邀请入群请求
+    V2TIM_GROUP_INVITE_APPLICATION_NEED_APPROVED_BY_ADMIN = 0x2,
 };
 
 /// 群组已决标志
@@ -172,7 +180,9 @@ struct TIM_API V2TIMGroupMemberInfo {
     V2TIMString nameCard;
     /// 用户头像
     V2TIMString faceURL;
-
+    /// 在线终端列表
+    V2TIMStringVector onlineDevices;
+    
     V2TIMGroupMemberInfo();
     V2TIMGroupMemberInfo(const V2TIMGroupMemberInfo& groupMemberInfo);
     ~V2TIMGroupMemberInfo();
@@ -193,12 +203,18 @@ struct TIM_API V2TIMGroupMemberFullInfo : public V2TIMGroupMemberInfo {
     uint32_t muteUntil;
     /// 群成员入群时间，自动生成，不可修改
     int64_t joinTime;
-    // 群成员资料修改标记位
-    // 枚举 V2TIMGroupMemberInfoModifyFlag 列出哪些字段支持修改，如果您修改群成员资料，请设置这个字段值
-    // 支持同时修改多个字段，多个枚举值按位或 | 组合，例如，同时修改群成员名片和群成员角色
-    // info.nameCard = "new name card";
-    // info.role = V2TIM_GROUP_MEMBER_ROLE_ADMIN;
-    // info.modifyFlag = V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_NAME_CARD | V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_MEMBER_ROLE;
+    /// 群成员是否在线
+    /// @note 请注意：
+    /// - 不支持直播群 AVChatRoom；
+    /// - 该字段仅在调用 getGroupMemberList 接口时有效；
+    /// - 7.3 及其以上版本支持，需要您购买旗舰版套餐。
+    bool isOnline;
+    /// 群成员资料修改标记位
+    /// 枚举 V2TIMGroupMemberInfoModifyFlag 列出哪些字段支持修改，如果您修改群成员资料，请设置这个字段值
+    /// 支持同时修改多个字段，多个枚举值按位或 | 组合，例如，同时修改群成员名片和群成员角色
+    /// info.nameCard = "new name card";
+    /// info.role = V2TIM_GROUP_MEMBER_ROLE_ADMIN;
+    /// info.modifyFlag = V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_NAME_CARD | V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_MEMBER_ROLE;
     uint32_t modifyFlag;
 
     V2TIMGroupMemberFullInfo();
@@ -237,8 +253,10 @@ struct TIM_API V2TIMGroupChangeInfo {
     bool boolValue;
     
     /// 根据变更类型表示不同的值
-    /// 当前只有 type = V2TIM_GROUP_INFO_CHANGE_TYPE_RECEIVE_MESSAGE_OPT 和 V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_ADD_OPT 时有效
-    /// 从 6.5 版本开始支持
+    /// @note 仅针对以下类型有效：
+    /// - 从 6.5 版本开始，当 type 为 V2TIM_GROUP_INFO_CHANGE_TYPE_RECEIVE_MESSAGE_OPT 时，该字段标识了群消息接收选项发生了变化，其取值详见 @V2TIMReceiveMessageOpt；
+    /// - 从 6.5 版本开始，当 type 为 V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_ADD_OPT 时，该字段标识了申请加群审批选项发生了变化，其取值详见 @V2TIMGroupAddOpt;
+    /// - 从 7.1 版本开始，当 type 为 V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_APPROVE_OPT 时，该字段标识了邀请进群审批选项发生了变化，取值类型详见 @V2TIMGroupAddOpt。
     uint32_t intValue;
 
     V2TIMGroupChangeInfo();
@@ -311,17 +329,21 @@ struct TIM_API V2TIMGroupInfo {
     V2TIMCustomInfo customInfo;
     /// 群创建人/管理员
     V2TIMString owner;
-    /// 群创建时间
+    /// 创建群组的 UTC 时间戳
     uint32_t createTime;
-    /// 加群是否需要管理员审批，工作群（Work）不能主动加入，不支持此设置项
+    /// 申请进群是否需要管理员审批：工作群（Work）默认值为 V2TIM_GROUP_ADD_FORBID，即默认不允许申请入群，您可以修改该字段打开申请入群方式。
     V2TIMGroupAddOpt groupAddOpt;
-    /// 群最近一次群资料修改时间
+    /// 邀请进群是否需要管理员审批 （从 7.1 版本开始支持）
+    /// - 除工作群（Work）之外的其他群类型默认值都为 V2TIM_GROUP_ADD_FORBID，即默认不允许邀请入群，您可以修改该字段打开邀请入群方式。
+    /// - 直播群、社群和话题默认不允许邀请入群，也不支持修改。
+    V2TIMGroupAddOpt groupApproveOpt;
+    /// 上次修改群信息的 UTC 时间戳
     uint32_t lastInfoTime;
     /// 群最近一次发消息时间
     uint32_t lastMessageTime;
     /// 已加入的群成员数量
     uint32_t memberCount;
-    /// 在线的群成员数量
+    /// 在线的群成员数量（待废弃字段，请使用 getGroupOnlineMemberCount 接口获取群在线人数）
     uint32_t onlineCount;
     /// 最多允许加入的群成员数量
     /// 各类群成员人数限制详见:
@@ -331,7 +353,7 @@ struct TIM_API V2TIMGroupInfo {
     uint32_t role;
     /// 当前用户在此群组中的消息接收选项,修改群消息接收选项请调用 SetGroupReceiveMessageOpt 接口
     V2TIMReceiveMessageOpt recvOpt;
-    /// 当前用户在此群中的加入时间，不支持设置，系统自动生成
+    /// 当前用户加入此群的 UTC 时间戳，不支持设置，系统自动生成
     uint32_t joinTime;
     /// 群资料修改标记位
     /// 枚举 V2TIMGroupInfoModifyFlag 列出哪些字段支持修改，如果您修改群资料，请设置这个字段值
@@ -376,7 +398,7 @@ typedef TXV2TIMGroupInfoResultVector V2TIMGroupInfoResultVector;
 struct V2TIMMessage;
 
 struct TIM_API V2TIMTopicInfo {
-    /// 话题 ID
+    /// 话题 ID，只能在创建话题或者修改话题信息的时候设置。组成方式为：社群 ID + @TOPIC#_xxx，例如社群 ID 为 @TGS#_123，则话题 ID 为 @TGS#_123@TOPIC#_xxx
     V2TIMString topicID;
     /// 话题名称
     V2TIMString topicName;
@@ -480,7 +502,7 @@ struct TIM_API V2TIMGroupApplication : V2TIMBaseObject {
     /// 审批信息：同意或拒绝信息
     V2TIMString handledMsg;
     /// 请求类型
-    V2TIMGroupApplicationGetType getType;
+    V2TIMGroupApplicationType applicationType;
     /// 处理标志
     V2TIMGroupApplicationHandleStatus handleStatus;
     /// 处理结果

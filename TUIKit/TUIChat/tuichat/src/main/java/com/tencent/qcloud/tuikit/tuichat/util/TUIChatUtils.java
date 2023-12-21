@@ -1,30 +1,28 @@
 package com.tencent.qcloud.tuikit.tuichat.util;
 
-import com.tencent.imsdk.v2.V2TIMConversation;
-import com.tencent.imsdk.v2.V2TIMImageElem;
-import com.tencent.imsdk.v2.V2TIMManager;
-import com.tencent.imsdk.v2.V2TIMMessage;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.ErrorMessageConverter;
-import com.tencent.qcloud.tuicore.util.ImageUtil;
-import com.tencent.qcloud.tuicore.util.SPUtils;
-import com.tencent.qcloud.tuicore.util.SoftKeyBoardUtil;
-import com.tencent.qcloud.tuikit.tuichat.R;
-import com.tencent.qcloud.tuikit.tuichat.TUIChatConstants;
-import com.tencent.qcloud.tuikit.tuichat.bean.message.TUIMessageBean;
-import com.tencent.qcloud.tuikit.tuichat.component.BeginnerGuidePage;
-
-import java.io.File;
-
 import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_C2C_PREFIX;
 import static com.tencent.qcloud.tuicore.TUIConstants.TUIConversation.CONVERSATION_GROUP_PREFIX;
 
 import android.text.TextUtils;
-import android.app.Activity;
-import android.view.Gravity;
-import android.view.View;
+
+import com.tencent.imsdk.v2.V2TIMConversation;
+import com.tencent.imsdk.v2.V2TIMImageElem;
+import com.tencent.imsdk.v2.V2TIMManager;
+import com.tencent.imsdk.v2.V2TIMMessage;
+import com.tencent.qcloud.tuicore.util.ErrorMessageConverter;
+import com.tencent.qcloud.tuikit.timcommon.bean.TUIMessageBean;
+import com.tencent.qcloud.tuikit.timcommon.component.face.FaceManager;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ImageUtil;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class TUIChatUtils {
+    public static final String SPLIT_TEXT = "split_result";
+    public static final String SPLIT_TEXT_FOR_TRANSLATION = "split_translation";
+    public static final String SPLIT_TEXT_INDEX_FOR_TRANSLATION = "split_translation_index";
 
     public static <T> void callbackOnError(IUIKitCallback<T> callBack, String module, int errCode, String desc) {
         if (callBack != null) {
@@ -56,7 +54,7 @@ public class TUIChatUtils {
         }
     }
 
-    public static String getConversationIdByUserId(String id, boolean isGroup) {
+    public static String getConversationIdByChatId(String id, boolean isGroup) {
         String conversationIdPrefix = isGroup ? CONVERSATION_GROUP_PREFIX : CONVERSATION_C2C_PREFIX;
         return conversationIdPrefix + id;
     }
@@ -69,7 +67,7 @@ public class TUIChatUtils {
         return chatType == V2TIMConversation.V2TIM_GROUP;
     }
 
-    public static String getOriginImagePath(final TUIMessageBean msg) {
+    public static String generateOriginImagePath(final TUIMessageBean msg) {
         if (msg == null) {
             return null;
         }
@@ -81,22 +79,36 @@ public class TUIChatUtils {
         if (v2TIMImageElem == null) {
             return null;
         }
-        String localImgPath = ChatMessageParser.getLocalImagePath(msg);
-        if (localImgPath == null) {
-            String originUUID = null;
-            for(V2TIMImageElem.V2TIMImage image : v2TIMImageElem.getImageList()) {
-                if (image.getType() == V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN) {
-                    originUUID = image.getUUID();
-                    break;
-                }
-            }
-            String originPath = ImageUtil.generateImagePath(originUUID, V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN);
-            File file = new File(originPath);
-            if (file.exists()) {
-                localImgPath = originPath;
+
+        for (V2TIMImageElem.V2TIMImage image : v2TIMImageElem.getImageList()) {
+            if (image.getType() == V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN) {
+                String uuid = image.getUUID();
+                return ImageUtil.generateImagePath(uuid, V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN);
             }
         }
-        return localImgPath;
+        return null;
+    }
+
+    public static String generateThumbImagePath(final TUIMessageBean msg) {
+        if (msg == null) {
+            return null;
+        }
+        V2TIMMessage v2TIMMessage = msg.getV2TIMMessage();
+        if (v2TIMMessage == null) {
+            return null;
+        }
+        V2TIMImageElem v2TIMImageElem = v2TIMMessage.getImageElem();
+        if (v2TIMImageElem == null) {
+            return null;
+        }
+
+        for (V2TIMImageElem.V2TIMImage image : v2TIMImageElem.getImageList()) {
+            if (image.getType() == V2TIMImageElem.V2TIM_IMAGE_TYPE_THUMB) {
+                String uuid = image.getUUID();
+                return ImageUtil.generateImagePath(uuid, V2TIMImageElem.V2TIM_IMAGE_TYPE_THUMB);
+            }
+        }
+        return null;
     }
 
     public static boolean isCommunityGroup(String groupID) {
@@ -105,7 +117,6 @@ public class TUIChatUtils {
         }
 
         return groupID.startsWith("@TGS#_");
-
     }
 
     public static boolean isTopicGroup(String groupID) {
@@ -126,23 +137,118 @@ public class TUIChatUtils {
         return V2TIMManager.getInstance().getServerTime();
     }
 
-    public static void showBeginnerGuideThen(View view, Runnable runnable) {
-        boolean isShowGuide = SPUtils.getInstance(TUIChatConstants.CHAT_SETTINGS_SP_NAME).getBoolean(TUIChatConstants.CHAT_REPLY_GUIDE_SHOW_SP_KEY, true);
-        if (isShowGuide) {
-            SoftKeyBoardUtil.hideKeyBoard(view.getWindowToken());
-            SPUtils.getInstance(TUIChatConstants.CHAT_SETTINGS_SP_NAME).put(TUIChatConstants.CHAT_REPLY_GUIDE_SHOW_SP_KEY, false);
-
-            BeginnerGuidePage guidePage = new BeginnerGuidePage((Activity) view.getContext());
-            guidePage.setPagesResIDs(R.drawable.chat_reply_guide, R.drawable.chat_quote_guide);
-            guidePage.setOnFinishListener(new BeginnerGuidePage.OnFinishListener() {
-                @Override
-                public void onFinish() {
-                    runnable.run();
-                }
-            });
-            guidePage.show(view, Gravity.NO_GRAVITY);
-        } else {
-            runnable.run();
+    /**
+     * Slice string using both emoji and @user. For instance,
+     * Origin string is "hello[Grin]world, @user1 see you!", and users is ["user1"];
+     * Return value is:
+     * {
+     *    "split_result": ["hello", "[Grin]", "world, ", "@user1", " see you!"],
+     *    "split_translation": ["hello", "world, ", "see you!"],
+     *    "split_translation_index": [0, 2, 4]
+     * }
+     * split_result contains all elements after splited.
+     * split_translation contains all text elements in split_result, excluding emoji an @user infos.
+     * split_translation_index contains the position of texts in textArray located in split_result.
+     *
+     */
+    public static HashMap<String, List<String>> splitTextByEmojiAndAtUsers(String text, List<String> userList) {
+        if (TextUtils.isEmpty(text)) {
+            return null;
         }
+
+        List<String> result = new ArrayList<>();
+        List<String> atUsers = new ArrayList<>();
+        if (userList != null && userList.size() > 0) {
+            for (String user : userList) {
+                String atUser = "@" + user;
+                atUsers.add(atUser);
+            }
+        }
+
+        List<String> splitResultByAtUsers = splitByKeyList(atUsers, text);
+        int textIndex = 0;
+        List<String> needTranslationTextIndexList = new ArrayList<>();
+        for (int i = 0; i < splitResultByAtUsers.size(); i++) {
+            String splitString = splitResultByAtUsers.get(i);
+            String atUser = "";
+            if (atUsers.size() > 0) {
+                atUser = atUsers.get(0);
+            }
+
+            if (!TextUtils.isEmpty(atUser) && splitString.equals(atUser)) {
+                result.add(splitString);
+                atUsers.remove(0);
+                textIndex++;
+            } else {
+                List<String> emojiKeyList = FaceManager.findEmojiKeyListFromText(splitString);
+                if (emojiKeyList != null && emojiKeyList.size() > 0) {
+                    List<String> splitByEmojiResultList = splitByKeyList(emojiKeyList, splitString);
+                    for (int j = 0; j < splitByEmojiResultList.size(); j++) {
+                        String splitStringByEmoji = splitByEmojiResultList.get(j);
+                        result.add(splitStringByEmoji);
+                        String emojiKey = "";
+                        if (emojiKeyList.size() > 0) {
+                            emojiKey = emojiKeyList.get(0);
+                        }
+
+                        if (!TextUtils.isEmpty(emojiKey) && splitStringByEmoji.equals(emojiKey)) {
+                            emojiKeyList.remove(0);
+                        } else {
+                            needTranslationTextIndexList.add(String.valueOf(textIndex));
+                        }
+                        textIndex++;
+                    }
+                } else {
+                    if (!TextUtils.isEmpty(splitString.trim())) {
+                        needTranslationTextIndexList.add(String.valueOf(textIndex));
+                    }
+                    result.add(splitString);
+                    textIndex++;
+                }
+            }
+        }
+
+        List<String> needTranslationTextList = new ArrayList<>();
+        for (int i = 0; i < needTranslationTextIndexList.size(); i++) {
+            int needTranslationIndex = Integer.valueOf(needTranslationTextIndexList.get(i));
+            needTranslationTextList.add(result.get(needTranslationIndex));
+        }
+        HashMap<String, List<String>> resultMap = new HashMap<>();
+        resultMap.put(SPLIT_TEXT, result);
+        resultMap.put(SPLIT_TEXT_FOR_TRANSLATION, needTranslationTextList);
+        resultMap.put(SPLIT_TEXT_INDEX_FOR_TRANSLATION, needTranslationTextIndexList);
+
+        return resultMap;
+    }
+
+    public static List<String> splitByKeyList(List<String> keyList, String text) {
+        List<String> splitResultByKeyList = new ArrayList<>();
+        if (TextUtils.isEmpty(text)) {
+            return splitResultByKeyList;
+        }
+
+        if (keyList == null || keyList.isEmpty()) {
+            splitResultByKeyList.add(text);
+            return splitResultByKeyList;
+        }
+
+        int fromIndex = 0;
+        for (String key : keyList) {
+            int keyIndex = text.indexOf(key, fromIndex);
+            if (keyIndex >= 0) {
+                if (fromIndex < keyIndex) {
+                    String resultBeforeKeyCharacter = text.substring(fromIndex, keyIndex);
+                    splitResultByKeyList.add(resultBeforeKeyCharacter);
+                }
+                splitResultByKeyList.add(key);
+                fromIndex = keyIndex + key.length();
+            }
+        }
+
+        if (fromIndex < text.length()) {
+            splitResultByKeyList.add(text.substring(fromIndex));
+        }
+
+        return splitResultByKeyList;
     }
 }

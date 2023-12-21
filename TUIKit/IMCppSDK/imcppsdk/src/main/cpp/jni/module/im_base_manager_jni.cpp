@@ -291,6 +291,39 @@ DEFINE_NATIVE_FUNC(void, NativeSetSelfInfo, jobject info, jobject callback) {
     }
 }
 
+DEFINE_NATIVE_FUNC(void, NativeSubscribeUserInfo, jobject user_id_list, jobject callback) {
+    if (nullptr == user_id_list) {
+        return;
+    }
+
+    json::Array user_id_array;
+    int size = tim::jni::ArrayListJni::Size(user_id_list);
+    for (int i = 0; i < size; ++i){
+        auto userId = (jstring)tim::jni::ArrayListJni::Get(user_id_list,i);
+        user_id_array.push_back(tim::jni::StringJni::Jstring2Cstring(env,userId));
+    }
+    std::string paramStr = json::Serialize(user_id_array);
+
+    tim::TIMEngine::GetInstance()->SubscribeUserInfo(paramStr.c_str(), new tim::TIMCallbackIMpl(callback));
+}
+
+
+DEFINE_NATIVE_FUNC(void, NativeUnsubscribeUserInfo, jobject user_id_list, jobject callback) {
+    if (nullptr == user_id_list) {
+        return;
+    }
+
+    json::Array user_id_array;
+    int size = tim::jni::ArrayListJni::Size(user_id_list);
+    for (int i = 0; i < size; ++i){
+        auto userId = (jstring)tim::jni::ArrayListJni::Get(user_id_list,i);
+        user_id_array.push_back(tim::jni::StringJni::Jstring2Cstring(env,userId));
+    }
+    std::string paramStr = json::Serialize(user_id_array);
+
+    tim::TIMEngine::GetInstance()->UnsubscribeUserInfo(paramStr.c_str(), new tim::TIMCallbackIMpl(callback));
+}
+
 DEFINE_NATIVE_FUNC(void, NativeGetUserStatus, jobject user_id_list, jobject callback) {
     if (nullptr == user_id_list) {
         return;
@@ -444,6 +477,8 @@ static JNINativeMethod gMethods[] = {
         {"nativeDismissGroup",                  "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeDismissGroup},
         {"nativeGetUsersInfo",                  "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUsersInfo},
         {"nativeSetSelfInfo",                   "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;Lcom/tencent/imsdk/common/IMCallback;)V",               (void *) NativeSetSelfInfo},
+        {"nativeSubscribeUserInfo",       "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserInfo},
+        {"nativeUnsubscribeUserInfo",     "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserInfo},
         {"nativeGetUserStatus",                 "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUserStatus},
         {"nativeSetSelfStatus",                 "(Lcom/tencent/imsdk/v2/V2TIMUserStatus;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeSetSelfStatus},
         {"nativeSubscribeUserStatus",           "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserStatus},

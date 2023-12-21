@@ -103,6 +103,10 @@ namespace v2im {
 
         void SetSelfInfo(const V2TIMUserFullInfo &info, V2TIMCallback *callback);
 
+        void SubscribeUserInfo(const V2TIMStringVector &userIDList, V2TIMCallback *callback);
+
+        void UnsubscribeUserInfo(const V2TIMStringVector &userIDList, V2TIMCallback *callback);
+
         void GetUserStatus(const V2TIMStringVector &userIDList, V2TIMValueCallback<V2TIMUserStatusVector> *callback);
 
         void SetSelfStatus(const V2TIMUserStatus &status, V2TIMCallback *callback);
@@ -143,6 +147,14 @@ namespace v2im {
                               V2TIMValueCallback<V2TIMConversationOperationResultVector> *callback);
 
         void GetTotalUnreadMessageCount(V2TIMValueCallback<uint64_t> *callback);
+
+        void GetUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter, V2TIMValueCallback<uint64_t> *callback);
+
+        void SubscribeUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter);
+
+        void UnsubscribeUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter);
+
+        void CleanConversationUnreadMessageCount(const V2TIMString &conversationID, uint64_t cleanTimestamp, uint64_t cleanSequence, V2TIMCallback *callback);
 
         void CreateConversationGroup(const V2TIMString &groupName, const V2TIMStringVector &conversationIDList,
                                      V2TIMValueCallback<V2TIMConversationOperationResultVector> *callback);
@@ -241,6 +253,14 @@ namespace v2im {
 
         void GetGroupOnlineMemberCount(const V2TIMString &groupID, V2TIMValueCallback<uint32_t> *callback);
 
+        void SetGroupCounters(const V2TIMString &groupID, const V2TIMStringToInt64Map &counters, V2TIMValueCallback<V2TIMStringToInt64Map> *callback);
+
+        void GetGroupCounters(const V2TIMString &groupID, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMStringToInt64Map> *callback);
+
+        void IncreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value, V2TIMValueCallback<V2TIMStringToInt64Map> *callback);
+
+        void DecreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value, V2TIMValueCallback<V2TIMStringToInt64Map> *callback);
+
         void GetGroupMemberList(const V2TIMString &groupID, uint32_t filter, uint64_t nextSeq,
                                 V2TIMValueCallback<V2TIMGroupMemberInfoResult> *callback);
 
@@ -252,6 +272,8 @@ namespace v2im {
         void SetGroupMemberInfo(const V2TIMString &groupID, const V2TIMGroupMemberFullInfo &info, V2TIMCallback *callback);
 
         void MuteGroupMember(const V2TIMString &groupID, const V2TIMString &userID, uint32_t seconds, V2TIMCallback *callback);
+
+        void MuteAllGroupMembers(const V2TIMString &groupID, bool isMute, V2TIMCallback *callback);
 
         void InviteUserToGroup(const V2TIMString &groupID, const V2TIMStringVector &userList,
                                V2TIMValueCallback<V2TIMGroupMemberOperationResultVector> *callback);
@@ -323,6 +345,8 @@ namespace v2im {
 
         V2TIMMessage CreateTargetedGroupMessage(const V2TIMMessage &message, const V2TIMStringVector &receiverList);
 
+        V2TIMMessage CreateAtSignedGroupMessage(const V2TIMMessage &message, const V2TIMStringVector &atUserList);
+
         V2TIMString SendMessage(V2TIMMessage &message, const V2TIMString &receiver, const V2TIMString &groupID, V2TIMMessagePriority priority,
                                 bool onlineUserOnly, const V2TIMOfflinePushInfo &offlinePushInfo, V2TIMSendCallback *callback);
 
@@ -331,6 +355,12 @@ namespace v2im {
         void GetC2CReceiveMessageOpt(const V2TIMStringVector &userIDList, V2TIMValueCallback<V2TIMReceiveMessageOptInfoVector> *callback);
 
         void SetGroupReceiveMessageOpt(const V2TIMString &groupID, V2TIMReceiveMessageOpt opt, V2TIMCallback *callback);
+
+        void SetAllReceiveMessageOpt(V2TIMReceiveMessageOpt opt, int32_t startHour, int32_t startMinute, int32_t startSecond, uint32_t duration, V2TIMCallback *callback);
+
+        void SetAllReceiveMessageOpt2(V2TIMReceiveMessageOpt opt, uint32_t startTimeStamp, uint32_t duration, V2TIMCallback *callback);
+
+        void GetAllReceiveMessageOpt(V2TIMValueCallback<V2TIMReceiveMessageOptInfo> *callback);
 
         void GetHistoryMessageList(const V2TIMMessageListGetOption &getOption, V2TIMValueCallback<V2TIMMessageVector> *callback);
 
@@ -360,6 +390,8 @@ namespace v2im {
 
         void SearchLocalMessages(const V2TIMMessageSearchParam &searchParam, V2TIMValueCallback<V2TIMMessageSearchResult> *callback);
 
+        void SearchCloudMessages(const V2TIMMessageSearchParam &searchParam, V2TIMValueCallback<V2TIMMessageSearchResult> *callback);
+
         void SendMessageReadReceipts(const V2TIMMessageVector &messageList, V2TIMCallback *callback);
 
         void GetMessageReadReceipts(const V2TIMMessageVector &messageList, V2TIMValueCallback<V2TIMMessageReceiptVector> *callback);
@@ -367,22 +399,46 @@ namespace v2im {
         void GetGroupMessageReadMemberList(const V2TIMMessage &message, V2TIMGroupMessageReadMembersFilter filter, uint64_t nextSeq, uint32_t count,
                                            V2TIMValueCallback<V2TIMGroupMessageReadMemberList> *callback);
 
+        void
+        SetMessageExtensions(const V2TIMMessage &message, const V2TIMMessageExtensionVector &extensions, V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback);
+
+        void GetMessageExtensions(const V2TIMMessage &message, V2TIMValueCallback<V2TIMMessageExtensionVector> *callback);
+
+        void DeleteMessageExtensions(const V2TIMMessage &message, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback);
+
+        void AddMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID, V2TIMCallback *callback);
+
+        void RemoveMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID, V2TIMCallback *callback);
+
+        void GetMessageReactions(const V2TIMMessageVector &messageList, uint32_t maxUserCountPerReaction, V2TIMValueCallback<V2TIMMessageReactionResultVector> *callback);
+
+        void GetAllUserListOfMessageReaction(const V2TIMMessage &message, const V2TIMString &reactionID, uint32_t nextSeq, uint32_t count,
+                                             V2TIMValueCallback<V2TIMMessageReactionUserResult> *callback);
+
+        void TranslateText(const V2TIMStringVector &sourceTextList, const V2TIMString &sourceLanguage, const V2TIMString &targetLanguage,
+                           V2TIMValueCallback<V2TIMStringToV2TIMStringMap> *callback);
+
         /** 下载富媒体消息 **/
         //图片
         void DownloadImage(const DownloadParam &param, const V2TIMImageType imageType, const V2TIMString &path, V2TIMDownloadCallback *callback);
 
         //语音
         void GetSoundUrl(const DownloadParam &param, V2TIMValueCallback<V2TIMString> *callback);
+
         void DownloadSound(const DownloadParam &param, const V2TIMString &path, V2TIMDownloadCallback *callback);
 
         //视频
         void GetVideoUrl(const DownloadParam &param, V2TIMValueCallback<V2TIMString> *callback);
+
         void GetSnapshotUrl(const DownloadParam &param, V2TIMValueCallback<V2TIMString> *callback);
+
         void DownloadVideo(const DownloadParam &param, const V2TIMString &path, V2TIMDownloadCallback *callback);
+
         void DownloadSnapshot(const DownloadParam &param, const V2TIMString &path, V2TIMDownloadCallback *callback);
 
         //文件
         void GetFileUrl(const DownloadParam &param, V2TIMValueCallback<V2TIMString> *callback);
+
         void DownloadFile(const DownloadParam &param, const V2TIMString &path, V2TIMDownloadCallback *callback);
 
 // ------------------------------------------------------------------------------------------------------------------------------------

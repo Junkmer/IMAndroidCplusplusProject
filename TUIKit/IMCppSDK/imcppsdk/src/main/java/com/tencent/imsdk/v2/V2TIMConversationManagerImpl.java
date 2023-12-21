@@ -176,6 +176,46 @@ public class V2TIMConversationManagerImpl extends V2TIMConversationManager {
     }
 
     @Override
+    public void getUnreadMessageCountByFilter(V2TIMConversationListFilter filter, V2TIMValueCallback<Long> _callback_) {
+        nativeGetUnreadMessageCountByFilter(filter, new IMCallback<Long>(_callback_) {
+            @Override
+            public void success(Long data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void subscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter) {
+        nativeSubscribeUnreadMessageCountByFilter(filter);
+    }
+
+    @Override
+    public void unsubscribeUnreadMessageCountByFilter(V2TIMConversationListFilter filter) {
+        nativeUnsubscribeUnreadMessageCountByFilter(filter);
+    }
+
+    @Override
+    public void cleanConversationUnreadMessageCount(String conversationID, long cleanTimestamp, long cleanSequence, V2TIMCallback _callback_) {
+        nativeCleanConversationUnreadMessageCount(conversationID, cleanTimestamp, cleanSequence, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
     public void createConversationGroup(String groupName, List<String> conversationIDList, V2TIMValueCallback<List<V2TIMConversationOperationResult>> _callback_) {
         nativeCreateConversationGroup(groupName, conversationIDList, new IMCallback<List<V2TIMConversationOperationResult>>(_callback_) {
             @Override

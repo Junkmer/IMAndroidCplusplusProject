@@ -6,15 +6,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.tencent.qcloud.tuicore.TUILogin;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
 import com.tencent.qcloud.tuikit.TUICommonDefine;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
-import com.tencent.qcloud.tuikit.tuicallkit.utils.ImageLoader;
+import com.tencent.qcloud.tuikit.tuicallkit.base.TUICallingStatusManager;
 
 public class TUICallingVideoFunctionView extends BaseFunctionView {
-    private static final String TAG = "TUICallingVideoFunctionView";
-
     private LinearLayout mLayoutOpenCamera;
     private LinearLayout mLayoutMute;
     private LinearLayout mLayoutHandsFree;
@@ -46,7 +43,8 @@ public class TUICallingVideoFunctionView extends BaseFunctionView {
         mLayoutMute.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mIsMicMute) {
+                boolean isMicMute = TUICallingStatusManager.sharedInstance(mContext).isMicMute();
+                if (isMicMute) {
                     mCallingAction.openMicrophone(new TUICommonDefine.Callback() {
                         @Override
                         public void onSuccess() {
@@ -61,36 +59,34 @@ public class TUICallingVideoFunctionView extends BaseFunctionView {
                 } else {
                     mCallingAction.closeMicrophone();
                 }
-                ToastUtil.toastShortMessage(mContext.getString(mIsMicMute ? R.string.tuicalling_toast_enable_mute :
-                        R.string.tuicalling_toast_disable_mute));
+                int resId = isMicMute ? R.string.tuicalling_toast_disable_mute : R.string.tuicalling_toast_enable_mute;
+                ToastUtil.toastShortMessage(mContext.getString(resId));
             }
         });
         mLayoutHandsFree.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                TUICommonDefine.AudioPlaybackDevice device = TUICommonDefine.AudioPlaybackDevice.Speakerphone;
-                if (mIsHandsFree) {
-                    device = TUICommonDefine.AudioPlaybackDevice.Earpiece;
+                boolean isSpeaker = TUICommonDefine.AudioPlaybackDevice.Speakerphone
+                        .equals(TUICallingStatusManager.sharedInstance(mContext).getAudioPlaybackDevice());
+                if (isSpeaker) {
+                    mCallingAction.selectAudioPlaybackDevice(TUICommonDefine.AudioPlaybackDevice.Earpiece);
+                } else {
+                    mCallingAction.selectAudioPlaybackDevice(TUICommonDefine.AudioPlaybackDevice.Speakerphone);
                 }
-                mCallingAction.selectAudioPlaybackDevice(device);
-                ToastUtil.toastShortMessage(mContext.getString(!mIsHandsFree ? R.string.tuicalling_toast_speaker :
-                        R.string.tuicalling_toast_use_handset));
+                int resId = isSpeaker ? R.string.tuicalling_toast_use_handset : R.string.tuicalling_toast_speaker;
+                ToastUtil.toastShortMessage(mContext.getString(resId));
             }
         });
         mLayoutOpenCamera.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mIsCameraOpen) {
+                if (TUICallingStatusManager.sharedInstance(mContext).isCameraOpen()) {
                     mCallingAction.closeCamera();
-                    if (null != mLocalUserLayout) {
-                        mLocalUserLayout.setVideoAvailable(false);
-                        ImageLoader.loadImage(mContext, mLocalUserLayout.getAvatarImage(), TUILogin.getFaceUrl(),
-                                R.drawable.tuicalling_ic_avatar);
-                    }
+                    ToastUtil.toastShortMessage(mContext.getString(R.string.tuicalling_toast_disable_camera));
                 } else {
                     if (null != mLocalUserLayout) {
-                        mCallingAction.openCamera(mCamera, mLocalUserLayout.getVideoView(), null);
-                        mLocalUserLayout.setVideoAvailable(true);
+                        mCallingAction.openCamera(TUICallingStatusManager.sharedInstance(mContext).getFrontCamera(),
+                                mLocalUserLayout.getVideoView(), null);
                         ToastUtil.toastShortMessage(mContext.getString(R.string.tuicalling_toast_enable_camera));
                     }
                 }
@@ -100,7 +96,8 @@ public class TUICallingVideoFunctionView extends BaseFunctionView {
         mImageSwitchCamera.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCallingAction.switchCamera(TUICommonDefine.Camera.Front.equals(mCamera)
+                TUICommonDefine.Camera camera = TUICallingStatusManager.sharedInstance(mContext).getFrontCamera();
+                mCallingAction.switchCamera(TUICommonDefine.Camera.Front.equals(camera)
                         ? TUICommonDefine.Camera.Back : TUICommonDefine.Camera.Front);
                 ToastUtil.toastShortMessage(mContext.getString(R.string.tuicalling_toast_switch_camera));
             }
@@ -118,20 +115,17 @@ public class TUICallingVideoFunctionView extends BaseFunctionView {
     public void updateCameraOpenStatus(boolean isOpen) {
         super.updateCameraOpenStatus(isOpen);
         mImageOpenCamera.setActivated(isOpen);
-        if (null != mLocalUserLayout) {
-            mLocalUserLayout.setVideoAvailable(isOpen);
-        }
     }
 
     @Override
     public void updateMicMuteStatus(boolean isMicMute) {
         super.updateMicMuteStatus(isMicMute);
-        mImageMute.setActivated(mIsMicMute);
+        mImageMute.setActivated(isMicMute);
     }
 
     @Override
-    public void updateHandsFreeStatus(boolean isHandsFree) {
-        super.updateHandsFreeStatus(isHandsFree);
-        mImageHandsFree.setActivated(mIsHandsFree);
+    public void updateAudioPlayDevice(boolean isSpeaker) {
+        super.updateAudioPlayDevice(isSpeaker);
+        mImageHandsFree.setActivated(isSpeaker);
     }
 }

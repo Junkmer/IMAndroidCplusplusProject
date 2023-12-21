@@ -1,12 +1,13 @@
 package com.tencent.qcloud.tuikit.tuichat.bean;
 
+import android.text.TextUtils;
+
 import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo;
 import com.tencent.imsdk.v2.V2TIMGroupMemberInfo;
 
 import java.io.Serializable;
 
 public class GroupMemberInfo implements Serializable {
-
     private String iconUrl;
     private String account;
     private String signature;
@@ -125,9 +126,24 @@ public class GroupMemberInfo implements Serializable {
         this.friendRemark = friendRemark;
     }
 
+    public String getDisplayName() {
+        String displayName;
+
+        if (!TextUtils.isEmpty(nameCard)) {
+            displayName = nameCard;
+        } else if (!TextUtils.isEmpty(friendRemark)) {
+            displayName = friendRemark;
+        } else if (!TextUtils.isEmpty(nickName)) {
+            displayName = nickName;
+        } else {
+            displayName = account;
+        }
+        return displayName;
+    }
+
     public GroupMemberInfo covertTIMGroupMemberInfo(V2TIMGroupMemberInfo info) {
         if (info instanceof V2TIMGroupMemberFullInfo) {
-            V2TIMGroupMemberFullInfo v2TIMGroupMemberFullInfo = (V2TIMGroupMemberFullInfo)info;
+            V2TIMGroupMemberFullInfo v2TIMGroupMemberFullInfo = (V2TIMGroupMemberFullInfo) info;
             setJoinTime(v2TIMGroupMemberFullInfo.getJoinTime());
             setMemberType(v2TIMGroupMemberFullInfo.getRole());
         }

@@ -14,10 +14,17 @@ namespace v2im {
         public:
             static bool InitIDs(JNIEnv *env);
             static jobject Convert2JObject(const V2TIMReceiveMessageOptInfo &messageOptInfo);
+            static jobject Convert2JObject_AllRecvMsg(const V2TIMReceiveMessageOptInfo &messageOptInfo);
 
         private:
             enum FieldID{
-                FieldIDC2CReceiveMessageOpt = 0,
+                FieldIDStartHour = 0,
+                FieldIDStartMinute,
+                FieldIDStartSecond,
+                FieldIDStartTimeStamp,
+                FieldIDDuration,
+                FieldIDAllReceiveMessageOpt,
+                FieldIDC2CReceiveMessageOpt,
                 FieldIDUserID,
 
                 FieldIDMax,

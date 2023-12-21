@@ -28,12 +28,12 @@ public class V2TIMConversation implements Serializable {
     private V2TIMMessage lastMessage;
     private String draftText;
     private long draftTimestamp;
-    private List<V2TIMGroupAtInfo> groupAtInfoList = new ArrayList<>();
+    private final List<V2TIMGroupAtInfo> groupAtInfoList = new ArrayList<>();
     private boolean pinned;
     private long orderKey;
-    private List<Long> markList = new ArrayList<>();
+    private final List<Long> markList = new ArrayList<>();
     private String customData;
-    private List<String> conversationGroupList = new ArrayList<>();
+    private final List<String> conversationGroupList = new ArrayList<>();
 
     public String getConversationID() {
         return conversationID;

@@ -1,11 +1,10 @@
 package com.tencent.qcloud.tuikit.tuicommunity.presenter;
 
 import android.text.TextUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuicore.util.SPUtils;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuicommunity.TUICommunityService;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityBean;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.TopicBean;
@@ -20,9 +19,7 @@ import com.tencent.qcloud.tuikit.tuicommunity.ui.interfaces.ITopicInfoActivity;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.CommunityConstants;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.CommunityUtil;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.TUICommunityLog;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +40,7 @@ public class TopicPresenter {
     private Map<String, Map<String, Boolean>> collapseMap;
     private Map<String, Boolean> currentCollapseMap;
     private final CommunityEventListener communityEventListener;
+
     public TopicPresenter() {
         provider = new CommunityProvider();
         communityEventListener = new CommunityEventListener() {
@@ -121,7 +119,7 @@ public class TopicPresenter {
         boolean changed = false;
         for (String topicID : topicIDs) {
             Iterator<TopicBean> iterator = loadedTopicBeanList.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 TopicBean topicBean = iterator.next();
                 if (TextUtils.equals(topicBean.getID(), topicID)) {
                     iterator.remove();
@@ -179,16 +177,22 @@ public class TopicPresenter {
     private void setTopic() {
         List<TreeNode<ITopicBean>> dataList = topicBeanTreeNode.toList();
         for (TopicBean topicBean : loadedTopicBeanList) {
-            addTopic(dataList, topicBean);
+            addTopicToTree(dataList, topicBean);
         }
     }
 
     private void addTopic(TopicBean topicBean) {
+        for (TopicBean loadedTopicBean : loadedTopicBeanList) {
+            if (TextUtils.equals(topicBean.getID(), loadedTopicBean.getID())) {
+                return;
+            }
+        }
+        loadedTopicBeanList.add(topicBean);
         List<TreeNode<ITopicBean>> dataList = topicBeanTreeNode.toList();
-        addTopic(dataList, topicBean);
+        addTopicToTree(dataList, topicBean);
     }
 
-    private void addTopic(List<TreeNode<ITopicBean>> dataList, TopicBean topicBean) {
+    private void addTopicToTree(List<TreeNode<ITopicBean>> dataList, TopicBean topicBean) {
         for (TreeNode<ITopicBean> loadedTopicBean : dataList) {
             if (loadedTopicBean.getData() instanceof TopicBean) {
                 if (TextUtils.equals(topicBean.getID(), ((TopicBean) loadedTopicBean.getData()).getID())) {
@@ -216,6 +220,11 @@ public class TopicPresenter {
             topicBeanTreeNode.addNode(topicNode);
         }
         onTopicListChanged();
+    }
+
+    public void deleteTopic(String topicID, IUIKitCallback<Void> callback) {
+        String groupID = CommunityUtil.getGroupIDFromTopicID(topicID);
+        provider.deleteTopic(groupID, topicID, callback);
     }
 
     private void deleteTopic(TopicBean topicBean) {
@@ -247,8 +256,7 @@ public class TopicPresenter {
         Gson gson = new Gson();
         String collapseStr = SPUtils.getInstance(CommunityConstants.COMMUNITY_SP_NAME).getString(CommunityConstants.COMMUNITY_COLLAPSE_SP_KEY);
         collapseMap = gson.fromJson(collapseStr,
-                TypeToken.getParameterized(Map.class, String.class,
-                        TypeToken.getParameterized(Map.class, String.class, Boolean.class).getType()).getType());
+            TypeToken.getParameterized(Map.class, String.class, TypeToken.getParameterized(Map.class, String.class, Boolean.class).getType()).getType());
         if (collapseMap != null) {
             currentCollapseMap = collapseMap.get(communityBean.getGroupId());
         } else {
@@ -358,8 +366,4 @@ public class TopicPresenter {
         provider.modifyTopicCategory(topicBean, category, callback);
     }
 
-    public void deleteTopic(String topicID, IUIKitCallback<Void> callback) {
-        String groupID = CommunityUtil.getGroupIDFromTopicID(topicID);
-        provider.deleteTopic(groupID, topicID, callback);
-    }
 }

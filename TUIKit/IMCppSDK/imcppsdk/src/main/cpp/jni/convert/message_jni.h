@@ -54,6 +54,8 @@ namespace v2im {
                 FieldIDRandom,
                 FieldIDIsExcludedFromUnreadCount,
                 FieldIDIsExcludedFromLastMessage,
+                FieldIDIsExcludedFromContentModeration,
+                FieldIDIsSupportMessageExtension,
 
                 FieldIDMax,
             };

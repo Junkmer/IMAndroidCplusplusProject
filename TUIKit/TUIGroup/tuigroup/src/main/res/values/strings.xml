@@ -9,8 +9,13 @@
     <string name="group_members">Group Members</string>
     <string name="group_type">Group Type</string>
     <string name="add_group_member">Add Member</string>
+    <string name="group_plus_add_group_member">+ Add members</string>
+    <string name="group_member_info">Info</string>
+    <string name="group_delete">Delete</string>
+    <string name="group_set_admin">Set Administrator</string>
     <string name="remove_group_member">Delete Member</string>
     <string name="join_group_type">Group Joining Method</string>
+    <string name="invite_group_type">Group Inviting Method</string>
     <string name="in_group_nick_name">My Alias in Group</string>
     <string name="dissolve">Disband Group</string>
     <string name="clear_message">Clear Chat History</string>
@@ -18,6 +23,11 @@
     <string name="modify_nick_name_in_goup">Edit My Alias in Group</string>
     <string name="group_edit">Edit</string>
     <string name="group_modify_remark_rule">Only letters, digits, underscores, and Chinese characters.</string>
+    <string name="group_clear_message">Clear Chat History</string>
+
+    <string name="group_profile_message">Message</string>
+    <string name="group_profile_audio_call">Audio</string>
+    <string name="group_profile_video_call">Video</string>
 
     <string name="group_detail">Group Chat Details</string>
 
@@ -53,13 +63,19 @@
     <string name="remove_fail_tip">Removal failed</string>
     <string name="manager">Manage</string>
     <string name="group_manager">Manage</string>
+    <string name="invite">invite</string>
 
     <string name="forbid_join">Prohibited from Joining</string>
+    <string name="forbid_invite">Prohibited from Inviting</string>
     <string name="manager_judge">Admin Approval</string>
     <string name="auto_judge">Auto Approval</string>
 
     <string name="modify_group_name">Edit Group Name</string>
     <string name="group_join_type">Group Joining Method</string>
+    <string name="group_invite_type">Group Inviting Method</string>
+
+    <string name="group_validation_message">Validation Message</string>
+    <string name="group_group_application_detail_title">Info</string>
 
     <string name="accept">Agree</string>
     <string name="refuse">Decline</string>
@@ -68,10 +84,10 @@
 
     <string name="input_tip">No nickname. Enter again.</string>
 
-    <string name="chat_to_top">Sticky on Top</string>
+    <string name="chat_to_top">Pin</string>
     <string name="profile_msgrev_opt">Mute Notifications</string>
     <string name="fold_this_group_chat">Fold this group chat</string>>
-    <string name="profile_chat_background">Background</string>
+    <string name="profile_chat_background">Chat background</string>
     <string name="chat_background_title">Background</string>
 
     <string name="join_group_tip">You have been invited to the group: </string>
@@ -91,7 +107,8 @@
     <string name="group_mute_tip">When Mute All is enabled, only the group owner and admins are allowed to send messages.</string>
     <string name="group_add_mute_member_tip">Add members to mute</string>
     <string name="group_owner_label">Group Owner</string>
-    <string name="group_manager_label">Admin</string>
+    <string name="group_manager_label">Administrator</string>
+    <string name="group_member_label">Member</string>
     <string name="group_add_manager_count_label">Manager (%d)</string>
     <string name="group_add_manager_label">Add Admin</string>
     <string name="group_remove_manager_label">Cancel Admin</string>
@@ -104,4 +121,6 @@
     <string name="group_not_support_mute_member">Unable to mute specified members for this type of group chat.</string>
 
     <string name="group_choose_avatar">Choose Avatar</string>
+    <string name="group_you">You</string>
+
 </resources>

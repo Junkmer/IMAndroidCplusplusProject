@@ -1,12 +1,11 @@
 package com.tencent.qcloud.tuikit.tuicontact.presenter;
 
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.ThreadHelper;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ThreadUtils;
 import com.tencent.qcloud.tuikit.tuicontact.bean.ContactItemBean;
 import com.tencent.qcloud.tuikit.tuicontact.model.ContactProvider;
 import com.tencent.qcloud.tuikit.tuicontact.util.ContactUtils;
 import com.tencent.qcloud.tuikit.tuicontact.util.TUIContactLog;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +81,7 @@ public class GetUserStatusHelper {
                     }
                 }
             };
-            ThreadHelper.INST.execute(getUserStatusThread);
+            ThreadUtils.execute(getUserStatusThread);
         }
     }
 

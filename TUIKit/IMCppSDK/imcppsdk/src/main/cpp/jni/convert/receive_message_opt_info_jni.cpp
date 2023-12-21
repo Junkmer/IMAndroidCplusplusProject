@@ -65,5 +65,27 @@ namespace v2im {
             return userStatusObj;
         }
 
+        jobject ReceiveMessageOptInfoJni::Convert2JObject_AllRecvMsg(const V2TIMReceiveMessageOptInfo &messageOptInfo) {
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            if (!InitIDs(env)) {
+                return nullptr;
+            }
+
+            jobject userStatusObj = env->NewObject(j_cls_, j_method_id_array_[MethodIDConstructor]);
+            if (!userStatusObj) {
+                return nullptr;
+            }
+
+            env->SetIntField(userStatusObj, j_field_array_[FieldIDStartHour], messageOptInfo.startHour);
+            env->SetIntField(userStatusObj, j_field_array_[FieldIDStartMinute], messageOptInfo.startMinute);
+            env->SetIntField(userStatusObj, j_field_array_[FieldIDStartSecond], messageOptInfo.startSecond);
+            env->SetLongField(userStatusObj, j_field_array_[FieldIDStartTimeStamp], messageOptInfo.startTimeStamp);
+            env->SetLongField(userStatusObj, j_field_array_[FieldIDDuration], messageOptInfo.duration);
+            env->SetIntField(userStatusObj, j_field_array_[FieldIDAllReceiveMessageOpt], messageOptInfo.receiveOpt);
+            return userStatusObj;
+        }
+
     }// namespace jni
 }// namespace v2im
