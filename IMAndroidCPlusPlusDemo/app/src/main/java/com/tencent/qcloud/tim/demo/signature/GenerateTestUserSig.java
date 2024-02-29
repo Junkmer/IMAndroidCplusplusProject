@@ -51,7 +51,6 @@ public class GenerateTestUserSig {
      * 默认时间：7 x 24 x 60 x 60 = 604800 = 7 天
      */
     private static final int EXPIRETIME = 60480000;
-//    private static final int EXPIRETIME = 10;
 
     /**
      * 计算签名用的加密密钥，获取步骤如下：
