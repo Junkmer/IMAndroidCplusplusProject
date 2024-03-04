@@ -80,11 +80,11 @@ namespace v2im {
             }
             j_field_array_[FieldIDHandledMsg] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "type", "I");
+            jfield = env->GetFieldID(j_cls_, "applicationType", "I");
             if (nullptr == jfield) {
                 return false;
             }
-            j_field_array_[FieldIDType] = jfield;
+            j_field_array_[FieldIDApplicationType] = jfield;
 
             jfield = env->GetFieldID(j_cls_, "handleStatus", "I");
             if (nullptr == jfield) {
@@ -122,9 +122,9 @@ namespace v2im {
             env->SetLongField(jObj, j_field_array_[FieldIDAddTime], (jlong) groupApplication.addTime);
             env->SetObjectField(jObj, j_field_array_[FieldIDRequestMsg], StringJni::Cstring2Jstring(env, groupApplication.requestMsg.CString()));
             env->SetObjectField(jObj, j_field_array_[FieldIDHandledMsg], StringJni::Cstring2Jstring(env, groupApplication.handledMsg.CString()));
-            env->SetIntField(jObj, j_field_array_[FieldIDType], (jint) groupApplication.getType);
-            env->SetIntField(jObj, j_field_array_[FieldIDType], (jint) groupApplication.handleStatus);
-            env->SetIntField(jObj, j_field_array_[FieldIDType], (jint) groupApplication.handleResult);
+            env->SetIntField(jObj, j_field_array_[FieldIDApplicationType],  groupApplication.applicationType);
+            env->SetIntField(jObj, j_field_array_[FieldIDHandleStatus], groupApplication.handleStatus);
+            env->SetIntField(jObj, j_field_array_[FieldIDHandleResult],  groupApplication.handleResult);
 
             return jObj;
         }
@@ -182,7 +182,7 @@ namespace v2im {
                 env->DeleteLocalRef(jStr);
             }
 
-            groupApplication.getType = V2TIMGroupApplicationGetType(env->GetIntField(j_obj_groupApplication, j_field_array_[FieldIDType]));
+            groupApplication.applicationType = V2TIMGroupApplicationType(env->GetIntField(j_obj_groupApplication, j_field_array_[FieldIDApplicationType]));
             groupApplication.handleStatus = V2TIMGroupApplicationHandleStatus(env->GetIntField(j_obj_groupApplication, j_field_array_[FieldIDHandleStatus]));
             groupApplication.handleResult = V2TIMGroupApplicationHandleResult(env->GetIntField(j_obj_groupApplication, j_field_array_[FieldIDHandleResult]));
             

@@ -22,6 +22,7 @@ public class V2TIMGroupInfo implements Serializable {
     private String owner;
     private long createTime;
     private int groupAddOpt;
+    private int groupApproveOpt = -1;
     private Map<String, byte[]> customInfo;
     private long lastInfoTime;
     private long lastMessageTime;
@@ -53,6 +54,8 @@ public class V2TIMGroupInfo implements Serializable {
     private static final int  V2TIM_GROUP_INFO_MODIFY_FLAG_CUSTOM_INFO = 0x01 << 9;
     // 话题自定义字段
     private static final int  V2TIM_TOPIC_INFO_MODIFY_FLAG_CUSTOM_STRING = 0x1 << 11;
+    // 邀请进群管理员审批选项
+    private static final int V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_APPROVE_OPTION = 0x1 << 12;
     private int modifyFlag;
 
     public String getGroupID() {
@@ -139,6 +142,15 @@ public class V2TIMGroupInfo implements Serializable {
     public void setGroupAddOpt(int groupAddOpt) {
         modifyFlag = modifyFlag | V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_ADD_OPTION;
         this.groupAddOpt = groupAddOpt;
+    }
+
+    public int getGroupApproveOpt() {
+        return groupApproveOpt;
+    }
+
+    public void setGroupApproveOpt(int groupApproveOpt) {
+        modifyFlag = modifyFlag | V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_APPROVE_OPTION;
+        this.groupApproveOpt = groupApproveOpt;
     }
 
     public Map<String, byte[]> getCustomInfo() {

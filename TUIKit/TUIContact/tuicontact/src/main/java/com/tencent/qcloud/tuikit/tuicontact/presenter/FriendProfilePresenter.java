@@ -1,26 +1,22 @@
 package com.tencent.qcloud.tuikit.tuicontact.presenter;
 
-
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Pair;
-
 import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.BackgroundTasks;
-import com.tencent.qcloud.tuicore.util.ThreadHelper;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ThreadUtils;
 import com.tencent.qcloud.tuikit.tuicontact.R;
 import com.tencent.qcloud.tuikit.tuicontact.TUIContactService;
 import com.tencent.qcloud.tuikit.tuicontact.bean.ContactGroupApplyInfo;
 import com.tencent.qcloud.tuikit.tuicontact.bean.ContactItemBean;
 import com.tencent.qcloud.tuikit.tuicontact.bean.FriendApplicationBean;
 import com.tencent.qcloud.tuikit.tuicontact.bean.GroupInfo;
+import com.tencent.qcloud.tuikit.tuicontact.interfaces.IFriendProfileLayout;
 import com.tencent.qcloud.tuikit.tuicontact.model.ContactProvider;
-import com.tencent.qcloud.tuikit.tuicontact.ui.interfaces.IFriendProfileLayout;
 import com.tencent.qcloud.tuikit.tuicontact.util.ContactUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,14 +54,10 @@ public class FriendProfilePresenter {
     public void setC2CReceiveMessageOpt(List<String> userIdList, boolean isReceiveMessage) {
         provider.setC2CReceiveMessageOpt(userIdList, isReceiveMessage, new IUIKitCallback<Void>() {
             @Override
-            public void onSuccess(Void data) {
-
-            }
+            public void onSuccess(Void data) {}
 
             @Override
-            public void onError(String module, int errCode, String errMsg) {
-
-            }
+            public void onError(String module, int errCode, String errMsg) {}
         });
     }
 
@@ -85,7 +77,7 @@ public class FriendProfilePresenter {
                 bean.setSignature(user.getSignature());
 
                 CountDownLatch latch = new CountDownLatch(2);
-                ThreadHelper.INST.execute(new Runnable() {
+                ThreadUtils.execute(new Runnable() {
                     @Override
                     public void run() {
                         isInBlackList(id, new IUIKitCallback<Boolean>() {
@@ -103,7 +95,7 @@ public class FriendProfilePresenter {
                     }
                 });
 
-                ThreadHelper.INST.execute(new Runnable() {
+                ThreadUtils.execute(new Runnable() {
                     @Override
                     public void run() {
                         isFriend(id, bean, new IUIKitCallback<Boolean>() {
@@ -121,7 +113,7 @@ public class FriendProfilePresenter {
                     }
                 });
 
-                ThreadHelper.INST.execute(new Runnable() {
+                ThreadUtils.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -129,7 +121,7 @@ public class FriendProfilePresenter {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        BackgroundTasks.getInstance().runOnUiThread(new Runnable() {
+                        ThreadUtils.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 if (friendProfileLayout != null) {
@@ -148,7 +140,6 @@ public class FriendProfilePresenter {
         });
     }
 
-
     public void isInBlackList(String id, IUIKitCallback<Boolean> callback) {
         provider.isInBlackList(id, new IUIKitCallback<Boolean>() {
             @Override
@@ -164,22 +155,18 @@ public class FriendProfilePresenter {
         });
     }
 
-
     public void isFriend(String id, ContactItemBean bean, IUIKitCallback<Boolean> callback) {
         provider.isFriend(id, bean, callback);
     }
 
     public void deleteFromBlackList(List<String> idList) {
         provider.deleteFromBlackList(idList, new IUIKitCallback<Void>() {
-
             @Override
-            public void onSuccess(Void data) {
-            }
+            public void onSuccess(Void data) {}
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
                 ToastUtil.toastShortMessage("deleteFromBlackList Error code = " + errCode + ", desc = " + errMsg);
-
             }
         });
     }
@@ -187,13 +174,11 @@ public class FriendProfilePresenter {
     public void addToBlackList(List<String> idList) {
         provider.addToBlackList(idList, new IUIKitCallback<Void>() {
             @Override
-            public void onSuccess(Void data) {
-            }
+            public void onSuccess(Void data) {}
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
                 ToastUtil.toastShortMessage("addToBlackList Error code = " + errCode + ", desc = " + errMsg);
-
             }
         });
     }
@@ -236,8 +221,7 @@ public class FriendProfilePresenter {
     public boolean isTopConversation(String chatId) {
         HashMap<String, Object> param = new HashMap<>();
         param.put(TUIConstants.TUIConversation.CHAT_ID, chatId);
-        Object result = TUICore.callService(TUIConstants.TUIConversation.SERVICE_NAME,
-                TUIConstants.TUIConversation.METHOD_IS_TOP_CONVERSATION, param);
+        Object result = TUICore.callService(TUIConstants.TUIConversation.SERVICE_NAME, TUIConstants.TUIConversation.METHOD_IS_TOP_CONVERSATION, param);
         if (result instanceof Bundle) {
             return ((Bundle) result).getBoolean(TUIConstants.TUIConversation.IS_TOP, false);
         }
@@ -250,7 +234,6 @@ public class FriendProfilePresenter {
         param.put(TUIConstants.TUIConversation.IS_SET_TOP, isSetTop);
         TUICore.callService(TUIConstants.TUIConversation.SERVICE_NAME, TUIConstants.TUIConversation.METHOD_SET_TOP_CONVERSATION, param);
     }
-
 
     public void acceptJoinGroupApply(ContactGroupApplyInfo info, IUIKitCallback<Void> callback) {
         provider.acceptJoinGroupApply(info, callback);
@@ -275,6 +258,7 @@ public class FriendProfilePresenter {
                             result = TUIContactService.getAppContext().getString(R.string.have_be_friend);
                             break;
                         }
+                        break;
                     case FriendApplicationBean.ERR_SVR_FRIENDSHIP_COUNT_LIMIT:
                         result = TUIContactService.getAppContext().getString(R.string.friend_limit);
                         break;

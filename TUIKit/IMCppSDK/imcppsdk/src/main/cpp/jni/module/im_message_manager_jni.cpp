@@ -23,6 +23,11 @@
 #include "message_search_param_jni.h"
 #include "message_receipt_jni.h"
 #include "complete_callback_impl.h"
+#include "message_extension_jni.h"
+#include "message_extension_result_jni.h"
+#include "message_reaction_jni.h"
+#include "message_reaction_result_jni.h"
+#include "message_reaction_user_result_jni.h"
 #include "LogUtil.h"
 
 #define DEFINE_NATIVE_FUNC(RETURN_TYPE, NAME, ...) \
@@ -109,7 +114,7 @@ DEFINE_NATIVE_FUNC(jobject, NativeCreateSoundMessage, jstring sound_path, jint d
 DEFINE_NATIVE_FUNC(jobject, NativeCreateVideoMessage, jstring video_file_path, jstring type, jint duration, jstring snapshot_path) {
     V2TIMString videoFilePathStr = v2im::jni::StringJni::Jstring2Cstring(env, video_file_path).c_str();
     V2TIMString typeStr = v2im::jni::StringJni::Jstring2Cstring(env, video_file_path).c_str();
-    V2TIMString snapshotPathStr = v2im::jni::StringJni::Jstring2Cstring(env, video_file_path).c_str();
+    V2TIMString snapshotPathStr = v2im::jni::StringJni::Jstring2Cstring(env, snapshot_path).c_str();
 
     V2TIMMessage message = v2im::V2IMEngine::GetInstance()->CreateVideoMessage(videoFilePathStr, typeStr, (uint32_t) duration, snapshotPathStr);
     return v2im::jni::MessageJni::Convert2JObject(message);
@@ -193,6 +198,7 @@ DEFINE_NATIVE_FUNC(jobject, NativeCreateTargetedGroupMessage, jobject message, j
 
 DEFINE_NATIVE_FUNC(jstring, NativeSendMessage, jobject message, jstring receiver, jstring group_id, jint priority, jboolean online_user_only,
                    jobject offline_push_info, jobject callback) {
+
     V2TIMMessage message_c;
     v2im::jni::MessageJni::Convert2CoreObject(message,message_c);
     V2TIMString receiverStr = v2im::jni::StringJni::Jstring2Cstring(env, receiver).c_str();
@@ -205,6 +211,7 @@ DEFINE_NATIVE_FUNC(jstring, NativeSendMessage, jobject message, jstring receiver
 
     V2TIMString msgIDStr = v2im::V2IMEngine::GetInstance()->SendMessage(message_c, receiverStr, groupIDStr, messagePriority, online_user_only,
                                                                         offlinePushInfo, new v2im::SendCallbackImpl(callback));
+
     return v2im::jni::StringJni::Cstring2Jstring(env, msgIDStr.CString());
 }
 
@@ -268,6 +275,48 @@ DEFINE_NATIVE_FUNC(void, NativeSetGroupReceiveMessageOpt, jstring group_id, jint
     v2im::V2IMEngine::GetInstance()->SetGroupReceiveMessageOpt(groupIDStr, messageOpt, new v2im::CallbackIMpl(callback));
 }
 
+DEFINE_NATIVE_FUNC(void, NativeSetAllReceiveMessageOpt, jint opt, jint start_hour, jint start_minute, jint start_second, jlong duration, jobject callback) {
+    auto messageOpt = V2TIMReceiveMessageOpt(opt);
+    v2im::V2IMEngine::GetInstance()->SetAllReceiveMessageOpt(messageOpt,start_hour,start_minute,start_second,duration, new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeSetAllReceiveMessageOpt2Time, jint opt, jlong start_time_stamp, jlong duration, jobject callback) {
+    auto messageOpt = V2TIMReceiveMessageOpt(opt);
+    v2im::V2IMEngine::GetInstance()->SetAllReceiveMessageOpt2(messageOpt, start_time_stamp, duration, new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetAllReceiveMessageOpt, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMReceiveMessageOptInfo>;
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMReceiveMessageOptInfo &value){
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject msgOpt = v2im::jni::ReceiveMessageOptInfoJni::Convert2JObject_AllRecvMsg(value);
+            v2im::jni::IMCallbackJNI::Success(jni_callback, msgOpt);
+            _env->DeleteLocalRef(msgOpt);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->GetAllReceiveMessageOpt(value_callback);
+}
+
+void WriteLogExample(const int &error_code, const V2TIMString &error_message, const V2TIMMessageVector &value) {
+//    V2TIMStringToV2TIMStringMap map;
+//    map.Insert("logLevel", "V2TIM_LOG_DEBUG");                  // 必填字段
+//    std::string content;
+//    content.append(error_message.CString()).append(std::to_string(error_code)).append(std::to_string(value.Size()));
+//    map.Insert("logContent", content.c_str());                     // 必填字段
+//
+//    V2TIMManager::GetInstance()->CallExperimentalAPI("writeLog", &map, nullptr);
+}
+
 DEFINE_NATIVE_FUNC(void, NativeGetC2CHistoryMessageList, jstring user_id, jint count, jobject last_msg, jobject callback) {
     jobject jni_callback = env->NewGlobalRef(callback);
     V2TIMMessageListGetOption option;
@@ -286,6 +335,8 @@ DEFINE_NATIVE_FUNC(void, NativeGetC2CHistoryMessageList, jstring user_id, jint c
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageVector>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageVector &value) {
+        WriteLogExample(error_code,error_message,value);
+
         v2im::jni::ScopedJEnv scopedJEnv;
         auto *_env = scopedJEnv.GetEnv();
 
@@ -555,11 +606,9 @@ DEFINE_NATIVE_FUNC(void, NativeSearchLocalMessages, jobject search_param, jobjec
         auto _env = scopedJEnv.GetEnv();
 
         if (V2TIMErrorCode::ERR_SUCC == error_code) {
-
             jobject searchResultObj = v2im::jni::MessageSearchResultJni::Convert2JObject(value);
             v2im::jni::IMCallbackJNI::Success(jni_callback, searchResultObj);
             _env->DeleteLocalRef(searchResultObj);
-
         } else {
             v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
         }
@@ -568,6 +617,32 @@ DEFINE_NATIVE_FUNC(void, NativeSearchLocalMessages, jobject search_param, jobjec
     });
 
     v2im::V2IMEngine::GetInstance()->SearchLocalMessages(searchParam, value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeSearchCloudMessages, jobject search_param, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessageSearchParam searchParam;
+    v2im::jni::MessageSearchParamJni::Convert2CoreObject(search_param, searchParam);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageSearchResult>;
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageSearchResult &value){
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code){
+            jobject searchResultObj = v2im::jni::MessageSearchResultJni::Convert2JObject(value);
+            v2im::jni::IMCallbackJNI::Success(jni_callback, searchResultObj);
+            _env->DeleteLocalRef(searchResultObj);
+        } else{
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->SearchCloudMessages(searchParam,value_callback);
 }
 
 DEFINE_NATIVE_FUNC(void, NativeSendMessageReadReceipts, jobject message_list, jobject callback) {
@@ -656,11 +731,237 @@ DEFINE_NATIVE_FUNC(void, NativeGetGroupMessageReadMemberList, jobject message, j
                                                                    value_callback);
 }
 
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMMessageManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusAdvancedMsgListener", "()V");
-//}
+DEFINE_NATIVE_FUNC(void, NativeSetMessageExtensions, jobject message, jobject extensions, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessage timMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,timMessage);
+
+    V2TIMMessageExtensionVector extensionVector;
+    int size = v2im::jni::ArrayListJni::Size(extensions);
+    for (int i = 0; i < size; ++i){
+        V2TIMMessageExtension extension;
+        jobject extension_obj = v2im::jni::ArrayListJni::Get(extensions,i);
+        bool flag = v2im::jni::MessageExtensionJni::Convert2CoreObject(extension_obj,extension);
+        if (flag){
+            extensionVector.PushBack(extension);
+        }
+    }
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageExtensionResultVector>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageExtensionResultVector &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject extensionResultObjList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < value.Size(); ++i) {
+                jobject extensionResultObj = v2im::jni::MessageExtensionResultJni::Convert2JObject(value[i]);
+                v2im::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->SetMessageExtensions(timMessage, extensionVector, value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetMessageExtensions, jobject message, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessage v2TimMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,v2TimMessage);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageExtensionVector>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageExtensionVector &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject extensionResultObjList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < value.Size(); ++i) {
+                jobject extensionResultObj = v2im::jni::MessageExtensionJni::Convert2JObject(value[i]);
+                v2im::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->GetMessageExtensions(v2TimMessage,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeDeleteMessageExtensions, jobject message, jobject keys, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessage v2TimMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,v2TimMessage);
+
+    V2TIMStringVector key_array;
+    int size = v2im::jni::ArrayListJni::Size(keys);
+    for (int i = 0; i < size; ++i){
+        auto keyStr = (jstring)v2im::jni::ArrayListJni::Get(keys,i);
+        key_array.PushBack(v2im::jni::StringJni::Jstring2Cstring(env,keyStr).c_str());
+    }
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageExtensionResultVector>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageExtensionResultVector &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject extensionResultObjList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < value.Size(); ++i) {
+                jobject extensionResultObj = v2im::jni::MessageExtensionResultJni::Convert2JObject(value[i]);
+                v2im::jni::ArrayListJni::Add(extensionResultObjList, extensionResultObj);
+                _env->DeleteLocalRef(extensionResultObj);
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, extensionResultObjList);
+            _env->DeleteLocalRef(extensionResultObjList);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->DeleteMessageExtensions(v2TimMessage,key_array,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeAddMessageReaction, jobject message, jstring reaction_id, jobject callback) {
+    V2TIMMessage timMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,timMessage);
+    std::string reactionIdStr = v2im::jni::StringJni::Jstring2Cstring(env,reaction_id);
+    v2im::V2IMEngine::GetInstance()->AddMessageReaction(timMessage,reactionIdStr.c_str(),new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeRemoveMessageReaction, jobject message, jstring reaction_id, jobject callback) {
+    V2TIMMessage timMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,timMessage);
+    std::string reactionIdStr = v2im::jni::StringJni::Jstring2Cstring(env,reaction_id);
+    v2im::V2IMEngine::GetInstance()->RemoveMessageReaction(timMessage,reactionIdStr.c_str(),new v2im::CallbackIMpl(callback));
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetMessageReactions, jobject message_list, jint max_user_count_per_reaction, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessageVector message_array;
+    int size;
+    size = v2im::jni::ArrayListJni::Size(message_list);
+    for (int i = 0; i < size; ++i) {
+        jobject messageObj = v2im::jni::ArrayListJni::Get(message_list, i);
+        if (messageObj) {
+            V2TIMMessage timMessage;
+            v2im::jni::MessageJni::Convert2CoreObject(messageObj,timMessage);
+            message_array.PushBack(timMessage);
+            env->DeleteLocalRef(messageObj);
+        }
+    }
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageReactionResultVector>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageReactionResultVector &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject reactionsResultObjList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < value.Size(); ++i) {
+                jobject reactionsResultObj = v2im::jni::MessageReactionResultJni::Convert2JObject(value[i]);
+                v2im::jni::ArrayListJni::Add(reactionsResultObjList, reactionsResultObj);
+                _env->DeleteLocalRef(reactionsResultObj);
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, reactionsResultObjList);
+            _env->DeleteLocalRef(reactionsResultObjList);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->GetMessageReactions(message_array,max_user_count_per_reaction,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeGetAllUserListOfMessageReaction, jobject message, jstring reaction_id, jint next_seq, jint count, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMMessage timMessage;
+    v2im::jni::MessageJni::Convert2CoreObject(message,timMessage);
+    std::string reactionIdStr = v2im::jni::StringJni::Jstring2Cstring(env,reaction_id);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMMessageReactionUserResult>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageReactionUserResult &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject reactionUserResultObj = v2im::jni::MessageReactionUserResultJni::Convert2JObject(value);
+            v2im::jni::IMCallbackJNI::Success(jni_callback, reactionUserResultObj);
+            _env->DeleteLocalRef(reactionUserResultObj);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->GetAllUserListOfMessageReaction(timMessage,reactionIdStr.c_str(),next_seq,count,value_callback);
+}
+
+DEFINE_NATIVE_FUNC(void, NativeTranslateText, jobject source_text_list, jstring source_language, jstring target_language, jobject callback) {
+    jobject jni_callback = env->NewGlobalRef(callback);
+
+    V2TIMStringVector source_text_array;
+    int size = v2im::jni::ArrayListJni::Size(source_text_list);
+    for (int i = 0; i < size; ++i){
+        auto keyStr = (jstring)v2im::jni::ArrayListJni::Get(source_text_list,i);
+        source_text_array.PushBack(v2im::jni::StringJni::Jstring2Cstring(env,keyStr).c_str());
+    }
+
+    std::string souLan = v2im::jni::StringJni::Jstring2Cstring(env,source_language);
+    std::string tarLan = v2im::jni::StringJni::Jstring2Cstring(env,target_language);
+
+    auto value_callback = new v2im::ValueCallbackImpl<V2TIMStringToV2TIMStringMap>{};
+    value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMStringToV2TIMStringMap &value) {
+        v2im::jni::ScopedJEnv scopedJEnv;
+        auto _env = scopedJEnv.GetEnv();
+
+        if (V2TIMErrorCode::ERR_SUCC == error_code) {
+            jobject j_obj_translateHashMap = v2im::jni::HashMapJni::NewHashMap();
+            V2TIMStringVector keys  = value.AllKeys();
+            for (int i = 0; i < keys.Size(); ++i) {
+                jstring sourceTextKey = v2im::jni::StringJni::Cstring2Jstring(_env, keys[i].CString());
+                if (sourceTextKey) {
+                    jstring targetTextValue = v2im::jni::StringJni::Cstring2Jstring(_env, value.Get(keys[i]).CString());
+                    if (targetTextValue) {
+                        v2im::jni::HashMapJni::Put(j_obj_translateHashMap, sourceTextKey, targetTextValue);
+                        _env->DeleteLocalRef(targetTextValue);
+                    }
+                    _env->DeleteLocalRef(sourceTextKey);
+                }
+            }
+            v2im::jni::IMCallbackJNI::Success(jni_callback, j_obj_translateHashMap);
+            _env->DeleteLocalRef(j_obj_translateHashMap);
+        } else {
+            v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
+        }
+        _env->DeleteGlobalRef(jni_callback);
+        delete value_callback;
+    });
+
+    v2im::V2IMEngine::GetInstance()->TranslateText(source_text_array,souLan.c_str(),tarLan.c_str(),value_callback);
+}
 
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
@@ -686,6 +987,9 @@ static JNINativeMethod gMethods[] = {
         {"nativeSetC2CReceiveMessageOpt",          "(Ljava/util/List;ILcom/tencent/imsdk/common/IMCallback;)V",                                                 (void *) NativeSetC2CReceiveMessageOpt},
         {"nativeGetC2CReceiveMessageOpt",          "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeGetC2CReceiveMessageOpt},
         {"nativeSetGroupReceiveMessageOpt",        "(Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)V",                                               (void *) NativeSetGroupReceiveMessageOpt},
+        {"nativeSetAllReceiveMessageOpt",         "(IIIIJLcom/tencent/imsdk/common/IMCallback;)V",                                                         (void *) NativeSetAllReceiveMessageOpt},
+        {"nativeSetAllReceiveMessageOpt",         "(IJJLcom/tencent/imsdk/common/IMCallback;)V",                                                           (void *) NativeSetAllReceiveMessageOpt2Time},
+        {"nativeGetAllReceiveMessageOpt",         "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                              (void *) NativeGetAllReceiveMessageOpt},
         {"nativeGetC2CHistoryMessageList",         "(Ljava/lang/String;ILcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",            (void *) NativeGetC2CHistoryMessageList},
         {"nativeGetGroupHistoryMessageList",       "(Ljava/lang/String;ILcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",            (void *) NativeGetGroupHistoryMessageList},
         {"nativeGetHistoryMessageList",            "(Lcom/tencent/imsdk/v2/V2TIMMessageListGetOption;Lcom/tencent/imsdk/common/IMCallback;)V",                  (void *) NativeGetHistoryMessageList},
@@ -706,9 +1010,18 @@ static JNINativeMethod gMethods[] = {
                                                    "Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                                (jstring *) NativeInsertC2CMessageToLocalStorage},
         {"nativeFindMessages",                     "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeFindMessages},
         {"nativeSearchLocalMessages",              "(Lcom/tencent/imsdk/v2/V2TIMMessageSearchParam;Lcom/tencent/imsdk/common/IMCallback;)V",                    (void *) NativeSearchLocalMessages},
+        {"nativeSearchCloudMessages",             "(Lcom/tencent/imsdk/v2/V2TIMMessageSearchParam;Lcom/tencent/imsdk/common/IMCallback;)V",                (void *) NativeSearchCloudMessages},
         {"nativeSendMessageReadReceipts",          "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeSendMessageReadReceipts},
         {"nativeGetMessageReadReceipts",           "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                                  (void *) NativeGetMessageReadReceipts},
         {"nativeGetGroupMessageReadMemberList",    "(Lcom/tencent/imsdk/v2/V2TIMMessage;IJILcom/tencent/imsdk/common/IMCallback;)V",                            (void *) NativeGetGroupMessageReadMemberList},
+        {"nativeSetMessageExtensions",            "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",           (void *) NativeSetMessageExtensions},
+        {"nativeGetMessageExtensions",            "(Lcom/tencent/imsdk/v2/V2TIMMessage;Lcom/tencent/imsdk/common/IMCallback;)V",                           (void *) NativeGetMessageExtensions},
+        {"nativeDeleteMessageExtensions",         "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",           (void *) NativeDeleteMessageExtensions},
+        {"nativeAddMessageReaction",              "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",         (void *) NativeAddMessageReaction},
+        {"nativeRemoveMessageReaction",           "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",         (void *) NativeRemoveMessageReaction},
+        {"nativeGetMessageReactions",             "(Ljava/util/List;ILcom/tencent/imsdk/common/IMCallback;)V",                                             (void *) NativeGetMessageReactions},
+        {"nativeGetAllUserListOfMessageReaction", "(Lcom/tencent/imsdk/v2/V2TIMMessage;Ljava/lang/String;IILcom/tencent/imsdk/common/IMCallback;)V",       (void *) NativeGetAllUserListOfMessageReaction},
+        {"nativeTranslateText",                   "(Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",          (void *) NativeTranslateText},
 };
 
 //注册 native 方法

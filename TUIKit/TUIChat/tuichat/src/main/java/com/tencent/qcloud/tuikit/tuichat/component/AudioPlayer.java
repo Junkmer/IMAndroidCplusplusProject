@@ -1,90 +1,41 @@
 package com.tencent.qcloud.tuikit.tuichat.component;
 
-
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.os.Handler;
-import android.text.TextUtils;
 
-import com.tencent.qcloud.tuicore.TUIConfig;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
 import com.tencent.qcloud.tuikit.tuichat.R;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatService;
+import com.tencent.qcloud.tuikit.tuichat.config.TUIChatConfigs;
 import com.tencent.qcloud.tuikit.tuichat.util.TUIChatLog;
 
-
 public class AudioPlayer {
-
     private static final String TAG = AudioPlayer.class.getSimpleName();
     private static AudioPlayer sInstance = new AudioPlayer();
-    private static String CURRENT_RECORD_FILE = TUIConfig.getRecordDir() + "auto_";
-    private static int MAGIC_NUMBER = 500;
-    private static int MIN_RECORD_DURATION = 1000;
-    private Callback mRecordCallback;
     private Callback mPlayCallback;
 
     private String mAudioRecordPath;
     private MediaPlayer mPlayer;
-    private MediaRecorder mRecorder;
-    private Handler mHandler;
 
-    private AudioPlayer() {
-        mHandler = new Handler();
-    }
+    private AudioPlayer() {}
 
     public static AudioPlayer getInstance() {
         return sInstance;
     }
 
-
-    public void startRecord(Callback callback) {
-        mRecordCallback = callback;
-        try {
-            mAudioRecordPath = CURRENT_RECORD_FILE + System.currentTimeMillis() + ".m4a";
-            mRecorder = new MediaRecorder();
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mRecorder.setOutputFile(mAudioRecordPath);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            mRecorder.prepare();
-            mRecorder.start();
-            mHandler.removeCallbacksAndMessages(null);
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    stopInternalRecord();
-                    onRecordCompleted(true);
-                    mRecordCallback = null;
-                    ToastUtil.toastShortMessage(TUIChatService.getAppContext().getString(R.string.record_limit_tips));
-                }
-            }, TUIChatService.getChatConfig().getGeneralConfig().getAudioRecordMaxTime() * 1000);
-        } catch (Exception e) {
-            TUIChatLog.w(TAG, "startRecord failed", e);
-            stopInternalRecord();
-            onRecordCompleted(false);
-        }
-    }
-
-    public void stopRecord() {
-        stopInternalRecord();
-        onRecordCompleted(true);
-        mRecordCallback = null;
-    }
-
-    private void stopInternalRecord() {
-        mHandler.removeCallbacksAndMessages(null);
-        if (mRecorder == null) {
-            return;
-        }
-        mRecorder.release();
-        mRecorder = null;
-    }
-
     public void startPlay(String filePath, Callback callback) {
         mAudioRecordPath = filePath;
         mPlayCallback = callback;
+        setSpeakerMode();
         try {
             mPlayer = new MediaPlayer();
+            boolean isEnableSoundMessageSpeakerMode = TUIChatConfigs.getConfigs().getGeneralConfig().isEnableSoundMessageSpeakerMode();
+            if (isEnableSoundMessageSpeakerMode) {
+                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            } else {
+                mPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+            }
             mPlayer.setDataSource(filePath);
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
@@ -101,6 +52,23 @@ public class AudioPlayer {
             stopInternalPlay();
             onPlayCompleted(false);
         }
+    }
+
+    public void setSpeakerMode() {
+        boolean isEnableSoundMessageSpeakerMode = TUIChatConfigs.getConfigs().getGeneralConfig().isEnableSoundMessageSpeakerMode();
+        AudioManager audioManager = (AudioManager) TUIChatService.getAppContext().getSystemService(Context.AUDIO_SERVICE);
+        if (isEnableSoundMessageSpeakerMode) {
+            audioManager.setMode(AudioManager.MODE_NORMAL);
+            audioManager.setSpeakerphoneOn(true);
+        } else {
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            audioManager.setSpeakerphoneOn(false);
+        }
+    }
+
+    public void resetSpeakerMode() {
+        AudioManager audioManager = (AudioManager) TUIChatService.getAppContext().getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.MODE_NORMAL);
     }
 
     public void stopPlay() {
@@ -128,50 +96,15 @@ public class AudioPlayer {
         if (mPlayCallback != null) {
             mPlayCallback.onCompletion(success);
         }
+        resetSpeakerMode();
         mPlayer = null;
-    }
-
-    private void onRecordCompleted(boolean success) {
-        if (mRecordCallback != null) {
-            mRecordCallback.onCompletion(success);
-        }
-        mRecorder = null;
     }
 
     public String getPath() {
         return mAudioRecordPath;
     }
 
-    public int getDuration() {
-        if (TextUtils.isEmpty(mAudioRecordPath)) {
-            return 0;
-        }
-        int duration = 0;
-        // 通过初始化播放器的方式来获取真实的音频长度
-        // Get the real audio length by initializing the player
-        try {
-            MediaPlayer mp = new MediaPlayer();
-            mp.setDataSource(mAudioRecordPath);
-            mp.prepare();
-            duration = mp.getDuration();
-            // 语音长度如果是59s多，因为外部会/1000取整，会一直显示59'，所以这里对长度进行处理，达到四舍五入的效果
-            // the length is processed to achieve the effect of rounding
-            if (duration < MIN_RECORD_DURATION) {
-                duration = 0;
-            } else {
-                duration = duration + MAGIC_NUMBER;
-            }
-        } catch (Exception e) {
-            TUIChatLog.w(TAG, "getDuration failed", e);
-        }
-        if (duration < 0) {
-            duration = 0;
-        }
-        return duration;
-    }
-
     public interface Callback {
         void onCompletion(Boolean success);
     }
-
 }

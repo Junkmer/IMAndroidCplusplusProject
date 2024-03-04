@@ -13,12 +13,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.tencent.qcloud.tuikit.tuicallengine.impl.base.TUILog;
 import com.tencent.qcloud.tuikit.tuicallkit.R;
 
 public class FloatWindowService extends Service {
-    private static final String TAG = "FloatWindowService";
-
     private static Intent        mStartIntent;
     private static FloatCallView mCallView;
     private static Context       mContext;
@@ -40,7 +37,6 @@ public class FloatWindowService extends Service {
     private boolean mIsMove;
 
     public static void startFloatService(Context context, FloatCallView callView) {
-        TUILog.i(TAG, "startFloatService");
         mContext = context;
         mCallView = callView;
         mStartIntent = new Intent(context, FloatWindowService.class);
@@ -48,7 +44,6 @@ public class FloatWindowService extends Service {
     }
 
     public static void stopService(Context context) {
-        TUILog.i(TAG, "stopService: startIntent = " + mStartIntent);
         if (null != mStartIntent) {
             context.stopService(mStartIntent);
         }
@@ -73,11 +68,8 @@ public class FloatWindowService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        TUILog.i(TAG, "onDestroy: mCallView = " + mCallView);
-        if (null != mCallView) {
+        if (null != mCallView && mCallView.isAttachedToWindow()) {
             mWindowManager.removeView(mCallView);
-            mCallView = null;
         }
     }
 
@@ -85,8 +77,6 @@ public class FloatWindowService extends Service {
         mWindowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         mWindowLayoutParams = getViewParams();
         mScreenWidth = mWindowManager.getDefaultDisplay().getWidth();
-
-        TUILog.i(TAG, "initWindow: mCallView = " + mCallView);
 
         if (null != mCallView) {
             mCallView.setBackgroundResource(R.drawable.tuicalling_bg_floatwindow_left);
@@ -146,6 +136,7 @@ public class FloatWindowService extends Service {
                     }
                     mTouchStartX = mTouchCurrentX;
                     mTouchStartY = mTouchCurrentY;
+                    break;
                 case MotionEvent.ACTION_UP:
                     mStopX = (int) event.getRawX();
                     mStopY = (int) event.getRawY();

@@ -13,11 +13,12 @@
 #include "java_basic_jni.h"
 #include "user_full_info_jni.h"
 #include "user_status_jni.h"
+#include "receive_message_opt_info_jni.h"
 
 namespace v2im {
     namespace jni {
 
-        void BaseListenerJni::InitListener(){
+        void BaseListenerJni::InitListener() {
             v2im::V2IMEngine::GetInstance()->AddSDKListener(this);
         }
 
@@ -29,8 +30,8 @@ namespace v2im {
 
             std::string path;
             for (auto &item: listener_imsdk_map) {
-                path = StringJni::Jstring2Cstring(env,listenerPath);
-                if (path.empty() || path == item.first){
+                path = StringJni::Jstring2Cstring(env, listenerPath);
+                if (path.empty() || path == item.first) {
                     return;
                 }
             }
@@ -40,7 +41,7 @@ namespace v2im {
         }
 
         void BaseListenerJni::RemoveSDKListener(JNIEnv *env, jstring listenerPath) {
-            listener_imsdk_map.erase(StringJni::Jstring2Cstring(env,listenerPath));
+            listener_imsdk_map.erase(StringJni::Jstring2Cstring(env, listenerPath));
         }
 
         void BaseListenerJni::OnConnecting() {
@@ -64,11 +65,47 @@ namespace v2im {
         }
 
         void BaseListenerJni::OnSelfInfoUpdated(const V2TIMUserFullInfo &info) {
-            CallJavaMethod("onSelfInfoUpdated", info);
+            jobject j_obj_info = UserFullInfoJni::Convert2JObject(info);
+
+            CallJavaMethod("onSelfInfoUpdated", "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;)V", j_obj_info);
         }
 
         void BaseListenerJni::OnUserStatusChanged(const V2TIMUserStatusVector &userStatusList) {
-            CallJavaMethod("onUserStatusChanged", userStatusList);
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject j_obj_userStatusList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < userStatusList.Size(); ++i) {
+                jobject userStatus = v2im::jni::UserStatusJni::Convert2JObject(userStatusList[i]);
+                v2im::jni::ArrayListJni::Add(j_obj_userStatusList, userStatus);
+                env->DeleteLocalRef(userStatus);
+            }
+
+            CallJavaMethod("onUserStatusChanged", "(Ljava/util/List;)V", j_obj_userStatusList);
+        }
+
+        void BaseListenerJni::OnUserInfoChanged(const V2TIMUserFullInfoVector &infoList) {
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject j_obj_userInfoList = v2im::jni::ArrayListJni::NewArrayList();
+            for (int i = 0; i < infoList.Size(); ++i) {
+                jobject userInfo = v2im::jni::UserFullInfoJni::Convert2JObject(infoList[i]);
+                v2im::jni::ArrayListJni::Add(j_obj_userInfoList, userInfo);
+                env->DeleteLocalRef(userInfo);
+            }
+
+            CallJavaMethod("onUserInfoChanged", "(Ljava/util/List;)V", j_obj_userInfoList);
+        }
+
+        void BaseListenerJni::OnAllReceiveMessageOptChanged(const V2TIMReceiveMessageOptInfo &receiveMessageOptInfo) {
+            jobject j_obj_info = ReceiveMessageOptInfoJni::Convert2JObject_AllRecvMsg(receiveMessageOptInfo);
+
+            CallJavaMethod("onAllReceiveMessageOptChanged", "(Lcom/tencent/imsdk/v2/V2TIMReceiveMessageOptInfo;)V", j_obj_info);
+        }
+
+        void BaseListenerJni::onExperimentalNotify(const V2TIMString &key, const V2TIMString &param) {
+            CallJavaMethod("onExperimentalNotify", key.CString(), param.CString());
         }
 
         void BaseListenerJni::CallJavaMethod(const char *method_name) {
@@ -141,7 +178,7 @@ namespace v2im {
             }
         }
 
-        void BaseListenerJni::CallJavaMethod(const char *method_name, const V2TIMUserFullInfo &info) {
+        void BaseListenerJni::CallJavaMethod(const char *method_name, const char *sig, jobject const &jobj) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -166,20 +203,19 @@ namespace v2im {
                     return;
                 }
 
-                jmethodID method = env->GetMethodID(j_cls, method_name, "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;)V");
+                jmethodID method = env->GetMethodID(j_cls, method_name, sig);
                 if (nullptr != method) {
-                    jobject j_obj_info = UserFullInfoJni::Convert2JObject(info);
-                    env->CallVoidMethod(item.second, method, j_obj_info);
-                    env->DeleteLocalRef(j_obj_info);
+                    env->CallVoidMethod(item.second, method, jobj);
                 } else {
                     LOGE("get %s method failed", method_name);
                     return;
                 }
                 env->DeleteLocalRef(j_cls);
             }
+            env->DeleteLocalRef(jobj);
         }
 
-        void BaseListenerJni::CallJavaMethod(const char *method_name, const V2TIMUserStatusVector &userStatusVector) {
+        void BaseListenerJni::CallJavaMethod(const char *method_name, const std::string &key, const std::string &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -204,18 +240,9 @@ namespace v2im {
                     return;
                 }
 
-                jmethodID method = env->GetMethodID(j_cls, method_name, "(Ljava/util/List;)V");
+                jmethodID method = env->GetMethodID(j_cls, method_name, "(Ljava/lang/String;Ljava/lang/Object;)V");
                 if (nullptr != method) {
-
-                    jobject userStatusList = v2im::jni::ArrayListJni::NewArrayList();
-                    for (int i = 0; i < userStatusVector.Size(); ++i) {
-                        jobject userStatus = v2im::jni::UserStatusJni::Convert2JObject(userStatusVector[i]);
-                        v2im::jni::ArrayListJni::Add(userStatusList, userStatus);
-                        env->DeleteLocalRef(userStatus);
-                    }
-
-                    env->CallVoidMethod(item.second, method, userStatusList);
-                    env->DeleteLocalRef(userStatusList);
+                    env->CallVoidMethod(item.second, method, StringJni::Cstring2Jstring(env, key), StringJni::Cstring2Jstring(env, param));
                 } else {
                     LOGE("get %s method failed", method_name);
                     return;

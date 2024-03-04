@@ -22,6 +22,7 @@ public class V2TIMMessageListGetOption implements Serializable {
     private long getTimeBegin;
     private long getTimePeriod;
     private List<Integer> messageTypeList = new ArrayList<>();
+    private List<Long>	messageSeqList = new ArrayList<>();
 
     public int getGetType() {
         return getType;
@@ -93,5 +94,13 @@ public class V2TIMMessageListGetOption implements Serializable {
 
     public void setMessageTypeList(List<Integer> messageTypeList) {
         this.messageTypeList = messageTypeList;
+    }
+
+    public List<Long> getMessageSeqList() {
+        return messageSeqList;
+    }
+
+    public void setMessageSeqList(List<Long> messageSeqList) {
+        this.messageSeqList = messageSeqList;
     }
 }

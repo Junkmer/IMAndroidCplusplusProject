@@ -18,19 +18,20 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ''
+                arguments "-DANDROID_STL=c++_shared","-DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE"
             }
         }
         // 指定ndk需要兼容的架构（这样其他依赖包里面的 mips、x86、armeabi-v7a、arm64-v8a）
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
-//        // 不加这个会导致多个so冲突：https://developer.android.com/r/tools/jniLibs-vs-imported-targets
-//        sourceSets {
-//            main {
+        // 不加这个会导致多个so冲突：https://developer.android.com/r/tools/jniLibs-vs-imported-targets
+        sourceSets {
+            main {
 //                jniLibs.srcDirs = ['libs']
-////                jniLibs.srcDirs = ['jniLibs']
-//            }
-//        }
+                jniLibs.srcDirs = ['jniLibs']
+            }
+        }
     }
 
     buildTypes {

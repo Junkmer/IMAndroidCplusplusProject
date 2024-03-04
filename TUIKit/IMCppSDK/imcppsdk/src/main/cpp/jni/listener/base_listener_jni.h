@@ -42,14 +42,20 @@ namespace v2im {
 
             void OnUserStatusChanged(const V2TIMUserStatusVector &userStatusList) override;
 
+            void OnUserInfoChanged(const V2TIMUserFullInfoVector &infoList) override;
+
+            void OnAllReceiveMessageOptChanged(const V2TIMReceiveMessageOptInfo &receiveMessageOptInfo) override;
+
+            void onExperimentalNotify(const V2TIMString &key, const V2TIMString &param) override;
+
         private:
             void CallJavaMethod(const char *method_name);
 
             void CallJavaMethod(const char *method_name, int code, const std::string &message);
 
-            void CallJavaMethod(const char *method_name, const V2TIMUserFullInfo &info);
+            void CallJavaMethod(const char *method_name, const char* sig, const jobject &jobj);
 
-            void CallJavaMethod(const char *method_name, const V2TIMUserStatusVector &userStatusList);
+            void CallJavaMethod(const char *method_name, const std::string &key, const std::string &param);
 
         private:
             std::map<std::string, jobject> listener_imsdk_map;//map 容器不允许有重复的key值

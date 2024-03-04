@@ -9,6 +9,7 @@
 #include "java_basic_jni.h"
 #include "friend_info_jni.h"
 #include "friend_application_jni.h"
+#include "official_account_info_jni.h"
 
 namespace v2im {
     namespace jni {
@@ -28,8 +29,8 @@ namespace v2im {
 
             std::string path;
             for (auto &item: listener_friend_map) {
-                path = StringJni::Jstring2Cstring(env,listenerPath);
-                if (path.empty() || path == item.first){
+                path = StringJni::Jstring2Cstring(env, listenerPath);
+                if (path.empty() || path == item.first) {
                     return;
                 }
             }
@@ -38,12 +39,12 @@ namespace v2im {
             listener_friend_map.insert(std::make_pair(path, j_obj));
         }
 
-        void FriendListenerJni::RemoveListener(JNIEnv *env,jstring listenerPath) {
+        void FriendListenerJni::RemoveListener(JNIEnv *env, jstring listenerPath) {
             if (nullptr == listenerPath) {
                 LOGE("FriendListenerJni | RemoveListener listener_simple is null");
                 return;
             }
-            listener_friend_map.erase(StringJni::Jstring2Cstring(env,listenerPath));
+            listener_friend_map.erase(StringJni::Jstring2Cstring(env, listenerPath));
         }
 
         bool FriendListenerJni::InitIDs(JNIEnv *env) {
@@ -59,50 +60,50 @@ namespace v2im {
 
             jmethodID jmethod = nullptr;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendApplicationListAdded", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendApplicationListAdded", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendApplicationListAdded] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendApplicationListDeleted", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendApplicationListDeleted", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendApplicationListDeleted] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendApplicationListRead", "()V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendApplicationListRead", "()V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendApplicationListRead] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendListAdded", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendListAdded", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendListAdded] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendListDeleted", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendListDeleted", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendListDeleted] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onBlackListAdd", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onBlackListAdd", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnBlackListAdd] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onBlackListDeleted", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onBlackListDeleted", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnBlackListDeleted] = jmethod;
 
-            jmethod = env->GetMethodID(j_cls_,"onFriendInfoChanged", "(Ljava/util/List;)V");
-            if (nullptr == jmethod){
+            jmethod = env->GetMethodID(j_cls_, "onFriendInfoChanged", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
                 return false;
             }
             j_method_id_array_[MethodIDOnFriendInfoChanged] = jmethod;
@@ -121,8 +122,8 @@ namespace v2im {
             jobject applicationListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < applicationList.Size(); ++i) {
                 jobject applicationObj = FriendApplicationJni::Convert2JObject(applicationList[i]);
-                if (applicationObj){
-                    ArrayListJni::Add(applicationListObj,applicationObj);
+                if (applicationObj) {
+                    ArrayListJni::Add(applicationListObj, applicationObj);
                     env->DeleteLocalRef(applicationObj);
                 }
             }
@@ -144,9 +145,9 @@ namespace v2im {
 
             jobject userIDListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < userIDList.Size(); ++i) {
-                jstring userIDStr = StringJni::Cstring2Jstring(env,userIDList[i].CString());
-                if (userIDStr){
-                    ArrayListJni::Add(userIDListObj,userIDStr);
+                jstring userIDStr = StringJni::Cstring2Jstring(env, userIDList[i].CString());
+                if (userIDStr) {
+                    ArrayListJni::Add(userIDListObj, userIDStr);
                     env->DeleteLocalRef(userIDStr);
                 }
             }
@@ -182,8 +183,8 @@ namespace v2im {
             jobject friendInfoListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < friendInfoList.Size(); ++i) {
                 jobject friendInfoObj = FriendInfoJni::Convert2JObject(friendInfoList[i]);
-                if (friendInfoObj){
-                    ArrayListJni::Add(friendInfoListObj,friendInfoObj);
+                if (friendInfoObj) {
+                    ArrayListJni::Add(friendInfoListObj, friendInfoObj);
                     env->DeleteLocalRef(friendInfoObj);
                 }
             }
@@ -205,9 +206,9 @@ namespace v2im {
 
             jobject userIDListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < userIDList.Size(); ++i) {
-                jstring userIDStr = StringJni::Cstring2Jstring(env,userIDList[i].CString());
-                if (userIDStr){
-                    ArrayListJni::Add(userIDListObj,userIDStr);
+                jstring userIDStr = StringJni::Cstring2Jstring(env, userIDList[i].CString());
+                if (userIDStr) {
+                    ArrayListJni::Add(userIDListObj, userIDStr);
                     env->DeleteLocalRef(userIDStr);
                 }
             }
@@ -230,8 +231,8 @@ namespace v2im {
             jobject friendInfoListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < friendInfoList.Size(); ++i) {
                 jobject friendInfoObj = FriendInfoJni::Convert2JObject(friendInfoList[i]);
-                if (friendInfoObj){
-                    ArrayListJni::Add(friendInfoListObj,friendInfoObj);
+                if (friendInfoObj) {
+                    ArrayListJni::Add(friendInfoListObj, friendInfoObj);
                     env->DeleteLocalRef(friendInfoObj);
                 }
             }
@@ -253,9 +254,9 @@ namespace v2im {
 
             jobject userIDListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < userIDList.Size(); ++i) {
-                jstring userIDStr = StringJni::Cstring2Jstring(env,userIDList[i].CString());
-                if (userIDStr){
-                    ArrayListJni::Add(userIDListObj,userIDStr);
+                jstring userIDStr = StringJni::Cstring2Jstring(env, userIDList[i].CString());
+                if (userIDStr) {
+                    ArrayListJni::Add(userIDListObj, userIDStr);
                     env->DeleteLocalRef(userIDStr);
                 }
             }
@@ -278,8 +279,8 @@ namespace v2im {
             jobject friendInfoListObj = ArrayListJni::NewArrayList();
             for (int i = 0; i < friendInfoList.Size(); ++i) {
                 jobject friendInfoObj = FriendInfoJni::Convert2JObject(friendInfoList[i]);
-                if (friendInfoObj){
-                    ArrayListJni::Add(friendInfoListObj,friendInfoObj);
+                if (friendInfoObj) {
+                    ArrayListJni::Add(friendInfoListObj, friendInfoObj);
                     env->DeleteLocalRef(friendInfoObj);
                 }
             }
@@ -289,6 +290,76 @@ namespace v2im {
             }
 
             env->DeleteLocalRef(friendInfoListObj);
+        }
+
+        void FriendListenerJni::OnOfficialAccountSubscribed(const V2TIMOfficialAccountInfo &info) {
+            if (listener_friend_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject accountInfoObj = OfficialAccountInfoJni::Convert2JObject(info);
+            if (accountInfoObj) {
+                for (auto &item: listener_friend_map) {
+                    env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnOfficialAccountSubscribed], accountInfoObj);
+                }
+
+                env->DeleteLocalRef(accountInfoObj);
+            }
+        }
+
+        void FriendListenerJni::OnOfficialAccountUnsubscribed(const V2TIMString &officialAccountID) {
+            if (listener_friend_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject officialAccountIDObj = StringJni::Cstring2Jstring(env, officialAccountID.CString());
+
+            for (auto &item: listener_friend_map) {
+                env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnOfficialAccountUnsubscribed], officialAccountIDObj);
+            }
+
+            env->DeleteLocalRef(officialAccountIDObj);
+
+        }
+
+        void FriendListenerJni::OnOfficialAccountDeleted(const V2TIMString &officialAccountID) {
+            if (listener_friend_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject officialAccountIDObj = StringJni::Cstring2Jstring(env, officialAccountID.CString());
+            for (auto &item: listener_friend_map) {
+                env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnOfficialAccountDeleted], officialAccountIDObj);
+            }
+
+            env->DeleteLocalRef(officialAccountIDObj);
+        }
+
+        void FriendListenerJni::OnOfficialAccountInfoChanged(const V2TIMOfficialAccountInfo &info) {
+            if (listener_friend_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject accountInfoObj = OfficialAccountInfoJni::Convert2JObject(info);
+            if (accountInfoObj) {
+                for (auto &item: listener_friend_map) {
+                    env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnOfficialAccountInfoChanged], accountInfoObj);
+                }
+
+                env->DeleteLocalRef(accountInfoObj);
+            }
         }
     }// namespace jni
 }// namespace v2im

@@ -3,13 +3,12 @@ package com.tencent.qcloud.tuicore.util;
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.WindowManager;
-
 import com.tencent.qcloud.tuicore.TUIConfig;
 
 public class ScreenUtil {
-
     private static final String TAG = ScreenUtil.class.getSimpleName();
 
     public static int getScreenHeight(Context context) {
@@ -47,7 +46,7 @@ public class ScreenUtil {
         return dm.widthPixels;
     }
 
-    public static int getNavigationBarHeight(Context context){
+    public static int getNavigationBarHeight(Context context) {
         int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
         if (resourceId > 0) {
             return context.getResources().getDimensionPixelSize(resourceId);
@@ -56,8 +55,9 @@ public class ScreenUtil {
     }
 
     public static int[] scaledSize(int containerWidth, int containerHeight, int realWidth, int realHeight) {
-        Log.i(TAG, "scaledSize  containerWidth: " + containerWidth + " containerHeight: " + containerHeight
-                + " realWidth: " + realWidth + " realHeight: " + realHeight);
+        Log.i(TAG,
+            "scaledSize  containerWidth: " + containerWidth + " containerHeight: " + containerHeight + " realWidth: " + realWidth
+                + " realHeight: " + realHeight);
         float deviceRate = (float) containerWidth / (float) containerHeight;
         float rate = (float) realWidth / (float) realHeight;
         int width = 0;
@@ -69,11 +69,15 @@ public class ScreenUtil {
             width = containerWidth;
             height = (int) (containerWidth / rate);
         }
-        return new int[]{width, height};
+        return new int[] {width, height};
     }
 
     public static int dip2px(float dpValue) {
         final float scale = TUIConfig.getAppContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    public static float dp2px(float dpValue, DisplayMetrics displayMetrics) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, displayMetrics);
     }
 }

@@ -5,27 +5,25 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
-
 import androidx.annotation.Nullable;
-
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUIThemeManager;
-import com.tencent.qcloud.tuicore.component.RoundCornerImageView;
-import com.tencent.qcloud.tuicore.component.activities.BaseLightActivity;
-import com.tencent.qcloud.tuicore.component.activities.ImageSelectActivity;
-import com.tencent.qcloud.tuicore.component.dialog.TUIKitDialog;
-import com.tencent.qcloud.tuicore.component.imageEngine.impl.GlideEngine;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.component.popupcard.PopupInputCard;
-import com.tencent.qcloud.tuicore.util.ScreenUtil;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.PopupInputCard;
+import com.tencent.qcloud.tuikit.timcommon.component.RoundCornerImageView;
+import com.tencent.qcloud.tuikit.timcommon.component.activities.BaseLightActivity;
+import com.tencent.qcloud.tuikit.timcommon.component.activities.ImageSelectActivity;
+import com.tencent.qcloud.tuikit.timcommon.component.activities.ImageSelectMinimalistActivity;
+import com.tencent.qcloud.tuikit.timcommon.component.dialog.TUIKitDialog;
+import com.tencent.qcloud.tuikit.timcommon.component.impl.GlideEngine;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ScreenUtil;
 import com.tencent.qcloud.tuikit.tuicommunity.R;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityBean;
 import com.tencent.qcloud.tuikit.tuicommunity.component.SettingsLinearView;
 import com.tencent.qcloud.tuikit.tuicommunity.presenter.CommunityPresenter;
 import com.tencent.qcloud.tuikit.tuicommunity.ui.interfaces.ICommunitySettingsActivity;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.CommunityConstants;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +47,7 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
     private CommunityBean communityBean;
     private String communityID;
     private CommunityPresenter presenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,10 +145,11 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
         }
         communityNameLv.setContent(communityBean.getCommunityName());
     }
+
     private void setAvatarView() {
         RoundCornerImageView cornerImageView = communityAvatarLv.getContentImage();
         GlideEngine.loadImageSetDefault(cornerImageView, communityBean.getGroupFaceUrl(),
-                TUIThemeManager.getAttrResId(this, R.attr.core_default_group_icon_community));
+            TUIThemeManager.getAttrResId(this, com.tencent.qcloud.tuikit.timcommon.R.attr.core_default_group_icon_community));
         if (communityBean.isOwner()) {
             communityAvatarLv.setShowArrow(true);
             communityAvatarLv.setOnContentClickListener(new View.OnClickListener() {
@@ -157,7 +157,7 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
                 public void onClick(View v) {
                     ArrayList<ImageSelectActivity.ImageBean> faceList = new ArrayList<>();
                     for (int i = 0; i < CommunityConstants.GROUP_FACE_COUNT; i++) {
-                        ImageSelectActivity.ImageBean imageBean= new ImageSelectActivity.ImageBean();
+                        ImageSelectActivity.ImageBean imageBean = new ImageSelectActivity.ImageBean();
                         imageBean.setThumbnailUri(String.format(CommunityConstants.GROUP_FACE_URL, (i + 1) + ""));
                         imageBean.setImageUri(String.format(CommunityConstants.GROUP_FACE_URL, (i + 1) + ""));
                         faceList.add(imageBean);
@@ -166,16 +166,19 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
                     Intent intent = new Intent(CommunitySettingsActivity.this, ImageSelectActivity.class);
                     intent.putExtra(ImageSelectActivity.TITLE, getResources().getString(R.string.community_choose_avatar));
                     intent.putExtra(ImageSelectActivity.SPAN_COUNT, 4);
-                    intent.putExtra(ImageSelectActivity.PLACEHOLDER, R.drawable.core_default_user_icon_light);
-                    intent.putExtra(ImageSelectActivity.ITEM_WIDTH, ScreenUtil.dip2px(77));
-                    intent.putExtra(ImageSelectActivity.ITEM_HEIGHT, ScreenUtil.dip2px(77));
+                    intent.putExtra(ImageSelectActivity.PLACEHOLDER, com.tencent.qcloud.tuikit.timcommon.R.drawable.core_default_user_icon_light);
+                    int itemWidth = (int) (ScreenUtil.getScreenWidth(CommunitySettingsActivity.this) * 0.2f);
+                    intent.putExtra(ImageSelectMinimalistActivity.ITEM_WIDTH, itemWidth);
+                    intent.putExtra(ImageSelectMinimalistActivity.ITEM_HEIGHT, itemWidth);
                     intent.putExtra(ImageSelectActivity.DATA, faceList);
-                    intent.putExtra(ImageSelectActivity.SELECTED, new ImageSelectActivity.ImageBean(communityBean.getGroupFaceUrl(), communityBean.getGroupFaceUrl(), false));
+                    intent.putExtra(ImageSelectActivity.SELECTED,
+                        new ImageSelectActivity.ImageBean(communityBean.getGroupFaceUrl(), communityBean.getGroupFaceUrl(), false));
                     startActivityForResult(intent, REQUEST_FOR_CHANGE_AVATAR);
                 }
             });
         }
     }
+
     private void setCoverView() {
         RoundCornerImageView cornerImageView = communityCoverLv.getContentImage();
         GlideEngine.loadImageSetDefault(cornerImageView, communityBean.getCoverUrl(), R.drawable.community_cover_default);
@@ -186,7 +189,7 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
                 public void onClick(View v) {
                     ArrayList<ImageSelectActivity.ImageBean> coverList = new ArrayList<>();
                     for (int i = 0; i < CommunityConstants.COVER_COUNT; i++) {
-                        ImageSelectActivity.ImageBean imageBean= new ImageSelectActivity.ImageBean();
+                        ImageSelectActivity.ImageBean imageBean = new ImageSelectActivity.ImageBean();
                         imageBean.setThumbnailUri(String.format(CommunityConstants.COVER_URL, (i + 1) + ""));
                         imageBean.setImageUri(String.format(CommunityConstants.COVER_URL, (i + 1) + ""));
                         coverList.add(imageBean);
@@ -196,10 +199,13 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
                     intent.putExtra(ImageSelectActivity.TITLE, getString(R.string.community_select_cover));
                     intent.putExtra(ImageSelectActivity.SPAN_COUNT, 2);
                     intent.putExtra(ImageSelectActivity.PLACEHOLDER, R.drawable.community_cover_default);
-                    intent.putExtra(ImageSelectActivity.ITEM_WIDTH, ScreenUtil.dip2px(165));
-                    intent.putExtra(ImageSelectActivity.ITEM_HEIGHT, ScreenUtil.dip2px(79));
+                    int itemWidth = (int) (ScreenUtil.getScreenWidth(CommunitySettingsActivity.this) * 0.42f);
+                    int itemHeight = (int) (itemWidth / 2.0f);
+                    intent.putExtra(ImageSelectActivity.ITEM_WIDTH, itemWidth);
+                    intent.putExtra(ImageSelectActivity.ITEM_HEIGHT, itemHeight);
                     intent.putExtra(ImageSelectActivity.DATA, coverList);
-                    intent.putExtra(ImageSelectActivity.SELECTED, new ImageSelectActivity.ImageBean(communityBean.getCoverUrl(), communityBean.getCoverUrl(), false));
+                    intent.putExtra(
+                        ImageSelectActivity.SELECTED, new ImageSelectActivity.ImageBean(communityBean.getCoverUrl(), communityBean.getCoverUrl(), false));
                     startActivityForResult(intent, REQUEST_FOR_CHANGE_COVER);
                 }
             });
@@ -264,6 +270,7 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
             }
         });
     }
+
     private void setCreateTopicView() {
         createTopicLv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -283,9 +290,7 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
             }
 
             @Override
-            public void onError(String module, int errCode, String errMsg) {
-
-            }
+            public void onError(String module, int errCode, String errMsg) {}
         });
         groupNickNameLv.setOnContentClickListener(new View.OnClickListener() {
             @Override
@@ -324,27 +329,25 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
             @Override
             public void onClick(View v) {
                 if (disbandDialog == null) {
-                    disbandDialog = new TUIKitDialog(CommunitySettingsActivity.this).builder()
-                            .setTitle(getString(R.string.community_disband_group))
-                            .setCancelOutside(true)
-                            .setPositiveButton(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    disbandCommunity();
-                                }
-                            })
-                            .setNegativeButton(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-
-                                }
-                            });
+                    disbandDialog = new TUIKitDialog(CommunitySettingsActivity.this)
+                                        .builder()
+                                        .setTitle(getString(R.string.community_disband_group))
+                                        .setCancelOutside(true)
+                                        .setPositiveButton(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                disbandCommunity();
+                                            }
+                                        })
+                                        .setNegativeButton(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {}
+                                        });
                 }
                 disbandDialog.show();
             }
         });
     }
-
 
     private void disbandCommunity() {
         presenter.disbandCommunity(communityBean.getGroupId(), new IUIKitCallback<Void>() {
@@ -442,7 +445,6 @@ public class CommunitySettingsActivity extends BaseLightActivity implements ICom
                         }
                     });
                 }
-
             }
         }
     }

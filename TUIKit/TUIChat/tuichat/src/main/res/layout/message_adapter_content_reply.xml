@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.tencent.qcloud.tuikit.tuichat.ui.view.message.MaxWidthLinearLayout
+<com.tencent.qcloud.tuikit.timcommon.component.MaxWidthLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/reply_container"
@@ -23,7 +23,6 @@
             android:layout_width="2dp"
             android:layout_height="match_parent"
             android:background="?attr/chat_self_reply_line_bg_color"
-            android:layout_marginRight="@dimen/reply_line_margin_right"
             android:layout_marginEnd="@dimen/reply_line_margin_right" />
 
         <LinearLayout
@@ -39,7 +38,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6.5dp"
-                android:layout_marginRight="6.5dp"
                 android:layout_marginBottom="@dimen/reply_abstract_margin_bottom"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -66,4 +64,4 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-</com.tencent.qcloud.tuikit.tuichat.ui.view.message.MaxWidthLinearLayout>
+</com.tencent.qcloud.tuikit.timcommon.component.MaxWidthLinearLayout>

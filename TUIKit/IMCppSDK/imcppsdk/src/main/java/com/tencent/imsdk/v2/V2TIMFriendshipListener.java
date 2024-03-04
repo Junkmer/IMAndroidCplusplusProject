@@ -29,4 +29,20 @@ public abstract class V2TIMFriendshipListener {
 
     public void onFriendInfoChanged(List<V2TIMFriendInfo> infoList) {
     }
+
+    void onOfficialAccountSubscribed(V2TIMOfficialAccountInfo officialAccountInfo) {
+
+    }
+
+    void onOfficialAccountUnsubscribed(String officialAccountID) {
+
+    }
+
+    void onOfficialAccountDeleted(String officialAccountID) {
+
+    }
+
+    void onOfficialAccountInfoChanged(V2TIMOfficialAccountInfo officialAccountInfo) {
+
+    }
 }

@@ -237,6 +237,29 @@ public:
     virtual void DeleteFriendsFromFriendGroup(
         const V2TIMString& groupName, const V2TIMStringVector& userIDList,
         V2TIMValueCallback<V2TIMFriendOperationResultVector>* callback) = 0;
+
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    //                         公众号接口函数
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * 6.1 订阅公众号
+     */
+    virtual void SubscribeOfficialAccount(const V2TIMString& officialAccountID, V2TIMCallback* callback) = 0;
+
+    /**
+     * 6.2 取消订阅公众号
+     */
+    virtual void UnsubscribeOfficialAccount(const V2TIMString& officialAccountID, V2TIMCallback* callback) = 0;
+
+    /**
+     * 6.3 获取公众号列表
+     * @note officialAccountIDList 传空时，获取订阅的公众号列表
+     */
+    virtual void GetOfficialAccountsInfo(const V2TIMStringVector& officialAccountIDList,
+                                         V2TIMValueCallback<V2TIMOfficialAccountInfoResultVector>* callback) = 0;
 };
 
 #endif  // __V2TIM_FRIENDSHIP_MANAGER_H__

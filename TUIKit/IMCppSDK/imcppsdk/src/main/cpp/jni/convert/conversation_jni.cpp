@@ -164,6 +164,18 @@ namespace v2im {
             }
             j_field_id_array_[FieldIDConversationGroupList] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "c2CReadTimestamp", "J");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_id_array_[FieldIDC2CReadTimestamp] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "groupReadSequence", "J");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_id_array_[FieldIDGroupReadSequence] = jfield;
+
             return true;
         }
 
@@ -267,6 +279,8 @@ namespace v2im {
                 env->DeleteLocalRef(conversationGroupStr);
             }
 
+            env->SetLongField(conversationObj, j_field_id_array_[FieldIDC2CReadTimestamp], (jlong) conversation.c2cReadTimestamp);
+            env->SetLongField(conversationObj, j_field_id_array_[FieldIDGroupReadSequence], (jlong) conversation.groupReadSequence);
             return conversationObj;
         }
     }// namespace v2im

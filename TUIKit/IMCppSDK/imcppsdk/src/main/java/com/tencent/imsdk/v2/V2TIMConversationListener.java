@@ -22,7 +22,17 @@ public abstract class V2TIMConversationListener {
     public void onConversationChanged(List<V2TIMConversation> conversationList) {
     }
 
+
+    public void onConversationDeleted(List<String> conversationIDList) {
+
+    }
+
     public void onTotalUnreadMessageCountChanged(long totalUnreadCount) {
+
+    }
+
+    public void onUnreadMessageCountChangedByFilter(V2TIMConversationListFilter filter, long totalUnreadCount) {
+
     }
 
     public void onConversationGroupCreated(String groupName, List<V2TIMConversation> conversationList) {

@@ -1,6 +1,6 @@
 package com.tencent.qcloud.tuikit.tuigroup.presenter;
 
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuigroup.bean.GroupMemberInfo;
 import com.tencent.qcloud.tuikit.tuigroup.model.GroupInfoProvider;
 
@@ -35,7 +35,7 @@ public class GroupManagerPresenter {
     }
 
     public void setGroupManager(String groupId, String userId, IUIKitCallback<Void> callback) {
-        provider.setGroupManager(groupId, userId, callback);
+        provider.setGroupManagerRole(groupId, userId, callback);
     }
 
     public void clearGroupManager(String groupId, String userId, IUIKitCallback<Void> callback) {

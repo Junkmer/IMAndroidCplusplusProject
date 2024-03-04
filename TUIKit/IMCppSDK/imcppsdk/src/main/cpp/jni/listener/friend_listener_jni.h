@@ -44,6 +44,14 @@ namespace v2im {
 
             void OnFriendInfoChanged(const V2TIMFriendInfoVector &friendInfoList) override;
 
+            void OnOfficialAccountSubscribed(const V2TIMOfficialAccountInfo &info) override;
+
+            void OnOfficialAccountUnsubscribed(const V2TIMString &officialAccountID) override;
+
+            void OnOfficialAccountDeleted(const V2TIMString &officialAccountID) override;
+
+            void OnOfficialAccountInfoChanged(const V2TIMOfficialAccountInfo &info) override;
+
         private:
             enum MethodID {
                 MethodIDOnFriendApplicationListAdded = 0,
@@ -54,6 +62,10 @@ namespace v2im {
                 MethodIDOnBlackListAdd,
                 MethodIDOnBlackListDeleted,
                 MethodIDOnFriendInfoChanged,
+                MethodIDOnOfficialAccountSubscribed,
+                MethodIDOnOfficialAccountUnsubscribed,
+                MethodIDOnOfficialAccountDeleted,
+                MethodIDOnOfficialAccountInfoChanged,
 
                 MethodIDMax,
             };

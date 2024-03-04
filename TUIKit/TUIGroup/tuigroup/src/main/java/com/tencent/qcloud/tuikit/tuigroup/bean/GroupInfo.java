@@ -1,17 +1,15 @@
 package com.tencent.qcloud.tuikit.tuigroup.bean;
 
+import android.text.TextUtils;
 import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo;
 import com.tencent.imsdk.v2.V2TIMManager;
 import com.tencent.imsdk.v2.V2TIMMessage;
-
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class GroupInfo extends ChatInfo {
-
     public static final String GROUP_TYPE_MEETING = V2TIMManager.GROUP_TYPE_MEETING;
     public static final String GROUP_TYPE_AVCHATROOM = V2TIMManager.GROUP_TYPE_AVCHATROOM;
     public static final String GROUP_TYPE_COMMUNITY = V2TIMManager.GROUP_TYPE_COMMUNITY;
@@ -23,18 +21,24 @@ public class GroupInfo extends ChatInfo {
     public static final int GROUP_MEMBER_FILTER_ADMIN = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ADMIN;
     public static final int GROUP_MEMBER_FILTER_COMMON = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_COMMON;
 
+    public static final int GROUP_MEMBER_ROLE_MEMBER = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_MEMBER;
+    public static final int GROUP_MEMBER_ROLE_OWNER = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_OWNER;
+    public static final int GROUP_MEMBER_ROLE_ADMIN = V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_ADMIN;
+
     private String groupType;
     private int memberCount;
     private String groupName;
     private String notice;
     private List<GroupMemberInfo> memberDetails = new ArrayList<>();
     private int joinType;
+    private int inviteType;
     private String owner;
     private boolean messageReceiveOption;
     private String faceUrl;
     private long mNextSeq = 0;
     private boolean canManagerGroup;
     private boolean isAllMuted;
+    private int role;
 
     public GroupInfo() {
         setType(V2TIMConversation.V2TIM_GROUP);
@@ -50,8 +54,8 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 获取群公告
-     * 
-     * Get group announcements 
+     *
+     * Get group announcements
      *
      * @return
      */
@@ -61,7 +65,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置群公告
-     * 
+     *
      * Set group announcements
      *
      * @param signature
@@ -72,7 +76,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 获取加群验证方式
-     * 
+     *
      * Get the group verification method
      *
      * @return
@@ -83,7 +87,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置加群验证方式
-     * 
+     *
      * Set the group verification method
      *
      * @param joinType
@@ -92,9 +96,17 @@ public class GroupInfo extends ChatInfo {
         this.joinType = joinType;
     }
 
+    public int getInviteType() {
+        return inviteType;
+    }
+
+    public void setInviteType(int inviteType) {
+        this.inviteType = inviteType;
+    }
+
     /**
      * 获取群类型，Public/Private/ChatRoom
-     * 
+     *
      * Get the group type, Public/Private/ChatRoom
      *
      * @return
@@ -105,7 +117,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置群类型
-     * 
+     *
      * Set the group type
      *
      * @param groupType
@@ -116,7 +128,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 获取成员详细信息
-     * 
+     *
      * Get member details
      *
      * @return
@@ -127,7 +139,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置成员详细信息
-     * 
+     *
      * Set member details
      *
      * @param memberDetails
@@ -138,7 +150,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 获取群成员数量
-     * 
+     *
      * Get the number of members that have joined the group
      *
      * @return
@@ -149,7 +161,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置群成员数量
-     * 
+     *
      * Set the number of members that have joined the group
      *
      * @param memberCount
@@ -160,7 +172,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 返回是否是群主
-     * 
+     *
      * Returns whether it is the owner of the group
      *
      * @return
@@ -171,7 +183,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 设置是否是群主
-     * 
+     *
      * Set whether it is the owner of the group
      *
      * @param owner
@@ -182,7 +194,7 @@ public class GroupInfo extends ChatInfo {
 
     /**
      * 获取消息接收选项
-     * 
+     *
      * Get the current user's message receiving option in the group. To modify the group message receiving option, please call the setReceiveMessageOpt API.
      *
      * @return
@@ -194,8 +206,8 @@ public class GroupInfo extends ChatInfo {
     /**
      * 设置消息接收选项
      * @param messageReceiveOption, true,免打扰； false，接收消息
-     * 
-     * 
+     *
+     *
      * Set the current user's message receiving option in the group.
      * @param messageReceiveOption, true,no message will be received； false，messages will be received.
      */
@@ -227,6 +239,14 @@ public class GroupInfo extends ChatInfo {
         return isAllMuted;
     }
 
+    public void setRole(int role) {
+        this.role = role;
+    }
+
+    public int getRole() {
+        return role;
+    }
+
     public GroupInfo covertTIMGroupDetailInfo(V2TIMGroupInfoResult infoResult) {
         if (infoResult.getResultCode() != 0) {
             return this;
@@ -239,12 +259,12 @@ public class GroupInfo extends ChatInfo {
         setGroupType(infoResult.getGroupInfo().getGroupType());
         setOwner(infoResult.getGroupInfo().getOwner());
         setJoinType(infoResult.getGroupInfo().getGroupAddOpt());
+        setInviteType(infoResult.getGroupInfo().getGroupApproveOpt());
         setMessageReceiveOption(infoResult.getGroupInfo().getRecvOpt() == V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE ? true : false);
         setFaceUrl(infoResult.getGroupInfo().getFaceUrl());
-        int role = infoResult.getGroupInfo().getRole();
-        canManagerGroup = role == V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_OWNER
-                || role == V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_ADMIN
-                || groupType == V2TIMManager.GROUP_TYPE_WORK;
+        role = infoResult.getGroupInfo().getRole();
+        canManagerGroup = role == V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_OWNER || role == V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_ADMIN
+            || TextUtils.equals(groupType, V2TIMManager.GROUP_TYPE_WORK);
         isAllMuted = infoResult.getGroupInfo().isAllMuted();
         return this;
     }

@@ -4,6 +4,7 @@
 #define __V2TIM_MESSAGE_H__
 
 #include "V2TIMCommon.h"
+#include "V2TIMFriendship.h"
 #include "V2TIMGroup.h"
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -103,8 +104,7 @@ enum V2TIMGroupTipsType {
     V2TIM_GROUP_TIPS_TYPE_SET_ADMIN = 0x05,
     ///< 取消管理员 (opMember 取消 memberList 管理员身份)
     V2TIM_GROUP_TIPS_TYPE_CANCEL_ADMIN = 0x06,
-    ///< 群资料变更 (opMember 修改群资料： groupName & introduction & notification & faceUrl & owner
-    ///< & custom)
+    ///< 群资料变更 (opMember 修改群资料： groupName & introduction & notification & faceUrl & owner & allMute & custom)
     V2TIM_GROUP_TIPS_TYPE_GROUP_INFO_CHANGE = 0x07,
     ///< 群成员资料变更 (opMember 修改群成员资料：muteTime)
     V2TIM_GROUP_TIPS_TYPE_MEMBER_INFO_CHANGE = 0x08,
@@ -220,10 +220,12 @@ struct TIM_API V2TIMOfflinePushInfo {
     V2TIMString AndroidFCMChannelID;
     /// 离线推送设置小米通道手机 8.0 系统及以上的渠道 ID（仅对 Android 生效）。
     V2TIMString AndroidXiaoMiChannelID;
-    /// 离线推送设置 VIVO 手机 （仅对 Android 生效）。
+    /// 离线推送设置 VIVO 推送消息分类 (待废弃接口，VIVO 推送服务于 2023 年 4 月 3 日优化消息分类规则，推荐使用 AndroidVIVOCategory 设置消息类别)
     /// VIVO 手机离线推送消息分类，0：运营消息，1：系统消息。默认取值为 1 。
     int AndroidVIVOClassification;
-    /// 离线推送设置华为推送消息分类，详见：https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Guides/message-classification-0000001149358835#section1076611477914
+    /// 离线推送设置 VIVO 推送消息类别，详见：https://dev.vivo.com.cn/documentCenter/doc/359。(VIVO 推送服务于 2023 年 4 月 3 日优化消息分类规则，推荐使用 AndroidVIVOCategory 设置消息类别，不需要再关注和设置 AndroidVIVOClassification)
+    V2TIMString AndroidVIVOCategory;
+    /// 离线推送设置华为推送消息分类，详见：https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Guides/message-classification-0000001149358835
     V2TIMString AndroidHuaWeiCategory;
 
     V2TIMOfflinePushInfo();
@@ -257,7 +259,7 @@ class V2TIMValueCallback;
 struct TIM_API V2TIMMessage : V2TIMBaseObject {
     /// 消息 ID（消息创建的时候为空，消息发送的时候会生成）
     V2TIMString msgID;
-    /// 消息时间
+    /// 消息的 UTC 时间戳
     int64_t timestamp;
     /// 消息发送者
     V2TIMString sender;
@@ -287,7 +289,7 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     /// 消息发送状态
     V2TIMMessageStatus status;
     /// 是否支持消息扩展（6.7 及其以上版本支持，需要您购买旗舰版套餐）
-    /// 社群（Community）和直播群（AVChatRoom）消息不支持该功能。
+    /// 直播群（AVChatRoom）消息不支持该功能。
     /// 您需要先到 IM 控制台配置该功能。
     bool supportMessageExtension;
     /// 消息发送者是否是自己
@@ -368,12 +370,31 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     V2TIMBuffer cloudCustomData;
     /// 消息是否不计入会话未读数：默认为 false，表明需要计入会话未读数，设置为
     /// true，表明不需要计入会话未读数
+    /// <p> 5.3.425 及以上版本支持, 会议群（Meeting）默认不支持该字段
     bool isExcludedFromUnreadCount;
     /// 消息是否不计入会话 lastMsg：默认为 false，表明需要计入会话 lastMsg，设置为
     /// true，表明不需要计入会话 lastMsg
     bool isExcludedFromLastMessage;
+    /// 消息是否不过内容审核（包含【本地审核】和【云端审核】）
+    /// 只有在开通【本地审核】或【云端审核】功能后，isExcludedFromContentModeration 设置才有效，设置为 true，表明不过内容审核，设置为 false：表明过内容审核。
+    ///【本地审核】开通流程请参考 [本地审核功能](https://cloud.tencent.com/document/product/269/83795#.E6.9C.AC.E5.9C.B0.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)
+    ///【云端审核】开通流程请参考 [云端审核功能](https://cloud.tencent.com/document/product/269/83795#.E4.BA.91.E7.AB.AF.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)
+    bool isExcludedFromContentModeration;
+    /// 是否被标记为有安全风险的消息（从 7.4 版本开始支持）
+    /// 暂时只支持语音和视频消息。
+    /// 只有在开通【云端审核】功能后才生效，【云端审核】开通流程请参考 [云端审核功能](https://cloud.tencent.com/document/product/269/83795#.E4.BA.91.E7.AB.AF.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)。
+    /// 如果您发送的语音或视频消息内容不合规，云端异步审核后会触发 SDK 的 onRecvMessageModified 回调，回调里的 message 对象该字段值为 true。
+    bool hasRiskContent;
+
     /// 消息的离线推送信息
     V2TIMOfflinePushInfo offlinePushInfo;
+    /// 消息撤回者（从 7.4 版本开始支持）
+    /// 仅当消息为撤回状态时有效
+    V2TIMUserFullInfo revokerInfo;
+    /// 消息撤回原因 （从 7.4 版本开始支持）
+    /// 仅当消息为撤回状态时有效
+    V2TIMString revokeReason;
+
     /// 仅供 SDK 内部使用，如果您想判断消息自己是否已读，请使用 IsRead()
     bool isRead;
     /// 仅供 SDK 内部使用，如果您想判断消息对方是否已读，请使用 IsPeerRead()
@@ -524,6 +545,16 @@ struct TIM_API V2TIMSoundElem : public V2TIMElem {
      *  @param path 语音保存路径，需要外部指定
      */
     void DownloadSound(const V2TIMString &path, V2TIMDownloadCallback *callback);
+    
+    /**
+     *  将语音转成文字（7.4 及以上版本支持）
+     *
+     *  @param language 识别的语言。
+     *
+     *  @note
+     *  - 语音转文字是增值付费功能，处于内测阶段，您可通过 [即时通信 IM 语音转文字插件交流群](https://zhiliao.qq.com/s/c5GY7HIM62CK/cPSYGIIM62CH) 联系我们为您开通体验完整功能。
+     */
+    void ConvertVoiceToText(const V2TIMString &language, V2TIMValueCallback<V2TIMString> *callback);
 
     V2TIMSoundElem();
     V2TIMSoundElem(const V2TIMSoundElem &);
@@ -787,6 +818,21 @@ struct TIM_API V2TIMReceiveMessageOptInfo {
     V2TIMString userID;
     /// 消息接收选项
     V2TIMReceiveMessageOpt receiveOpt;
+    /// 获取消息免打扰开始时间：小时
+    int32_t startHour;
+    /// 获取消息免打扰开始时间：分钟
+    int32_t startMinute;
+    /// 获取消息免打扰开始时间：秒
+    int32_t startSecond;
+    /**
+     *  获取消息免打扰开始的 UTC 时间戳
+     *  @note
+     *  - 如果返回的 startTimeStamp 大于 0，您可以直接使用
+     *  - 如果返回的 startTimeStamp 等于 0，您需要调用 getStartHour()、getStartMinute()、getStartSecond() 来获取免打扰的相对开始时间
+     */
+    uint32_t startTimeStamp;
+    /// 获取免打扰持续时长，单位：秒
+    uint32_t duration;
 
     V2TIMReceiveMessageOptInfo();
     V2TIMReceiveMessageOptInfo(const V2TIMReceiveMessageOptInfo &);
@@ -828,7 +874,7 @@ struct TIM_API V2TIMMessageSearchParam {
     /**
      * 搜索“全部会话”还是搜索“指定的会话”：
      * <p> 如果设置 conversationID == nil，代表搜索全部会话。
-     * <p> 如果设置 conversationID != nil，代表搜索指定会话。
+     * <p> 如果设置 conversationID != nil，代表搜索指定会话。会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为: "group_groupID"
      */
     V2TIMString conversationID;
 
@@ -846,12 +892,28 @@ struct TIM_API V2TIMMessageSearchParam {
      * - 计算页数：可以获知总页数：totalPage = (totalCount % pageSize == 0) ? (totalCount /
      * pageSize) : (totalCount / pageSize + 1) 。
      * - 再次调用：可以通过指定参数 pageIndex （pageIndex < totalPage）返回后续页号的结果。
+     *
+     * @note 仅对接口 searchLocalMessages 生效
      */
     uint32_t pageIndex;
 
-    /// 每页结果数量：用于分页展示查找结果，如不希望分页可将其设置成
-    /// 0，但如果结果太多，可能会带来性能问题。
+    /**
+     * 每页结果数量：用于分页展示查找结果，如不希望分页可将其设置成 0，但如果结果太多，可能会带来性能问题。
+     * @note 仅对接口 searchLocalMessages 生效
+     */
     uint32_t pageSize;
+
+    /**
+     * 每次云端搜索返回结果的条数。
+     * @note 仅对接口 searchCloudMessages 生效
+     */
+    uint32_t searchCount;
+
+    /**
+     * 每次云端搜索的起始位置。第一次填空字符串，续拉时填写 V2TIMMessageSearchResult 中的返回值。
+     * @note 仅对接口 searchCloudMessages 生效
+     */
+    V2TIMString searchCursor;
 
     V2TIMMessageSearchParam();
     V2TIMMessageSearchParam(const V2TIMMessageSearchParam &);
@@ -897,6 +959,9 @@ struct TIM_API V2TIMMessageSearchResult {
      * 如果您本次搜索【全部会话】，那么对满足搜索条件的消息根据会话 ID 分组，分页返回分组结果；
      */
     V2TIMMessageSearchResultItemVector messageSearchResultItems;
+
+    /// 下一次云端搜索的起始位置。
+    V2TIMString searchCursor;
 
     V2TIMMessageSearchResult();
     V2TIMMessageSearchResult(const V2TIMMessageSearchResult &);
@@ -945,12 +1010,10 @@ struct TIM_API V2TIMMessageListGetOption {
      * 拉取消息的起始消息
      *
      * @note 请注意，
-     * <p>拉取 C2C 消息，只能使用 lastMsg 作为消息的拉取起点；如果没有指定
-     * lastMsg，默认使用会话的最新消息作为拉取起点。 <p>拉取 Group 消息时，除了可以使用 lastMsg
-     * 作为消息的拉取起点外，也可以使用 lastMsgSeq 来指定消息的拉取起点，二者的区别在于：
+     * <p>拉取 C2C 消息，只能使用 lastMsg 作为消息的拉取起点；如果没有指定 lastMsg，默认使用会话的最新消息作为拉取起点。
+     * <p>拉取 Group 消息时，除了可以使用 lastMsg 作为消息的拉取起点外，也可以使用 lastMsgSeq 来指定消息的拉取起点，二者的区别在于：
      * - 使用 lastMsg 作为消息的拉取起点时，返回的消息列表里不包含当前设置的 lastMsg；
-     * - 使用 lastMsgSeq 作为消息拉取起点时，返回的消息列表里包含当前设置的 lastMsgSeq
-     * 所表示的消息。
+     * - 使用 lastMsgSeq 作为消息拉取起点时，返回的消息列表里包含当前设置的 lastMsgSeq 所表示的消息。
      *
      * @note 在拉取 Group 消息时，
      * <p>如果同时指定了 lastMsg 和 lastMsgSeq，SDK 优先使用 lastMsg 作为消息的拉取起点。
@@ -968,18 +1031,27 @@ struct TIM_API V2TIMMessageListGetOption {
      *
      * @note
      * <p> 时间范围的方向由参数 getType 决定
-     * <p> 如果 getType 取 V2TIM_GET_CLOUD_OLDER_MSG/V2TIM_GET_LOCAL_OLDER_MSG，表示从 getTimeBegin
-     * 开始，过去的一段时间，时间长度由 getTimePeriod 决定 <p> 如果 getType 取
-     * V2TIM_GET_CLOUD_NEWER_MSG/V2TIM_GET_LOCAL_NEWER_MSG，表示从 getTimeBegin
-     * 开始，未来的一段时间，时间长度由 getTimePeriod 决定 <p>
-     * 取值范围区间为闭区间，包含起止时间，二者关系如下：
-     * - 如果 getType 指定了朝消息时间更老的方向拉取，则时间范围表示为 [getTimeBegin-getTimePeriod,
-     * getTimeBegin]
-     * - 如果 getType 指定了朝消息时间更新的方向拉取，则时间范围表示为 [getTimeBegin,
-     * getTimeBegin+getTimePeriod]
+     * <p> 如果 getType 取 V2TIM_GET_CLOUD_OLDER_MSG/V2TIM_GET_LOCAL_OLDER_MSG，表示从 getTimeBegin 开始，过去的一段时间，时间长度由 getTimePeriod 决定
+     * <p> 如果 getType 取 V2TIM_GET_CLOUD_NEWER_MSG/V2TIM_GET_LOCAL_NEWER_MSG，表示从 getTimeBegin 开始，未来的一段时间，时间长度由 getTimePeriod 决定
+     * <p> 取值范围区间为闭区间，包含起止时间，二者关系如下：
+     * - 如果 getType 指定了朝消息时间更老的方向拉取，则时间范围表示为 [getTimeBegin-getTimePeriod, getTimeBegin]
+     * - 如果 getType 指定了朝消息时间更新的方向拉取，则时间范围表示为 [getTimeBegin, getTimeBegin+getTimePeriod]
      */
     int64_t getTimeBegin;
     int64_t getTimePeriod;
+
+    /**
+     * 拉取群组历史消息时，支持按照消息序列号 seq 拉取（从 7.1 版本开始有效）
+     *
+     * @note
+     * - 仅拉取群组历史消息时有效；
+     * - 消息序列号 seq 可以通过 V2TIMMessage 对象的 seq 字段获取；
+     * - 当 getType 设置为从云端拉取时，会将本地存储消息列表与云端存储消息列表合并后返回；如果无网络，则直接返回本地消息列表；
+     * - 当 getType 设置为从本地拉取时，直接返回本地的消息列表；
+     * - 当 getType 设置为拉取更旧的消息时，消息列表按照时间逆序，也即消息按照时间戳从大往小的顺序排序；
+     * - 当 getType 设置为拉取更新的消息时，消息列表按照时间顺序，也即消息按照时间戳从小往大的顺序排序。
+     */
+    V2TIMUInt64Vector messageSeqList;
 
     V2TIMMessageListGetOption();
     V2TIMMessageListGetOption(const V2TIMMessageListGetOption &);
@@ -1030,5 +1102,96 @@ struct TIM_API V2TIMMessageExtensionResult {
 
 DEFINE_VECTOR(V2TIMMessageExtensionResult)
 typedef TXV2TIMMessageExtensionResultVector V2TIMMessageExtensionResultVector;
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息回应
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageReaction {
+    /// 消息回应 ID
+    V2TIMString reactionID;
+    /// 使用同一个 reactionID 回应消息的总的用户个数
+    uint32_t totalUserCount;
+    /// 使用同一个 reactionID 回应消息的部分用户列表（用户列表数量取决于调用 getMessageReactions 接口时设置的 maxUserCountPerReaction 值）
+    V2TIMUserInfoVector partialUserList;
+    /// 自己是否使用了该 reaction
+    bool reactedByMyself;
+
+    V2TIMMessageReaction();
+    V2TIMMessageReaction(const V2TIMMessageReaction &);
+    V2TIMMessageReaction &operator=(const V2TIMMessageReaction &);
+    ~V2TIMMessageReaction();
+};
+
+DEFINE_VECTOR(V2TIMMessageReaction)
+typedef TXV2TIMMessageReactionVector V2TIMMessageReactionVector;
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息回应列表拉取结果
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageReactionResult {
+    /// 返回码
+    int32_t resultCode;
+    /// 返回信息
+    V2TIMString resultInfo;
+    /// 消息 ID
+    V2TIMString msgID;
+    /// 消息回应列表
+    V2TIMMessageReactionVector reactionList;
+
+    V2TIMMessageReactionResult();
+    V2TIMMessageReactionResult(const V2TIMMessageReactionResult &);
+    V2TIMMessageReactionResult &operator=(const V2TIMMessageReactionResult &);
+    ~V2TIMMessageReactionResult();
+};
+
+DEFINE_VECTOR(V2TIMMessageReactionResult)
+typedef TXV2TIMMessageReactionResultVector V2TIMMessageReactionResultVector;
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息回应用户列表拉取结果
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageReactionUserResult {
+    /// 用户列表
+    V2TIMUserInfoVector userInfoList;
+    /// 下次分页拉取 seq
+    uint32_t nextSeq;
+    /// 是否全部拉取完毕
+    bool isFinished;
+
+    V2TIMMessageReactionUserResult();
+    V2TIMMessageReactionUserResult(const V2TIMMessageReactionUserResult &);
+    V2TIMMessageReactionUserResult &operator=(const V2TIMMessageReactionUserResult &);
+    ~V2TIMMessageReactionUserResult();
+};
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                         消息回应变更列表
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+struct TIM_API V2TIMMessageReactionChangeInfo {
+    /// 消息 ID
+    V2TIMString msgID;
+    /// 消息回应列表
+    V2TIMMessageReactionVector reactionList;
+
+    V2TIMMessageReactionChangeInfo();
+    V2TIMMessageReactionChangeInfo(const V2TIMMessageReactionChangeInfo &);
+    V2TIMMessageReactionChangeInfo &operator=(const V2TIMMessageReactionChangeInfo &);
+    ~V2TIMMessageReactionChangeInfo();
+};
+
+DEFINE_VECTOR(V2TIMMessageReactionChangeInfo)
+typedef TXV2TIMMessageReactionChangeInfoVector V2TIMMessageReactionChangeInfoVector;
 
 #endif /* __V2TIM_MESSAGE_H__ */

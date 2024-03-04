@@ -318,6 +318,35 @@ public class V2TIMManagerImpl extends V2TIMManager {
     }
 
     @Override
+    public void subscribeUserInfo(List<String> userIDList, V2TIMCallback _callback_) {
+        nativeSubscribeUserInfo(userIDList, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    @Override
+    public void unsubscribeUserInfo(List<String> userIDList, V2TIMCallback _callback_) {
+        nativeUnsubscribeUserInfo(userIDList, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+    @Override
     public void getUserStatus(List<String> userIDList, V2TIMValueCallback<List<V2TIMUserStatus>> _callback_) {
         nativeGetUserStatus(userIDList, new IMCallback<List<V2TIMUserStatus>>(_callback_) {
             @Override

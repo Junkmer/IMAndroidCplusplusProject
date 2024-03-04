@@ -10,10 +10,16 @@
     <string name="hold_say">Hold to Talk</string>
 
     <string name="copy_action">Copy</string>
+    <string name="translate_action">Translate</string>
     <string name="delete_action">Delete</string>
     <string name="revoke_action">Recall</string>
     <string name="resend_action">Resend</string>
+    <string name="hide_action">Hide</string>
+    <string name="chat_speaker_mode_on_action">Turn on Speaker</string>
+    <string name="chat_speaker_mode_off_action">Play on Ear</string>
 
+    <string name="chat_speaker_mode_on_tip">Speaker Mode On</string>
+    <string name="chat_speaker_mode_off_tip">Speaker Mode off</string>
     <string name="copy_success_tip">Copy Success</string>
 
     <string name="chat_message_detail">Message details</string>
@@ -27,6 +33,7 @@
     <string name="forward_button">Forward</string>
     <string name="reply_button">Reply</string>
     <string name="quote_button">Quote</string>
+    <string name="info_button">Info</string>
     <string name="delete_button">Delete</string>
     <string name="chat_delete_msg_tip">Delete now</string>
 
@@ -37,6 +44,7 @@
     <string name="forward_chat_record">Chat Record</string>
 
     <string name="forward_failed_tip">Unable to forward failed messages.</string>
+    <string name="forward_group_note_or_poll_failed_tip">Unable to forward group-note or poll messages.</string>
     <string name="forward_oneByOne_limit_number_tip">Unable to forward the messages one by one because there are too many messages.</string>
 
     <string name="and_and"> </string>
@@ -81,40 +89,44 @@
     <string name="revoke_tips_other">A message is recalled.</string>
 
     <string name="create_group">Create Group</string>
+    <string name="create_community">Create Community</string>
     <string name="etc">, etc.</string>
-    <string name="join_group">Join Group</string>
-    <string name="invite_joined_group">is invited to the group.</string>
-    <string name="quit_group">Leave Group</string>
-    <string name="kick_group_tip">is removed from the group.</string>
-    <string name="be_group_manager">is set as admin.</string>
-    <string name="cancle_group_manager">\'s admin status is terminated.</string>
-    <string name="modify_group_name_is">Change the group name to</string>
-    <string name="modify_notice">Change the group notice to</string>
-    <string name="modify_introduction">Change the group introduction to</string>
-    <string name="modify_shut_up_all">Mute All</string>
-    <string name="modify_cancel_shut_up_all">Unmute All</string>
-    <string name="move_owner">Transfer group ownership to</string>
-    <string name="modify_group_avatar">changed the group profile photo.</string>
-    <string name="banned">is blocked from posting</string>
-    <string name="cancle_banned">is unblocked and can post now</string>
-    <string name="modify_group_add_opt">changed group add option to </string>
+    <string name="join_group">%s joined the group</string>
+    <string name="invite_joined_group">%s invited %s to join the group</string>
+    <string name="quit_group">%s left the group</string>
+    <string name="kick_group_tip">%s has removed %s from the group</string>
+    <string name="be_group_manager">%s was promoted to group manager</string>
+    <string name="cancle_group_manager">%s was demoted from group manager</string>
+    <string name="modify_group_name_is">%s changed the group name to %s</string>
+    <string name="modify_notice">%s changed the group notice to %s</string>
+    <string name="modify_introduction">%s changed the group introduction to %s</string>
+    <string name="modify_shut_up_all">%s muted all members</string>
+    <string name="modify_cancel_shut_up_all">%s unmuted all members</string>
+    <string name="move_owner">%s transferred group ownership to %s</string>
+    <string name="modify_group_avatar">%s changed the group avatar</string>
+    <string name="banned">%s was muted for %s</string>
+    <string name="cancle_banned">%s was unmuted</string>
+    <string name="modify_group_add_opt">%s changed the group join setting to %s</string>
+    <string name="modify_group_invite_opt">%s changed the group invitation setting to %s</string>
     <string name="group_add_opt_auto_approval">Auto Approval</string>
     <string name="group_add_opt_admin_approve">Admin Approval</string>
     <string name="group_add_opt_join_disable">Prohibited from Joining</string>
+    <string name="group_add_opt_invite_disable">Prohibited from Inviting</string>
 
     <string name="typing">Typing...</string>
-    <string name="titlebar_mutiselect">MultiSelect</string>
+    <string name="titlebar_mutiselect">Select</string>
     <string name="audio_permission_error">Need audio permission</string>
     <string name="record_occupied">record occupied</string>
     <string name="record_null">record is null</string>
     <string name="record_limit_tips">Maximum voice length reached</string>
+    <string name="record_rejected_for_in_call">An audio and video call is in progress, please try again later</string>
+    <string name="record_rejected_for_in_recording">The current recording is not over</string>
     <string name="play_error_tip">The voice file is damaged or does not exist</string>
     <string name="input_tip">No nickname. Enter again.</string>
+    <string name="chat_camera_occupied_tip">Other functions are using the camera.</string>
 
-    <string name="has_read">Read</string>
-    <string name="unread">Unread</string>
-    <string name="has_all_read">All read</string>
-    <string name="someone_has_read">%d read</string>
+
+    <string name="delivered">Delivered to</string>
     <string name="someone_unread">%d unread</string>
     <string name="someone_have_read">%d have read</string>
 
@@ -147,6 +159,7 @@
     <string name="completed">completed</string>
     <string name="view_original_image">View Full Image</string>
 
+    <string name="at_all">All</string>
     <string name="ui_at_all">[@All]</string>
     <string name="ui_at_me">[Someone @ me]</string>
     <string name="ui_at_all_me">[@All][Someone @ me]</string>
@@ -160,7 +173,6 @@
     <string name="live_group_live_end">Live Over</string>
     <string name="live_group_user_live">%s Live</string>
     <string name="live_group_live">Live Group</string>
-
 
     <string name="start_group_call">Start Group Call</string>
     <string name="start_call">Start Call</string>
@@ -183,7 +195,7 @@
     <string name="test_custom_message">View Details>></string>
 
     <string name="test_custom_action">Custom</string>
-    <string name="welcome_tip">Welcome to Tencent Cloud Instant Messaging!</string>
+    <string name="welcome_tip">Welcome to Tencent Cloud Chat!</string>
 
     <string name="resend_tips">Are you sure you want to resend?</string>
     <string name="delete_tips">Are you sure you want to delete this message?</string>
@@ -212,12 +224,44 @@
     <string name="chat_no_more_reminders">No more reminders</string>
     <string name="chat_im_flagship">Ultimate Edition</string>
     <string name="chat_buying_guidelines">price description</string>
-    <string name="chat_im_flagship_edition_update_tip">%s function is the IM Ultimate Edition function, which can be used after purchasing the Ultimate Edition package. Please refer to the price description for details.</string>
+    <string name="chat_im_flagship_edition_update_tip">%s feature is only available to the Ultimate edition, which can be used after purchasing the Ultimate Edition. See the price guidelines for details.</string>
 
-    <string name="chat_reply_num">%d replied</string>
     <string name="chat_reply_detail">Reply detail</string>
 
     <string name="chat_not_read">Unread</string>
 
     <string name="custom_evaluation_message">Evaluation of this service</string>
+    
+    <string name="chat_input_edit_hint_text">Send a message</string>
+    <string name="chat_header_not_desc">No description yet.</string>
+    <string name="chat_tips_not_login">Not logged in.</string>
+
+    <string name="chat_user_status_online">online</string>
+    <string name="chat_user_status_offline">offline</string>
+    <string name="chat_user_status_unknown">unknown</string>
+
+    <string name="chat_start_audio_call">Voice Call</string>
+    <string name="chat_start_video_call">Video Call</string>
+
+    <string name="chat_call_reject_caller">Call declined by user</string>
+    <string name="chat_call_reject_callee">Declined</string>
+    <string name="chat_call_cancel_caller">Canceled</string>
+    <string name="chat_call_cancel_callee">Call canceled by caller</string>
+    <string name="chat_call_timeout_caller">Call wasn\'t answered</string>
+    <string name="chat_call_timeout_callee">Call canceled by caller</string>
+    <string name="chat_call_line_busy_caller">Line busy</string>
+    <string name="chat_call_line_busy_callee">Call canceled by caller</string>
+    <string name="chat_group_call_send">initiated a group call</string>
+    <string name="chat_group_call_end">End group call</string>
+    <string name="chat_group_call_no_answer">no answer</string>
+    <string name="chat_group_call_reject_format">Call declined by %s</string>
+    <string name="chat_group_call_accept_format">Answered by %s</string>
+    <string name="chat_group_call_switch_to_audio_format">Switch to audio call by %s</string>
+    <string name="chat_group_call_confirm_switch_to_audio_format">Confirm to audio call by %s</string>
+
+    <string name="chat_quick_tap_message_default_action_name">tickled</string>
+    <string name="chat_quick_tap_message_action_from_me">I %s "%s"</string>
+    <string name="chat_quick_tap_message_action_to_me">"%s" %s me</string>
+    <string name="chat_quick_tap_message_action">"%s" %s "%s"</string>
+
 </resources>

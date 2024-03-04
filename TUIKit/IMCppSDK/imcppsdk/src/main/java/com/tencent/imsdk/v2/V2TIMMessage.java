@@ -45,7 +45,6 @@ public class V2TIMMessage implements Serializable {
     private String groupID;
     private String userID;
     private int status;
-    private int elemType;
 
     private List<V2TIMElem> elemList = new ArrayList<>();
 
@@ -68,7 +67,11 @@ public class V2TIMMessage implements Serializable {
 
     private boolean isExcludedFromUnreadCount;
     private boolean isExcludedFromLastMessage;
-
+    private boolean isExcludedFromContentModeration;
+    private boolean isSupportMessageExtension;
+    private boolean riskContent;
+    private V2TIMUserFullInfo revokerInfo;
+    private String 	revokeReason;
     public String getMsgID() {
         return msgID;
     }
@@ -105,12 +108,45 @@ public class V2TIMMessage implements Serializable {
         return userID;
     }
 
+    protected void setStatus(int status) {
+        this.status = status;
+    }
+
     public int getStatus() {
         return status;
     }
 
     public int getElemType() {
-        return elemType;
+        int elemType = 0;
+        if (this.elemList == null) {
+            return elemType;
+        } else if (this.elemList.size() == 0) {
+            return elemType;
+        } else {
+            V2TIMElem v2TIMElem = elemList.get(0);
+            if (v2TIMElem instanceof V2TIMTextElem) {
+                elemType = V2TIM_ELEM_TYPE_TEXT;
+            } else if (v2TIMElem instanceof V2TIMImageElem) {
+                elemType = V2TIM_ELEM_TYPE_IMAGE;
+            } else if (v2TIMElem instanceof V2TIMVideoElem) {
+                elemType = V2TIM_ELEM_TYPE_VIDEO;
+            } else if (v2TIMElem instanceof V2TIMSoundElem) {
+                elemType = V2TIM_ELEM_TYPE_SOUND;
+            } else if (v2TIMElem instanceof V2TIMCustomElem) {
+                elemType = V2TIM_ELEM_TYPE_CUSTOM;
+            } else if (v2TIMElem instanceof V2TIMGroupTipsElem) {
+                elemType = V2TIM_ELEM_TYPE_GROUP_TIPS;
+            }  else if (v2TIMElem instanceof V2TIMFaceElem) {
+                elemType = V2TIM_ELEM_TYPE_FACE;
+            } else if (v2TIMElem instanceof V2TIMFileElem) {
+                elemType = V2TIM_ELEM_TYPE_FILE;
+            } else if (v2TIMElem instanceof V2TIMLocationElem) {
+                elemType = V2TIM_ELEM_TYPE_LOCATION;
+            }else if (v2TIMElem instanceof V2TIMMergerElem) {
+                elemType = V2TIM_ELEM_TYPE_MERGER;
+            }
+            return elemType;
+        }
     }
 
     public V2TIMTextElem getTextElem() {
@@ -267,8 +303,16 @@ public class V2TIMMessage implements Serializable {
         this.cloudCustomData = cloudCustomData;
     }
 
+    protected void setSelf(boolean self) {
+        isSelf = self;
+    }
+
     public boolean isSelf() {
         return isSelf;
+    }
+
+    protected void setRead(boolean read) {
+        isRead = read;
     }
 
     public boolean isRead() {
@@ -327,11 +371,46 @@ public class V2TIMMessage implements Serializable {
         this.isExcludedFromLastMessage = excludedFromLastMessage;
     }
 
+    public boolean isExcludedFromContentModeration() {
+        return isExcludedFromContentModeration;
+    }
+
+    public void setExcludedFromContentModeration(boolean excludedFromContentModeration) {
+        isExcludedFromContentModeration = excludedFromContentModeration;
+    }
+
+    public boolean isSupportMessageExtension() {
+        return isSupportMessageExtension;
+    }
+
+    public void setSupportMessageExtension(boolean supportMessageExtension) {
+        isSupportMessageExtension = supportMessageExtension;
+    }
+
+    public boolean hasRiskContent() {
+        return riskContent;
+    }
+
+    public V2TIMUserFullInfo getRevokerInfo() {
+        return revokerInfo;
+    }
+
+    public String getRevokeReason() {
+        return revokeReason;
+    }
+    protected void setGroupAtUserList(List<String> groupAtUserList) {
+        this.groupAtUserList = groupAtUserList;
+    }
+
     public void addElem(V2TIMElem elem){
         if (null == elem){
             return;
         }
         elemList.add(elem);
+    }
+
+    protected List<V2TIMElem> getElemList() {
+        return elemList;
     }
 
     @Override

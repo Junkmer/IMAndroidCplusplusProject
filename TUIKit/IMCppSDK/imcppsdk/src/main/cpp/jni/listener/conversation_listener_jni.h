@@ -38,7 +38,11 @@ namespace v2im {
 
             void OnConversationChanged(const V2TIMConversationVector &conversationList) override;
 
+            void OnConversationDeleted(const V2TIMStringVector &conversationIDList) override;
+
             void OnTotalUnreadMessageCountChanged(uint64_t totalUnreadCount) override;
+
+            void OnUnreadMessageCountChangedByFilter(const V2TIMConversationListFilter &filter, uint64_t totalUnreadCount) override;
 
             void OnConversationGroupCreated(const V2TIMString &groupName, const V2TIMConversationVector &conversationList) override;
 
@@ -57,7 +61,9 @@ namespace v2im {
                 MethodIDOnSyncServerFailed,
                 MethodIDOnNewConversation,
                 MethodIDOnConversationChanged,
+                MethodIDOnConversationDeleted,
                 MethodIDOnTotalUnreadMessageCountChanged,
+                MethodIDOnUnreadMessageCountChangedByFilter,
                 MethodIDOnConversationGroupCreated,
                 MethodIDOnConversationGroupDeleted,
                 MethodIDOnConversationGroupNameChanged,

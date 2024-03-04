@@ -1,5 +1,7 @@
 package com.tencent.qcloud.tuicore;
 
+import static com.tencent.imsdk.v2.V2TIMManager.V2TIM_STATUS_LOGINED;
+
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,9 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.tencent.imsdk.v2.V2TIMManager.V2TIM_STATUS_LOGINED;
-
-
 /**
  * Login logic for IM and TRTC
  */
@@ -42,11 +41,13 @@ public class TUILogin {
         return TUILoginHolder.loginInstance;
     }
 
-    private Context appContext;
+    private static Context appContext;
+
     private int sdkAppId = 0;
     private String userId;
     private String userSig;
     private boolean hasLoginSuccess = false;
+    private int currentBusinessScene = TUIBusinessScene.NONE;
 
     private final List<TUILoginListener> listenerList = new CopyOnWriteArrayList<>();
 
@@ -58,8 +59,7 @@ public class TUILogin {
             for (TUILoginListener listener : listenerList) {
                 listener.onConnecting();
             }
-            TUICore.notifyEvent(TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED,
-                    TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECTING, null);
+            TUICore.notifyEvent(TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED, TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECTING, null);
         }
 
         @Override
@@ -67,8 +67,8 @@ public class TUILogin {
             for (TUILoginListener listener : listenerList) {
                 listener.onConnectSuccess();
             }
-            TUICore.notifyEvent(TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED,
-                    TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECT_SUCCESS, null);
+            TUICore.notifyEvent(
+                TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED, TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECT_SUCCESS, null);
         }
 
         @Override
@@ -76,8 +76,8 @@ public class TUILogin {
             for (TUILoginListener listener : listenerList) {
                 listener.onConnectFailed(code, error);
             }
-            TUICore.notifyEvent(TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED,
-                    TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECT_FAILED, null);
+            TUICore.notifyEvent(
+                TUIConstants.NetworkConnection.EVENT_CONNECTION_STATE_CHANGED, TUIConstants.NetworkConnection.EVENT_SUB_KEY_CONNECT_FAILED, null);
         }
 
         @Override
@@ -85,8 +85,7 @@ public class TUILogin {
             for (TUILoginListener listener : listenerList) {
                 listener.onKickedOffline();
             }
-            TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
-                    TUIConstants.TUILogin.EVENT_SUB_KEY_USER_KICKED_OFFLINE, null);
+            TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_KICKED_OFFLINE, null);
         }
 
         @Override
@@ -94,8 +93,7 @@ public class TUILogin {
             for (TUILoginListener listener : listenerList) {
                 listener.onUserSigExpired();
             }
-            TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
-                    TUIConstants.TUILogin.EVENT_SUB_KEY_USER_SIG_EXPIRED, null);
+            TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_SIG_EXPIRED, null);
         }
 
         @Override
@@ -114,7 +112,7 @@ public class TUILogin {
      * @param userSig   Obtained from the business server
      * @param callback  login callback
      */
-    public static void login(@NonNull Context context, int sdkAppId, String  userId, String userSig, TUICallback callback) {
+    public static void login(@NonNull Context context, int sdkAppId, String userId, String userSig, TUICallback callback) {
         getInstance().internalLogin(context, sdkAppId, userId, userSig, null, callback);
     }
 
@@ -128,201 +126,10 @@ public class TUILogin {
      * @param config    log related configs
      * @param callback  login callback
      */
-    public static void login(@NonNull Context context, int sdkAppId, String  userId, String userSig, TUILoginConfig config, TUICallback callback) {
+    public static void login(@NonNull Context context, int sdkAppId, String userId, String userSig, TUILoginConfig config, TUICallback callback) {
         getInstance().internalLogin(context, sdkAppId, userId, userSig, config, callback);
     }
 
-    /**
-     * IMSDK logout
-     * @param callback  logout callback
-     */
-    public static void logout(TUICallback callback) {
-        getInstance().internalLogout(callback);
-    }
-
-    public static void addLoginListener(TUILoginListener listener) {
-        getInstance().internalAddLoginListener(listener);
-    }
-
-    public static void removeLoginListener(TUILoginListener listener) {
-        getInstance().internalRemoveLoginListener(listener);
-    }
-
-    private void internalLogin(Context context, final int sdkAppId, final String  userId, final String userSig, TUILoginConfig config, TUICallback callback) {
-        if (this.sdkAppId != 0 && sdkAppId != this.sdkAppId) {
-            logout((TUICallback) null);
-        }
-        this.appContext = context;
-        this.sdkAppId = sdkAppId;
-        V2TIMManager.getInstance().addIMSDKListener(imSdkListener);
-        // Notify init event
-        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_INIT, null);
-        // User operation initialization, the privacy agreement has been read by default
-
-        V2TIMSDKConfig v2TIMSDKConfig = null;
-        if (config != null) {
-            v2TIMSDKConfig = new V2TIMSDKConfig();
-            v2TIMSDKConfig.setLogLevel(config.getLogLevel());
-            TUILogListener logListener = config.getLogListener();
-            if (logListener != null) {
-                v2TIMSDKConfig.setLogListener(new V2TIMLogListener() {
-                    @Override
-                    public void onLog(int logLevel, String logContent) {
-                        logListener.onLog(logLevel, logContent);
-                    }
-                });
-            }
-        }
-
-        boolean initSuccess = V2TIMManager.getInstance().initSDK(context, sdkAppId, v2TIMSDKConfig);
-        if (initSuccess) {
-            this.userId = userId;
-            this.userSig = userSig;
-            if (TextUtils.equals(userId, V2TIMManager.getInstance().getLoginUser()) && !TextUtils.isEmpty(userId)) {
-                TUICallback.onSuccess(callback);
-                getUserInfo(userId);
-                return;
-            }
-
-            V2TIMManager.getInstance().login(userId, userSig, new V2TIMCallback() {
-                @Override
-                public void onSuccess() {
-                    hasLoginSuccess = true;
-                    getUserInfo(userId);
-                    TUICallback.onSuccess(callback);
-                    TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGIN_SUCCESS, null);
-                }
-
-                @Override
-                public void onError(int code, String desc) {
-                    TUICallback.onError(callback, code, ErrorMessageConverter.convertIMError(code, desc));
-                }
-            });
-        } else {
-            TUICallback.onError(callback, -1, "init failed");
-        }
-    }
-
-    private void internalLogout(TUICallback callback) {
-        // Notify unit event
-        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_UNINIT, null);
-        V2TIMManager.getInstance().logout(new V2TIMCallback() {
-            @Override
-            public void onSuccess() {
-                sdkAppId = 0;
-                userId = null;
-                userSig = null;
-                V2TIMManager.getInstance().unInitSDK();
-                TUIConfig.clearSelfInfo();
-                TUICallback.onSuccess(callback);
-                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGOUT_SUCCESS, null);
-            }
-
-            @Override
-            public void onError(int code, String desc) {
-                TUICallback.onError(callback, code, desc);
-            }
-        });
-    }
-
-    private void internalAddLoginListener(TUILoginListener listener) {
-        Log.i(TAG, "addLoginListener listener : " + listener);
-        if (listener == null) {
-            return;
-        }
-        if (!listenerList.contains(listener)) {
-            listenerList.add(listener);
-        }
-    }
-
-    private void internalRemoveLoginListener(TUILoginListener listener) {
-        Log.i(TAG, "removeLoginListener listener : " + listener);
-        if (listener == null) {
-            return;
-        }
-        listenerList.remove(listener);
-    }
-
-    /**
-     * IMSDK init
-     *
-     * @param context      The context of the application, generally is ApplicationContext
-     * @param sdkAppId     Assigned when you register your app with Tencent Cloud
-     * @param config       The related configuration items of IMSDK, generally use the default, 
-     *                     and need special configuration, please refer to the API documentation
-     * @param listener     Listener of IMSDK init
-     * @return true：init success；false：init failed
-     */
-    @Deprecated
-    public static boolean init(@NonNull Context context, int sdkAppId, @Nullable V2TIMSDKConfig config, @Nullable V2TIMSDKListener listener) {
-        if (getInstance().sdkAppId != 0 && sdkAppId != getInstance().sdkAppId) {
-            logout((V2TIMCallback) null);
-            unInit();
-        }
-        getInstance().appContext = context;
-        getInstance().sdkAppId = sdkAppId;
-        V2TIMManager.getInstance().addIMSDKListener(new V2TIMSDKListener() {
-            @Override
-            public void onConnecting() {
-                if (listener != null) {
-                    listener.onConnecting();
-                }
-            }
-
-            @Override
-            public void onConnectSuccess() {
-                if (listener != null) {
-                    listener.onConnectSuccess();
-                }
-            }
-
-            @Override
-            public void onConnectFailed(int code, String error) {
-                if (listener != null) {
-                    listener.onConnectFailed(code, ErrorMessageConverter.convertIMError(code, error));
-                }
-            }
-
-            @Override
-            public void onKickedOffline() {
-                if (listener != null) {
-                    listener.onKickedOffline();
-                }
-                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
-                        TUIConstants.TUILogin.EVENT_SUB_KEY_USER_KICKED_OFFLINE, null);
-            }
-
-            @Override
-            public void onUserSigExpired() {
-                if (listener != null) {
-                    listener.onUserSigExpired();
-                }
-                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
-                        TUIConstants.TUILogin.EVENT_SUB_KEY_USER_SIG_EXPIRED, null);
-            }
-
-            @Override
-            public void onSelfInfoUpdated(V2TIMUserFullInfo info) {
-                if (listener != null) {
-                    listener.onSelfInfoUpdated(info);
-                }
-
-                TUIConfig.setSelfInfo(info);
-                notifyUserInfoChanged(info);
-            }
-        });
-        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_INIT, null);
-        return V2TIMManager.getInstance().initSDK(context, sdkAppId, config);
-    }
-
-    @Deprecated
-    public static void unInit() {
-        getInstance().sdkAppId = 0;
-        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_UNINIT, null);
-
-        V2TIMManager.getInstance().unInitSDK();
-        TUIConfig.clearSelfInfo();
-    }
 
     /**
      * User Login
@@ -363,6 +170,15 @@ public class TUILogin {
         });
     }
 
+
+    /**
+     * IMSDK logout
+     * @param callback  logout callback
+     */
+    public static void logout(TUICallback callback) {
+        getInstance().internalLogout(callback);
+    }
+
     /**
      * User Logout
      *
@@ -390,6 +206,198 @@ public class TUILogin {
                 }
             }
         });
+    }
+
+    public static void addLoginListener(TUILoginListener listener) {
+        getInstance().internalAddLoginListener(listener);
+    }
+
+    public static void removeLoginListener(TUILoginListener listener) {
+        getInstance().internalRemoveLoginListener(listener);
+    }
+
+    private void internalLogin(Context context, final int sdkAppId, final String userId, final String userSig, TUILoginConfig config, TUICallback callback) {
+        if (this.sdkAppId != 0 && sdkAppId != this.sdkAppId) {
+            logout((TUICallback) null);
+        }
+        this.appContext = context.getApplicationContext();
+        this.sdkAppId = sdkAppId;
+        currentBusinessScene = TUIBusinessScene.NONE;
+        V2TIMManager.getInstance().addIMSDKListener(imSdkListener);
+        // Notify init event
+        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_INIT, null);
+        // User operation initialization, the privacy agreement has been read by default
+
+        V2TIMSDKConfig v2TIMSDKConfig = null;
+        if (config != null) {
+            v2TIMSDKConfig = new V2TIMSDKConfig();
+            v2TIMSDKConfig.setLogLevel(config.getLogLevel());
+            TUILogListener logListener = config.getLogListener();
+            if (logListener != null) {
+                v2TIMSDKConfig.setLogListener(new V2TIMLogListener() {
+                    @Override
+                    public void onLog(int logLevel, String logContent) {
+                        logListener.onLog(logLevel, logContent);
+                    }
+                });
+            }
+        }
+
+        boolean initSuccess = V2TIMManager.getInstance().initSDK(context, sdkAppId, v2TIMSDKConfig);
+        if (initSuccess) {
+            this.userId = userId;
+            this.userSig = userSig;
+            if (TextUtils.equals(userId, V2TIMManager.getInstance().getLoginUser()) && !TextUtils.isEmpty(userId)) {
+                hasLoginSuccess = true;
+                getUserInfo(userId);
+                TUICallback.onSuccess(callback);
+                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGIN_SUCCESS, null);
+                return;
+            }
+
+            V2TIMManager.getInstance().login(userId, userSig, new V2TIMCallback() {
+                @Override
+                public void onSuccess() {
+                    hasLoginSuccess = true;
+                    getUserInfo(userId);
+                    TUICallback.onSuccess(callback);
+                    TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGIN_SUCCESS, null);
+                }
+
+                @Override
+                public void onError(int code, String desc) {
+                    TUICallback.onError(callback, code, ErrorMessageConverter.convertIMError(code, desc));
+                }
+            });
+        } else {
+            TUICallback.onError(callback, -1, "init failed");
+        }
+    }
+
+    private void internalLogout(TUICallback callback) {
+        // Notify unit event
+        currentBusinessScene = TUIBusinessScene.NONE;
+        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_UNINIT, null);
+        V2TIMManager.getInstance().logout(new V2TIMCallback() {
+            @Override
+            public void onSuccess() {
+                sdkAppId = 0;
+                userId = null;
+                userSig = null;
+                V2TIMManager.getInstance().unInitSDK();
+                TUIConfig.clearSelfInfo();
+                TUICallback.onSuccess(callback);
+                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGOUT_SUCCESS, null);
+            }
+
+            @Override
+            public void onError(int code, String desc) {
+                TUICallback.onError(callback, code, desc);
+            }
+        });
+    }
+
+    private void internalAddLoginListener(TUILoginListener listener) {
+        Log.i(TAG, "addLoginListener listener : " + listener);
+        if (listener == null) {
+            return;
+        }
+        if (!listenerList.contains(listener)) {
+            listenerList.add(listener);
+        }
+    }
+
+    private void internalRemoveLoginListener(TUILoginListener listener) {
+        Log.i(TAG, "removeLoginListener listener : " + listener);
+        if (listener == null) {
+            return;
+        }
+        listenerList.remove(listener);
+    }
+
+    public static void init(Context context) {
+        appContext = context.getApplicationContext();
+    }
+
+    /**
+     * IMSDK init
+     *
+     * @param context      The context of the application, generally is ApplicationContext
+     * @param sdkAppId     Assigned when you register your app with Tencent Cloud
+     * @param config       The related configuration items of IMSDK, generally use the default,
+     *                     and need special configuration, please refer to the API documentation
+     * @param listener     Listener of IMSDK init
+     * @return true：init success；false：init failed
+     */
+    @Deprecated
+    public static boolean init(@NonNull Context context, int sdkAppId, @Nullable V2TIMSDKConfig config, @Nullable V2TIMSDKListener listener) {
+        if (getInstance().sdkAppId != 0 && sdkAppId != getInstance().sdkAppId) {
+            logout((V2TIMCallback) null);
+            unInit();
+        }
+        getInstance().appContext = context.getApplicationContext();
+        getInstance().sdkAppId = sdkAppId;
+        V2TIMManager.getInstance().addIMSDKListener(new V2TIMSDKListener() {
+            @Override
+            public void onConnecting() {
+                if (listener != null) {
+                    listener.onConnecting();
+                }
+            }
+
+            @Override
+            public void onConnectSuccess() {
+                if (listener != null) {
+                    listener.onConnectSuccess();
+                }
+            }
+
+            @Override
+            public void onConnectFailed(int code, String error) {
+                if (listener != null) {
+                    listener.onConnectFailed(code, ErrorMessageConverter.convertIMError(code, error));
+                }
+            }
+
+            @Override
+            public void onKickedOffline() {
+                if (listener != null) {
+                    listener.onKickedOffline();
+                }
+                setCurrentBusinessScene(TUIBusinessScene.NONE);
+                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_KICKED_OFFLINE, null);
+            }
+
+            @Override
+            public void onUserSigExpired() {
+                if (listener != null) {
+                    listener.onUserSigExpired();
+                }
+                setCurrentBusinessScene(TUIBusinessScene.NONE);
+                TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_SIG_EXPIRED, null);
+            }
+
+            @Override
+            public void onSelfInfoUpdated(V2TIMUserFullInfo info) {
+                if (listener != null) {
+                    listener.onSelfInfoUpdated(info);
+                }
+
+                TUIConfig.setSelfInfo(info);
+                notifyUserInfoChanged(info);
+            }
+        });
+        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_INIT, null);
+        return V2TIMManager.getInstance().initSDK(context, sdkAppId, config);
+    }
+
+    @Deprecated
+    public static void unInit() {
+        getInstance().sdkAppId = 0;
+        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_IMSDK_INIT_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_START_UNINIT, null);
+
+        V2TIMManager.getInstance().unInitSDK();
+        TUIConfig.clearSelfInfo();
     }
 
     private static void getUserInfo(String userId) {
@@ -425,8 +433,7 @@ public class TUILogin {
         param.put(TUIConstants.TUILogin.SELF_GENDER, userFullInfo.getGender());
         param.put(TUIConstants.TUILogin.SELF_LEVEL, userFullInfo.getLevel());
         param.put(TUIConstants.TUILogin.SELF_ALLOW_TYPE, userFullInfo.getAllowType());
-        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
-                TUIConstants.TUILogin.EVENT_SUB_KEY_USER_INFO_UPDATED, param);
+        TUICore.notifyEvent(TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED, TUIConstants.TUILogin.EVENT_SUB_KEY_USER_INFO_UPDATED, param);
     }
 
     public static int getSdkAppId() {
@@ -459,5 +466,25 @@ public class TUILogin {
 
     public static String getLoginUser() {
         return V2TIMManager.getInstance().getLoginUser();
+    }
+
+    public static class TUIBusinessScene {
+        public static final int NONE = 0;
+        public static final int IN_RECORDING = 1;
+        public static final int IN_CALLING_ROOM = 2;
+        public static final int IN_MEETING_ROOM = 3;
+        public static final int IN_LIVING_ROOM = 4;
+    }
+
+    /**
+     * No-thread-safe
+     * @param scene
+     */
+    public static void setCurrentBusinessScene(int scene) {
+        getInstance().currentBusinessScene = scene;
+    }
+
+    public static int getCurrentBusinessScene() {
+        return getInstance().currentBusinessScene;
     }
 }

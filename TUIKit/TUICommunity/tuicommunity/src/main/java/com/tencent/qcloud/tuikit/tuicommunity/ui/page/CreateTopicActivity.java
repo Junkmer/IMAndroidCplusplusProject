@@ -5,28 +5,26 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
-
 import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
-import com.tencent.qcloud.tuicore.component.TitleBarLayout;
-import com.tencent.qcloud.tuicore.component.activities.BaseLightActivity;
-import com.tencent.qcloud.tuicore.component.interfaces.ITitleBarLayout;
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.BackgroundTasks;
-import com.tencent.qcloud.tuicore.util.ScreenUtil;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.TitleBarLayout;
+import com.tencent.qcloud.tuikit.timcommon.component.activities.BaseLightActivity;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.ITitleBarLayout;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
+import com.tencent.qcloud.tuikit.timcommon.util.ScreenUtil;
+import com.tencent.qcloud.tuikit.timcommon.util.ThreadUtils;
 import com.tencent.qcloud.tuikit.tuicommunity.R;
 import com.tencent.qcloud.tuikit.tuicommunity.TUICommunityService;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.CommunityBean;
 import com.tencent.qcloud.tuikit.tuicommunity.bean.TopicBean;
 import com.tencent.qcloud.tuikit.tuicommunity.component.SelectListPopupView;
-import com.tencent.qcloud.tuikit.tuicommunity.component.bottompopupcard.BottomPopupCard;
 import com.tencent.qcloud.tuikit.tuicommunity.component.SettingsLinearView;
+import com.tencent.qcloud.tuikit.tuicommunity.component.bottompopupcard.BottomPopupCard;
 import com.tencent.qcloud.tuikit.tuicommunity.presenter.CommunityPresenter;
 import com.tencent.qcloud.tuikit.tuicommunity.presenter.TopicPresenter;
 import com.tencent.qcloud.tuikit.tuicommunity.ui.interfaces.ICreateTopicActivity;
 import com.tencent.qcloud.tuikit.tuicommunity.utils.CommunityConstants;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +60,7 @@ public class CreateTopicActivity extends BaseLightActivity implements ICreateTop
         videoTypeArea = findViewById(R.id.video_type_area);
         liveTypeArea = findViewById(R.id.live_type_area);
         topicCategoryView = findViewById(R.id.topic_category_linear);
-        titleBarLayout.setTitle(getString(R.string.sure), ITitleBarLayout.Position.RIGHT);
+        titleBarLayout.setTitle(getString(com.tencent.qcloud.tuicore.R.string.sure), ITitleBarLayout.Position.RIGHT);
         titleBarLayout.getRightIcon().setVisibility(View.GONE);
         titleBarLayout.setOnRightClickListener(new View.OnClickListener() {
             @Override
@@ -90,7 +88,7 @@ public class CreateTopicActivity extends BaseLightActivity implements ICreateTop
             @Override
             public void onClick(View v) {
                 hideSoftInput();
-                BackgroundTasks.getInstance().postDelayed(new Runnable() {
+                ThreadUtils.postOnUiThreadDelayed(new Runnable() {
                     @Override
                     public void run() {
                         showTopicCategoryView();
@@ -145,20 +143,20 @@ public class CreateTopicActivity extends BaseLightActivity implements ICreateTop
     private void createTopic() {
         String topicName = topicNameEdit.getText().toString();
         if (!TextUtils.isEmpty(topicName)) {
-            presenter.createTopic(communityBean.getGroupId(), topicName, category, TopicBean.TOPIC_TYPE_TEXT,
-                    new IUIKitCallback<String>() {
-                        @Override
-                        public void onSuccess(String data) {
-                            TUICore.notifyEvent(TUIConstants.TUICommunity.EVENT_KEY_COMMUNITY_EXPERIENCE, TUIConstants.TUICommunity.EVENT_SUB_KEY_CREATE_TOPIC, null);
-                            ToastUtil.toastShortMessage(TUICommunityService.getAppContext().getString(R.string.community_create_topic_success));
-                            finish();
-                        }
+            presenter.createTopic(communityBean.getGroupId(), topicName, category, TopicBean.TOPIC_TYPE_TEXT, new IUIKitCallback<String>() {
+                @Override
+                public void onSuccess(String data) {
+                    TUICore.notifyEvent(TUIConstants.TUICommunity.EVENT_KEY_COMMUNITY_EXPERIENCE, TUIConstants.TUICommunity.EVENT_SUB_KEY_CREATE_TOPIC, null);
+                    ToastUtil.toastShortMessage(TUICommunityService.getAppContext().getString(R.string.community_create_topic_success));
+                    finish();
+                }
 
-                        @Override
-                        public void onError(String module, int errCode, String errMsg) {
-                            ToastUtil.toastShortMessage(TUICommunityService.getAppContext().getString(R.string.community_create_topic_failed) + ", code=" + errCode + " message=" + errMsg);
-                        }
-                    });
+                @Override
+                public void onError(String module, int errCode, String errMsg) {
+                    ToastUtil.toastShortMessage(
+                        TUICommunityService.getAppContext().getString(R.string.community_create_topic_failed) + ", code=" + errCode + " message=" + errMsg);
+                }
+            });
         }
     }
 }

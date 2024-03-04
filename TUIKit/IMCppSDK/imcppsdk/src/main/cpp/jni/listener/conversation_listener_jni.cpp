@@ -8,6 +8,7 @@
 #include "conversation_listener_jni.h"
 #include "conversation_jni.h"
 #include "java_basic_jni.h"
+#include "conversation_list_filter_jni.h"
 
 namespace v2im {
     namespace jni {
@@ -88,7 +89,19 @@ namespace v2im {
             }
             j_method_id_array_[MethodIDOnConversationChanged] = jmethod;
 
+            jmethod = env->GetMethodID(j_cls_, "onConversationDeleted", "(Ljava/util/List;)V");
+            if (nullptr == jmethod) {
+                return false;
+            }
+            j_method_id_array_[MethodIDOnTotalUnreadMessageCountChanged] = jmethod;
+
             jmethod = env->GetMethodID(j_cls_, "onTotalUnreadMessageCountChanged", "(J)V");
+            if (nullptr == jmethod) {
+                return false;
+            }
+            j_method_id_array_[MethodIDOnTotalUnreadMessageCountChanged] = jmethod;
+
+            jmethod = env->GetMethodID(j_cls_, "onUnreadMessageCountChangedByFilter", "(Lcom/tencent/imsdk/v2/V2TIMConversationListFilter;J)V");
             if (nullptr == jmethod) {
                 return false;
             }
@@ -194,8 +207,6 @@ namespace v2im {
         }
 
         void ConversationListenerJni::OnConversationChanged(const V2TIMConversationVector &conversationList) {
-            LOGE("jni callback OnConversationChanged");
-
             if (listener_conversation_map.empty()) {
                 return;
             }
@@ -219,6 +230,30 @@ namespace v2im {
             env->DeleteLocalRef(conversationObjList);
         }
 
+        void ConversationListenerJni::OnConversationDeleted(const V2TIMStringVector &conversationIDList) {
+            if (listener_conversation_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject j_obj_convIDList = ArrayListJni::NewArrayList();
+            for (int i = 0; i < conversationIDList.Size(); ++i) {
+                jobject convID = StringJni::Cstring2Jstring(env,conversationIDList[i].CString());
+                if (convID) {
+                    ArrayListJni::Add(j_obj_convIDList, convID);
+                    env->DeleteLocalRef(convID);
+                }
+            }
+
+            for (auto &item: listener_conversation_map) {
+                env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnConversationDeleted], j_obj_convIDList);
+            }
+
+            env->DeleteLocalRef(j_obj_convIDList);
+        }
+
         void ConversationListenerJni::OnTotalUnreadMessageCountChanged(uint64_t totalUnreadCount) {
             if (listener_conversation_map.empty()) {
                 return;
@@ -230,6 +265,23 @@ namespace v2im {
             for (auto &item: listener_conversation_map) {
                 env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnTotalUnreadMessageCountChanged], (jlong) totalUnreadCount);
             }
+        }
+
+        void ConversationListenerJni::OnUnreadMessageCountChangedByFilter(const V2TIMConversationListFilter &filter, uint64_t totalUnreadCount) {
+            if (listener_conversation_map.empty()) {
+                return;
+            }
+
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            jobject j_obj_filter = ConversationListFilterJni::Convert2JObject(filter);
+
+            for (auto &item: listener_conversation_map) {
+                env->CallVoidMethod(item.second, j_method_id_array_[MethodIDOnUnreadMessageCountChangedByFilter], j_obj_filter,(jlong) totalUnreadCount);
+            }
+
+            env->DeleteLocalRef(j_obj_filter);
         }
 
         void ConversationListenerJni::OnConversationGroupCreated(const V2TIMString &groupName, const V2TIMConversationVector &conversationList) {

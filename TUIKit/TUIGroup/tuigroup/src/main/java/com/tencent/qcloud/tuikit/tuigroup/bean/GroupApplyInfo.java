@@ -1,11 +1,9 @@
 package com.tencent.qcloud.tuikit.tuigroup.bean;
 
 import com.tencent.imsdk.v2.V2TIMGroupApplication;
-
 import java.io.Serializable;
 
 public class GroupApplyInfo implements Serializable {
-
     public static final int APPLIED = 1;
     public static final int REFUSED = -1;
     public static final int UNHANDLED = 0;
@@ -23,6 +21,34 @@ public class GroupApplyInfo implements Serializable {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public String getFromUserFaceUrl() {
+        if (timGroupApplication != null) {
+            return timGroupApplication.getFromUserFaceUrl();
+        }
+        return null;
+    }
+
+    public String getFromUserID() {
+        if (timGroupApplication != null) {
+            return timGroupApplication.getFromUser();
+        }
+        return null;
+    }
+
+    public String getAddWording() {
+        if (timGroupApplication != null) {
+            return timGroupApplication.getRequestMsg();
+        }
+        return null;
+    }
+
+    public String getGroupID() {
+        if (timGroupApplication != null) {
+            return timGroupApplication.getGroupID();
+        }
+        return null;
     }
 
     public V2TIMGroupApplication getGroupApplication() {
@@ -56,5 +82,4 @@ public class GroupApplyInfo implements Serializable {
         }
         return false;
     }
-
 }

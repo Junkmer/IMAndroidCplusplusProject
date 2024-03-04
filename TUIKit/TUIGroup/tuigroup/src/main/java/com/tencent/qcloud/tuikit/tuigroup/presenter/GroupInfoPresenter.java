@@ -1,22 +1,19 @@
 package com.tencent.qcloud.tuikit.tuigroup.presenter;
 
 import android.text.TextUtils;
-
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.component.interfaces.IUIKitCallback;
 import com.tencent.qcloud.tuikit.tuigroup.TUIGroupConstants;
 import com.tencent.qcloud.tuikit.tuigroup.TUIGroupService;
 import com.tencent.qcloud.tuikit.tuigroup.bean.GroupInfo;
 import com.tencent.qcloud.tuikit.tuigroup.bean.GroupMemberInfo;
 import com.tencent.qcloud.tuikit.tuigroup.interfaces.GroupEventListener;
+import com.tencent.qcloud.tuikit.tuigroup.interfaces.IGroupMemberLayout;
 import com.tencent.qcloud.tuikit.tuigroup.model.GroupInfoProvider;
-import com.tencent.qcloud.tuikit.tuigroup.ui.interfaces.IGroupMemberLayout;
 import com.tencent.qcloud.tuikit.tuigroup.util.TUIGroupLog;
 import com.tencent.qcloud.tuikit.tuigroup.util.TUIGroupUtils;
-
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class GroupInfoPresenter {
     public static final String TAG = GroupInfoPresenter.class.getSimpleName();
@@ -39,6 +36,11 @@ public class GroupInfoPresenter {
             @Override
             public void onGroupInfoChanged(String groupID) {
                 GroupInfoPresenter.this.onGroupInfoChanged(groupID);
+            }
+
+            @Override
+            public void onGroupMemberCountChanged(String groupID) {
+                GroupInfoPresenter.this.onGroupCountChanged(groupID);
             }
         };
         TUIGroupService.getInstance().addGroupEventListener(groupEventListener);
@@ -69,6 +71,12 @@ public class GroupInfoPresenter {
     }
 
     private void onGroupInfoChanged(String groupID) {
+        if (groupInfo != null && TextUtils.equals(groupID, groupInfo.getId())) {
+            loadGroupInfo(groupID);
+        }
+    }
+
+    private void onGroupCountChanged(String groupID) {
         if (groupInfo != null && TextUtils.equals(groupID, groupInfo.getId())) {
             loadGroupInfo(groupID);
         }
@@ -224,26 +232,6 @@ public class GroupInfoPresenter {
         });
     }
 
-    public void inviteGroupMembers(String groupId, List<String> addMembers, IUIKitCallback<Object> callback) {
-        provider.loadGroupInfo(groupId, new IUIKitCallback<GroupInfo>() {
-            @Override
-            public void onSuccess(GroupInfo data) {
-                groupInfo = data;
-                inviteGroupMembers(addMembers, callback);
-            }
-
-            @Override
-            public void onError(String module, int errCode, String errMsg) {
-                TUIGroupUtils.callbackOnError(callback, module, errCode, errMsg);
-            }
-        });
-    }
-
-
-    public void deleteGroupMembers(String groupId, List<String> members, IUIKitCallback<List<String>> callback) {
-        provider.removeGroupMembers(groupId, members, callback);
-    }
-
     private void inviteGroupMembers(List<String> addMembers, IUIKitCallback<Object> callback) {
         provider.inviteGroupMembers(groupInfo, addMembers, new IUIKitCallback<Object>() {
             @Override
@@ -259,6 +247,25 @@ public class GroupInfoPresenter {
                 TUIGroupUtils.callbackOnError(callback, module, errCode, errMsg);
             }
         });
+    }
+
+    public void inviteGroupMembers(String groupId, List<String> addMembers, IUIKitCallback<Object> callback) {
+        provider.loadGroupInfo(groupId, new IUIKitCallback<GroupInfo>() {
+            @Override
+            public void onSuccess(GroupInfo data) {
+                groupInfo = data;
+                inviteGroupMembers(addMembers, callback);
+            }
+
+            @Override
+            public void onError(String module, int errCode, String errMsg) {
+                TUIGroupUtils.callbackOnError(callback, module, errCode, errMsg);
+            }
+        });
+    }
+
+    public void deleteGroupMembers(String groupId, List<String> members, IUIKitCallback<List<String>> callback) {
+        provider.removeGroupMembers(groupId, members, callback);
     }
 
     public void removeGroupMembers(GroupInfo groupInfo, List<GroupMemberInfo> delMembers, IUIKitCallback callBack) {
@@ -359,11 +366,23 @@ public class GroupInfoPresenter {
         return provider.isAdmin(memberType);
     }
 
+    public boolean isOwner(int memberType) {
+        return provider.isOwner(memberType);
+    }
+
     public boolean isSelf(String userId) {
         return provider.isSelf(userId);
     }
 
     public void transferGroupOwner(String groupId, String userId, IUIKitCallback<Void> callback) {
         provider.transferGroupOwner(groupId, userId, callback);
+    }
+
+    public void setGroupManager(String groupId, String userId, IUIKitCallback<Void> callback) {
+        provider.setGroupManagerRole(groupId, userId, callback);
+    }
+
+    public void setGroupMemberRole(String groupId, String userId, IUIKitCallback<Void> callback) {
+        provider.setGroupMemberRole(groupId, userId, callback);
     }
 }

@@ -38,6 +38,10 @@ namespace v2im {
 
             void OnMemberInfoChanged(const V2TIMString &groupID, const V2TIMGroupMemberChangeInfoVector &v2TIMGroupMemberChangeInfoList) override;
 
+            void OnAllGroupMembersMuted(const V2TIMString &groupID, bool isMute) override;
+
+            void OnMemberMarkChanged(const V2TIMString &groupID, const V2TIMStringVector &memberIDList, uint32_t markType, bool enableMark) override;
+
             void OnGroupCreated(const V2TIMString &groupID) override;
 
             void OnGroupDismissed(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser) override;
@@ -48,16 +52,15 @@ namespace v2im {
 
             void OnGroupAttributeChanged(const V2TIMString &groupID, const V2TIMGroupAttributeMap &groupAttributeMap) override;
 
+            void OnGroupCounterChanged(const V2TIMString &groupID, const V2TIMString &key, int64_t newValue) override;
+
             void OnReceiveJoinApplication(const V2TIMString &groupID, const V2TIMGroupMemberInfo &member, const V2TIMString &opReason) override;
 
-            void OnApplicationProcessed(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser, bool isAgreeJoin,
-                                        const V2TIMString &opReason) override;
+            void OnApplicationProcessed(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser, bool isAgreeJoin, const V2TIMString &opReason) override;
 
-            void OnGrantAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser,
-                                      const V2TIMGroupMemberInfoVector &memberList) override;
+            void OnGrantAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser, const V2TIMGroupMemberInfoVector &memberList) override;
 
-            void OnRevokeAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser,
-                                       const V2TIMGroupMemberInfoVector &memberList) override;
+            void OnRevokeAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser, const V2TIMGroupMemberInfoVector &memberList) override;
 
             void OnQuitFromGroup(const V2TIMString &groupID) override;
 
@@ -76,17 +79,20 @@ namespace v2im {
                 MethodIDOnMemberInvited,
                 MethodIDOnMemberKicked,
                 MethodIDOnMemberInfoChanged,
+                MethodIDOnAllGroupMembersMuted,
+                MethodIDOnMemberMarkChanged,
                 MethodIDOnGroupCreated,
                 MethodIDOnGroupDismissed,
                 MethodIDOnGroupRecycled,
                 MethodIDOnGroupInfoChanged,
-                MethodIDOnReceiveJoinRequest,
-                MethodIDOnReceiveJoinResponse,
+                MethodIDOnReceiveJoinApplication,
+                MethodIDOnApplicationProcessed,
                 MethodIDOnGrantAdministrator,
                 MethodIDOnRevokeAdministrator,
                 MethodIDOnQuitFromGroup,
                 MethodIDOnReceiveCustomData,
                 MethodIDOnGroupAttributeChanged,
+                MethodIDOnGroupCounterChanged,
                 MethodIDOnTopicCreated,
                 MethodIDOnTopicDeleted,
                 MethodIDOnTopicChanged,

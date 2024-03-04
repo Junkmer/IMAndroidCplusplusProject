@@ -3,31 +3,36 @@ package com.tencent.qcloud.tuikit.tuichat.component.camera;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.tencent.qcloud.tuicore.component.interfaces.IUIKitCallback;
-import com.tencent.qcloud.tuicore.util.FileUtil;
+import androidx.fragment.app.FragmentActivity;
+
+import com.tencent.qcloud.tuicore.TUILogin;
+import com.tencent.qcloud.tuicore.interfaces.TUIValueCallback;
 import com.tencent.qcloud.tuicore.util.TUIBuild;
 import com.tencent.qcloud.tuicore.util.ToastUtil;
+import com.tencent.qcloud.tuikit.timcommon.util.ActivityResultResolver;
+import com.tencent.qcloud.tuikit.timcommon.util.FileUtil;
 import com.tencent.qcloud.tuikit.tuichat.R;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatConstants;
+import com.tencent.qcloud.tuikit.tuichat.component.camera.listener.CameraListener;
 import com.tencent.qcloud.tuikit.tuichat.component.camera.listener.ClickListener;
 import com.tencent.qcloud.tuikit.tuichat.component.camera.listener.ErrorListener;
-import com.tencent.qcloud.tuikit.tuichat.component.camera.listener.JCameraListener;
-import com.tencent.qcloud.tuikit.tuichat.component.camera.view.JCameraView;
+import com.tencent.qcloud.tuikit.tuichat.component.camera.view.CameraView;
 import com.tencent.qcloud.tuikit.tuichat.util.TUIChatLog;
 
-public class CameraActivity extends Activity {
-
+public class CameraActivity extends FragmentActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
-    private static final int REQUEST_CODE_PHOTO_AND_VIDEO = 1000;
-    public static IUIKitCallback mCallBack;
-    private JCameraView jCameraView;
+
+    public static final int BUTTON_STATE_ONLY_CAPTURE = 0x101; // 只能拍照
+    public static final int BUTTON_STATE_ONLY_RECORDER = 0x102; // 只能录像
+    public static final int BUTTON_STATE_BOTH = 0x103; // 两者都可以
+    private CameraView cameraView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,107 +41,81 @@ public class CameraActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setContentView(R.layout.activity_camera);
-        jCameraView = findViewById(R.id.jcameraview);
-        //jCameraView.setSaveVideoPath(Environment.getExternalStorageDirectory().getPath() + File.separator + "JCamera");
+        setContentView(R.layout.chat_camera_activity_layout);
+        cameraView = findViewById(R.id.camera_view);
 
-        int state = getIntent().getIntExtra(TUIChatConstants.CAMERA_TYPE, JCameraView.BUTTON_STATE_BOTH);
-        jCameraView.setFeatures(state);
-        if (state == JCameraView.BUTTON_STATE_ONLY_CAPTURE) {
-            jCameraView.setTip(getString(R.string.tap_capture));
-        } else if (state == JCameraView.BUTTON_STATE_ONLY_RECORDER) {
-            jCameraView.setTip(getString(R.string.tap_video));
+        int feature = getIntent().getIntExtra(TUIChatConstants.CAMERA_TYPE, BUTTON_STATE_BOTH);
+        cameraView.setFeature(feature);
+        if (feature == BUTTON_STATE_ONLY_CAPTURE) {
+            cameraView.setTip(getString(R.string.tap_capture));
+        } else if (feature == BUTTON_STATE_ONLY_RECORDER) {
+            cameraView.setTip(getString(R.string.tap_video));
         }
 
-        jCameraView.setMediaQuality(JCameraView.MEDIA_QUALITY_MIDDLE);
-        jCameraView.setErrorLisenter(new ErrorListener() {
+        cameraView.setMediaQuality(CameraView.MEDIA_QUALITY_MIDDLE);
+        cameraView.setErrorListener(new ErrorListener() {
             @Override
-            public void onError() {
-                TUIChatLog.i(TAG, "camera error");
+            public void onError(String errorMsg) {
+                TUIChatLog.e(TAG, "camera error " + errorMsg);
+                int currentBusinessScene = TUILogin.getCurrentBusinessScene();
+                if (currentBusinessScene != TUILogin.TUIBusinessScene.NONE) {
+                    String tipMsg = getString(R.string.chat_camera_occupied_tip);
+                    TUIChatLog.e(TAG, tipMsg);
+                    ToastUtil.toastShortMessage(tipMsg);
+                }
                 Intent intent = new Intent();
                 setResult(103, intent);
                 finish();
             }
+        });
+
+        cameraView.setCameraListener(new CameraListener() {
+            @Override
+            public void onCaptureSuccess(String path) {
+                setResultAndFinish(FileUtil.getUriFromPath(path));
+            }
 
             @Override
-            public void AudioPermissionError() {
-                ToastUtil.toastShortMessage(getString(R.string.audio_permission_error));
+            public void onRecordSuccess(String path) {
+                setResultAndFinish(FileUtil.getUriFromPath(path));
             }
         });
 
-        jCameraView.setJCameraLisenter(new JCameraListener() {
-            @Override
-            public void captureSuccess(Bitmap bitmap) {
-                String path = FileUtil.saveBitmap("JCamera", bitmap);
-               /* Intent intent = new Intent();
-                intent.putExtra(ILiveConstants.CAMERA_IMAGE_PATH, path);
-                setResult(-1, intent);*/
-                if (mCallBack != null) {
-                    mCallBack.onSuccess(path);
-                }
-                finish();
-            }
-
-            @Override
-            public void recordSuccess(String url, Bitmap firstFrame, long duration) {
-                String path = FileUtil.saveBitmap("JCamera", firstFrame);
-                Intent intent = new Intent();
-                intent.putExtra(TUIChatConstants.IMAGE_WIDTH, firstFrame.getWidth());
-                intent.putExtra(TUIChatConstants.IMAGE_HEIGHT, firstFrame.getHeight());
-                intent.putExtra(TUIChatConstants.VIDEO_TIME, duration);
-                intent.putExtra(TUIChatConstants.CAMERA_IMAGE_PATH, path);
-                intent.putExtra(TUIChatConstants.CAMERA_VIDEO_PATH, url);
-                firstFrame.getWidth();
-                //setResult(-1, intent);
-                if (mCallBack != null) {
-                    mCallBack.onSuccess(intent);
-                }
-                finish();
-            }
-        });
-
-        jCameraView.setLeftClickListener(new ClickListener() {
+        cameraView.setLeftClickListener(new ClickListener() {
             @Override
             public void onClick() {
                 CameraActivity.this.finish();
             }
         });
-        jCameraView.setRightClickListener(new ClickListener() {
+        cameraView.setRightClickListener(new ClickListener() {
             @Override
             public void onClick() {
-                startSendPhoto();
+                startSelectMedia();
             }
         });
-        //jCameraView.setVisibility(View.GONE);
-        TUIChatLog.i(TAG, TUIBuild.getDevice());
+        TUIChatLog.i(TAG, "device " + TUIBuild.getDevice());
     }
 
-    private void startSendPhoto() {
-        TUIChatLog.i(TAG, "startSendPhoto");
+    private void startSelectMedia() {
+        TUIChatLog.i(TAG, "startSelectMedia");
 
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        String[] mimeTypes = {"image/*", "video/*"};
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-        startActivityForResult(intent, REQUEST_CODE_PHOTO_AND_VIDEO);
+        ActivityResultResolver.getSingleContent(
+            this, new String[] {ActivityResultResolver.CONTENT_TYPE_VIDEO, ActivityResultResolver.CONTENT_TYPE_IMAGE}, new TUIValueCallback<Uri>() {
+                @Override
+                public void onSuccess(Uri uri) {
+                    setResultAndFinish(uri);
+                }
+
+                @Override
+                public void onError(int errorCode, String errorMessage) {}
+            });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_PHOTO_AND_VIDEO) {
-            if (resultCode != RESULT_OK) {
-                return;
-            }
-            setResult(RESULT_OK, data);
-            finish();
-        }
-    }
-
-    @Override
-    public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    private void setResultAndFinish(Uri uri) {
+        Intent intent = new Intent();
+        intent.setData(uri);
+        setResult(Activity.RESULT_OK, intent);
+        finish();
     }
 
     @Override
@@ -144,13 +123,9 @@ public class CameraActivity extends Activity {
         super.onStart();
         if (Build.VERSION.SDK_INT >= 19) {
             View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         } else {
             View decorView = getWindow().getDecorView();
             int option = View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -161,23 +136,21 @@ public class CameraActivity extends Activity {
     @Override
     protected void onResume() {
         TUIChatLog.i(TAG, "onResume");
+        cameraView.onResume();
         super.onResume();
-        jCameraView.onResume();
     }
 
     @Override
     protected void onPause() {
         TUIChatLog.i(TAG, "onPause");
+        cameraView.onPause();
         super.onPause();
-        jCameraView.onPause();
     }
 
     @Override
     protected void onDestroy() {
         TUIChatLog.i(TAG, "onDestroy");
+        cameraView.onDestroy();
         super.onDestroy();
-        jCameraView.onDestroy();
-        mCallBack = null;
     }
-
 }

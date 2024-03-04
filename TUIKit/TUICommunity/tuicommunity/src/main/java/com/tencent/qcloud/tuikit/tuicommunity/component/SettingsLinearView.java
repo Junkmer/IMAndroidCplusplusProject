@@ -11,15 +11,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-
-import com.tencent.qcloud.tuicore.component.RoundCornerImageView;
+import com.tencent.qcloud.tuikit.timcommon.component.RoundCornerImageView;
 import com.tencent.qcloud.tuikit.tuicommunity.R;
 
 public class SettingsLinearView extends LinearLayout {
-
     private String name;
     private String content;
     private boolean isShowBottomLine;
@@ -85,20 +82,19 @@ public class SettingsLinearView extends LinearLayout {
             isShowContentText = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_content_text, true);
             isShowContentImage = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_content_image, false);
             name = ta.getString(R.styleable.SettingsLinearView_setting_name);
-            isShowBottomLine = ta.getBoolean(R.styleable.LineControllerView_isBottom, false);
+            isShowBottomLine = ta.getBoolean(com.tencent.qcloud.tuikit.timcommon.R.styleable.LineControllerView_isBottom, false);
             isShowCopy = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_copy, false);
             isShowArrow = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_arrow, true);
             isShowTopLine = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_top_line, false);
             isShowBottomLine = ta.getBoolean(R.styleable.SettingsLinearView_setting_is_show_bottom_line, false);
 
             contentImageWidth = ta.getDimensionPixelOffset(R.styleable.SettingsLinearView_setting_content_image_width, ViewGroup.LayoutParams.WRAP_CONTENT);
-            contentImageHeight =  ta.getDimensionPixelOffset(R.styleable.SettingsLinearView_setting_content_image_height, ViewGroup.LayoutParams.MATCH_PARENT);
+            contentImageHeight = ta.getDimensionPixelOffset(R.styleable.SettingsLinearView_setting_content_image_height, ViewGroup.LayoutParams.MATCH_PARENT);
         } finally {
             ta.recycle();
         }
         setUpView();
     }
-
 
     private void setUpView() {
         copyView = findViewById(R.id.copy_button);
@@ -143,7 +139,6 @@ public class SettingsLinearView extends LinearLayout {
         arrowView = findViewById(R.id.right_arrow);
         arrowView.setVisibility(isShowArrow ? VISIBLE : GONE);
     }
-
 
     /**
      * 获取内容
@@ -190,5 +185,4 @@ public class SettingsLinearView extends LinearLayout {
     public RoundCornerImageView getContentImage() {
         return contentImage;
     }
-
 }

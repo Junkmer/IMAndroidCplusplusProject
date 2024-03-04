@@ -91,6 +91,10 @@ public abstract class V2TIMManager {
 
     public abstract void setSelfInfo(V2TIMUserFullInfo info, V2TIMCallback callback);
 
+    public abstract void subscribeUserInfo(List<String> userIDList, V2TIMCallback callback);
+
+    public abstract void unsubscribeUserInfo(List<String> userIDList, V2TIMCallback callback);
+
     public abstract void getUserStatus(List<String> userIDList, V2TIMValueCallback<List<V2TIMUserStatus>> callback);
 
     public abstract void setSelfStatus(V2TIMUserStatus status, V2TIMCallback callback);
@@ -181,6 +185,10 @@ public abstract class V2TIMManager {
     native void nativeGetUsersInfo(List<String> userIDList, IMCallback<List<V2TIMUserFullInfo>> callback);
 
     native void nativeSetSelfInfo(V2TIMUserFullInfo info, IMCallback callback);
+
+    public native void nativeSubscribeUserInfo(List<String> userIDList, IMCallback callback);
+
+    public native void nativeUnsubscribeUserInfo(List<String> userIDList, IMCallback callback);
 
     native void nativeGetUserStatus(List<String> userIDList, IMCallback<List<V2TIMUserStatus>> callback);
 

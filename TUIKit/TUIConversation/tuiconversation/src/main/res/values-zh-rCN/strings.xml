@@ -19,6 +19,14 @@
     <string name="drafts">[草稿]</string>
     <string name="titlebar_mutiselect">多选</string>
     <string name="message_num">条</string>
+    
+    <string name="conversation_forward">转发</string>
 
     <string name="folded_group_chat">折叠的群聊</string>
+
+    <string name="conversation_title_edit">编辑</string>
+    <string name="conversation_add_new_conversation">添加会话</string>
+    <string name="conversation_page_all">全部</string>
+    <string name="conversation_null_text">暂无%1$s的会话</string>
+    <string name="conversation_delete_tips">此会话及聊天记录将全部被删除</string>
 </resources>

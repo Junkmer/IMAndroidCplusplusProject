@@ -33,7 +33,6 @@ namespace v2im {
                 FieldIDGroupID,
                 FieldIDUserID,
                 FieldIDStatus,
-                FieldIDElemType,
                 FieldIDElemList,
 
                 FieldIDLocalCustomInt,
@@ -54,6 +53,11 @@ namespace v2im {
                 FieldIDRandom,
                 FieldIDIsExcludedFromUnreadCount,
                 FieldIDIsExcludedFromLastMessage,
+                FieldIDIsExcludedFromContentModeration,
+                FieldIDIsSupportMessageExtension,
+                FieldIDRiskContent,
+                FieldIDRevokerInfo,
+                FieldIDRevokeReason,
 
                 FieldIDMax,
             };
