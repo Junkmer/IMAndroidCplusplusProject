@@ -29,6 +29,7 @@ namespace v2im {
                 FieldIDOwner,
                 FieldIDCreateTime,
                 FieldIDGroupAddOpt,
+                FieldIDgGroupApproveOpt,
                 FieldIDCustomInfo,
                 FieldIDLastInfoTime,
                 FieldIDLastMessageTime,

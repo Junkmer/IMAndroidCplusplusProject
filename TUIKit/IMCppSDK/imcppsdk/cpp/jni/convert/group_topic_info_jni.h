@@ -15,6 +15,7 @@ namespace v2im {
             static bool InitIDs(JNIEnv *env);
             static jobject Convert2JObject(const V2TIMTopicInfo &topicInfo);
             static bool Convert2CoreObject(const jobject &object, V2TIMTopicInfo &topicInfo);
+            static bool Convert2CoreObject_Update(const jobject &object, V2TIMTopicInfo &topicInfo);
 
         private:
             enum FieldID {
@@ -31,6 +32,7 @@ namespace v2im {
                 FieldIDUnreadCount,
                 FieldIDLastMessage,
                 FieldIDGroupAtInfoList,
+                FieldIDModifyFlag,
 
                 FieldIDMax,
             };

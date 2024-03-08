@@ -119,7 +119,12 @@ namespace v2im {
                 return false;
             }
             j_field_id_array_[FieldIDGroupAtInfoList] = jfield;
-            
+
+            jfield = env->GetFieldID(j_cls_, "modifyFlag", "I");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_id_array_[FieldIDModifyFlag] = jfield;
             return true;
         }
 
@@ -265,18 +270,122 @@ namespace v2im {
 
             jobject j_obj = nullptr;
 
+            j_obj = env->GetObjectField(object, j_field_id_array_[FieldIDLastMessage]);
+            if (j_obj) {
+                V2TIMMessage message_c;
+                if (v2im::jni::MessageJni::Convert2CoreObject(j_obj,message_c)){
+                    topicInfo.lastMessage = &message_c;
+                }
+                env->DeleteLocalRef(j_obj);
+            }
+
+            j_obj = env->GetObjectField(object, j_field_id_array_[FieldIDGroupAtInfoList]);
+            if (j_obj) {
+                int size = ArrayListJni::Size(j_obj);
+                if (size > 0){
+                    for (int i = 0; i < size; ++i) {
+                        jobject item_obj = ArrayListJni::Get(j_obj,i);
+                        V2TIMGroupAtInfo groupAtInfo;
+                        bool flag = GroupAtInfoJni::Convert2CoreObject(item_obj,groupAtInfo);
+                        if (flag){
+                            topicInfo.groupAtInfoList.PushBack(groupAtInfo);
+                        }
+                        env->DeleteLocalRef(item_obj);
+                    }
+                }
+                env->DeleteLocalRef(j_obj);
+            }
+
+            return true;
+        }
+
+        bool GroupTopicInfoJni::Convert2CoreObject_Update(jobject const &object, V2TIMTopicInfo &topicInfo) {
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+
+            if (!InitIDs(env)) {
+                return false;
+            }
+
+            jstring jStr = nullptr;
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDTopicID]);
+            if (jStr) {
+                topicInfo.topicID = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDTopicName]);
+            if (jStr) {
+                topicInfo.topicName = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDTopicFaceUrl]);
+            if (jStr) {
+                topicInfo.topicFaceURL = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDIntroduction]);
+            if (jStr) {
+                topicInfo.introduction = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDNotification]);
+            if (jStr) {
+                topicInfo.notification = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            topicInfo.isAllMuted = env->GetBooleanField(object,j_field_id_array_[FieldIDAllMute]);
+            topicInfo.selfMuteTime = env->GetLongField(object,j_field_id_array_[FieldIDSelfMuteTime]);
+
+            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDCustomString]);
+            if (jStr) {
+                topicInfo.customString = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+//
+//            topicInfo.recvOpt = V2TIMReceiveMessageOpt(env->GetIntField(object,j_field_id_array_[FieldIDRecvOpt]));
+//
+//            jStr = (jstring) env->GetObjectField(object, j_field_id_array_[FieldIDDraftText]);
+//            if (jStr) {
+//                topicInfo.draftText = StringJni::Jstring2Cstring(env, jStr).c_str();
+//                env->DeleteLocalRef(jStr);
+//            }
+//
+//            topicInfo.unreadCount = env->GetLongField(object,j_field_id_array_[FieldIDUnreadCount]);
+//
+//            jobject j_obj = nullptr;
+//
 //            j_obj = env->GetObjectField(object, j_field_id_array_[FieldIDLastMessage]);
 //            if (j_obj) {
-//                topicInfo.lastMessage = MessageJni::Convert2JObject();
-//                env->DeleteLocalRef(jStr);
+//                V2TIMMessage message_c;
+//                if (v2im::jni::MessageJni::Convert2CoreObject(j_obj,message_c)){
+//                    topicInfo.lastMessage = &message_c;
+//                }
+//                env->DeleteLocalRef(j_obj);
 //            }
-
-//            jobject j_obj = nullptr;
+//
 //            j_obj = env->GetObjectField(object, j_field_id_array_[FieldIDGroupAtInfoList]);
 //            if (j_obj) {
-//                topicInfo. = StringJni::Jstring2Cstring(env, jStr).c_str();
-//                env->DeleteLocalRef(jStr);
+//                int size = ArrayListJni::Size(j_obj);
+//                if (size > 0){
+//                    for (int i = 0; i < size; ++i) {
+//                        jobject item_obj = ArrayListJni::Get(j_obj,i);
+//                        V2TIMGroupAtInfo groupAtInfo;
+//                        bool flag = GroupAtInfoJni::Convert2CoreObject(item_obj,groupAtInfo);
+//                        if (flag){
+//                            topicInfo.groupAtInfoList.PushBack(groupAtInfo);
+//                        }
+//                        env->DeleteLocalRef(item_obj);
+//                    }
+//                }
+//                env->DeleteLocalRef(j_obj);
 //            }
+
+            topicInfo.modifyFlag = env->GetIntField(object,j_field_id_array_[FieldIDModifyFlag]);
 
             return true;
         }

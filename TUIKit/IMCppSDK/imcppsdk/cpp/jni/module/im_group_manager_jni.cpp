@@ -926,7 +926,7 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteTopicFromCommunity, jstring group_id, jobje
 DEFINE_NATIVE_FUNC(void, NativeSetTopicInfo, jobject topic_info, jobject callback) {
 
     V2TIMTopicInfo topicInfo;
-    v2im::jni::GroupTopicInfoJni::Convert2CoreObject(topic_info, topicInfo);
+    v2im::jni::GroupTopicInfoJni::Convert2CoreObject_Update(topic_info, topicInfo);
 
     v2im::V2IMEngine::GetInstance()->SetTopicInfo(topicInfo, new v2im::CallbackIMpl(callback));
 }

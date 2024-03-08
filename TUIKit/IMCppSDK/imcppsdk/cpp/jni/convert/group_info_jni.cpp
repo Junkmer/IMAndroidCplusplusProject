@@ -98,6 +98,12 @@ namespace v2im {
             }
             j_field_array_[FieldIDGroupAddOpt] = jfield;
 
+            jfield = env->GetFieldID(j_cls_, "groupApproveOpt", "I");
+            if (nullptr == jfield) {
+                return false;
+            }
+            j_field_array_[FieldIDgGroupApproveOpt] = jfield;
+
             jfield = env->GetFieldID(j_cls_, "customInfo", "Ljava/util/Map;");
             if (nullptr == jfield) {
                 return false;
@@ -185,6 +191,7 @@ namespace v2im {
             env->SetObjectField(jObj, j_field_array_[FieldIDOwner], StringJni::Cstring2Jstring(env, groupInfo.owner.CString()));
             env->SetLongField(jObj, j_field_array_[FieldIDCreateTime], (jlong) groupInfo.createTime);
             env->SetIntField(jObj, j_field_array_[FieldIDGroupAddOpt], (jint) groupInfo.groupAddOpt);
+            env->SetIntField(jObj, j_field_array_[FieldIDgGroupApproveOpt], (jint) groupInfo.groupApproveOpt);
 
             jobject mapObj = HashMapJni::NewHashMap();
             V2TIMStringVector keys = groupInfo.customInfo.AllKeys();
@@ -272,6 +279,7 @@ namespace v2im {
 
             groupInfo.createTime = env->GetLongField(j_obj_groupInfo, j_field_array_[FieldIDCreateTime]);
             groupInfo.groupAddOpt = V2TIMGroupAddOpt(env->GetIntField(j_obj_groupInfo, j_field_array_[FieldIDGroupAddOpt]));
+            groupInfo.groupApproveOpt = V2TIMGroupAddOpt(env->GetIntField(j_obj_groupInfo, j_field_array_[FieldIDgGroupApproveOpt]));
 
             jobject j_obj_customHashMap = env->GetObjectField(j_obj_groupInfo,j_field_array_[FieldIDCustomInfo]);
             jobject entry_set = HashMapJni::entrySet(j_obj_customHashMap);
