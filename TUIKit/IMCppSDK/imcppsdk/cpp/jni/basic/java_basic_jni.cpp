@@ -343,7 +343,7 @@ namespace v2im {
             return cstr;
         }
 
-        jstring StringJni::Cuint8_t2Jstring(JNIEnv *env, const uint8_t *data, size_t size) {
+        jstring StringJni::V2TIMBuffer2Jstring(JNIEnv *env, const uint8_t *data, size_t size) {
             if (!Init(env)){
                 return nullptr;
             }

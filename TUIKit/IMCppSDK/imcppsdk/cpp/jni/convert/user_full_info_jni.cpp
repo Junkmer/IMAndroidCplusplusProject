@@ -128,7 +128,7 @@ namespace v2im {
             for (int i = 0; i < userFullInfo.customInfo.Size(); ++i) {
                 V2TIMBuffer buffer = userFullInfo.customInfo.Get(vectorKeys[i]);
                 jstring key = StringJni::Cstring2Jstring(env, vectorKeys[i].CString());
-                jstring value = StringJni::Cstring2Jstring(env, (char *) buffer.Data());
+                jstring value = StringJni::V2TIMBuffer2Jstring(env, buffer.Data(), buffer.Size());
                 HashMapJni::Put(mapObj, key, value);
 
                 env->DeleteLocalRef(key);

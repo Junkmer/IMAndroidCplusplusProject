@@ -480,6 +480,8 @@ namespace v2im {
 
         void AddInvitedSignaling(const V2TIMSignalingInfo &info, V2TIMCallback *callback);
 
+        void ModifyInvitation(const V2TIMString& inviteID, const V2TIMString& data, V2TIMCallback* callback);
+
     };
 }
 

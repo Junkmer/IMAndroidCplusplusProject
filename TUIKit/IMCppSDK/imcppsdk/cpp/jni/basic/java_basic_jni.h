@@ -56,7 +56,7 @@ namespace v2im {
             static jbyteArray Cstring2JbyteArray(JNIEnv *env, const std::string &cstr);
             static V2TIMBuffer Jstring2V2TIMBuffer(JNIEnv *env, jstring const &jstr);
             static std::string JbyteArray2Cstring(JNIEnv *env, const jbyteArray &byteArr);
-            static jstring Cuint8_t2Jstring(JNIEnv *env, const uint8_t *data, size_t size);
+            static jstring V2TIMBuffer2Jstring(JNIEnv *env, const uint8_t *data, size_t size);
         public:
             static jclass j_cls_;
             static std::map<std::string, jmethodID> methodIdMap_;

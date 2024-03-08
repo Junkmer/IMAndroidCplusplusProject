@@ -9,6 +9,9 @@ import com.tencent.imsdk.common.IMContext;
 import com.tencent.imsdk.common.IMLog;
 import com.tencent.imsdk.common.SystemUtil;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -408,7 +411,69 @@ public class V2TIMManagerImpl extends V2TIMManager {
 
     @Override
     public void callExperimentalAPI(String api, Object param, V2TIMValueCallback<Object> _callback_) {
-        nativeCallExperimentalAPI(api, param, new IMCallback<Object>(_callback_) {
+        if (TextUtils.isEmpty(api)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "invalid api");
+            return;
+        }
+
+        if (api.equals("setCustomServerInfo")) {
+            setCustomServerInfo(api,param, _callback_);
+        } else if (api.equals("setQuicChannelInfo")) {
+            setQuicChannelInfo(api, param, _callback_);
+        } else if (api.equals("setProxyInfo")) {
+            setProxyInfo(api, param, _callback_);
+        } else if (api.equals("initLocalStorage")) {
+            initLocalStorage(api, param, _callback_);
+        } else if (api.equals("setTestEnvironment")) {
+            setTestEnvironment(api, param, _callback_);
+        } else if (api.equals("setIPv6Prior")) {
+            setIPv6Prior(api, param, _callback_);
+        } else if (api.equals("setCosSaveRegionForConversation")) {
+            setCosSaveRegion(api, param, _callback_);
+        } else if (api.equals("setUIPlatform")) {
+            setUIPlatform(api, param, _callback_);
+        } else if (api.equals("setBuildInfo")) {
+            setBuildInfo(param, _callback_);
+        } else if (api.equals("setDatabaseEncryptInfo")) {
+            setDatabaseEncryptInfo(api, param, _callback_);
+        } else if (api.equals("isCommercialAbilityEnabled")) {
+            isCommercialAbilityEnabled(api, param, _callback_);
+        } else if (api.equals("setPacketRetryInfo")) {
+            setPacketRetryInfo(api, param, _callback_);
+        } else if (api.equals("setOfflinePushState")) {
+            setOfflinePushState(api, param, _callback_);
+        } else if (api.equals("getOfflinePushState")) {
+            getOfflinePushState(api,_callback_);
+        } else if (api.equals("getMessageRevoker")) {
+            getMessageRevoker(api, param, _callback_);
+        } else if (api.equals("writeLog")) {
+            writeLog(api, param, _callback_);
+        } else if (api.equals("sendTRTCCustomData")) {
+            sendTRTCCustomData(api, param, _callback_);
+        } else if (api.equals("clearLocalHistoryMessage")) {
+            clearLocalHistoryMessage(api, param, _callback_);
+        } else if (api.equals("reportTUIComponentUsage")) {
+            reportTUIComponentUsage(api, param, _callback_);
+        } else if (api.equals("setApplicationID")) {
+            setApplicationID(api, param, _callback_);
+        } else {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "unsupported api");
+        }
+    }
+
+    private void setCustomServerInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
             @Override
             public void success(Object data) {
                 super.success(data);
@@ -421,6 +486,451 @@ public class V2TIMManagerImpl extends V2TIMManager {
         });
     }
 
+    private void setQuicChannelInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setProxyInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void initLocalStorage(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (!(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String userID = (String) param;
+        if (TextUtils.isEmpty(userID)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "invalid userID");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setTestEnvironment(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (param != null && param instanceof Boolean) {
+            nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+                @Override
+                public void success(Object data) {
+                    super.success(data);
+                }
+
+                @Override
+                public void fail(int code, String errorMessage) {
+                    super.fail(code, errorMessage);
+                }
+            });
+        }
+    }
+
+    private void setIPv6Prior(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (param != null && param instanceof Boolean) {
+            nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+                @Override
+                public void success(Object data) {
+                    super.success(data);
+                }
+
+                @Override
+                public void fail(int code, String errorMessage) {
+                    super.fail(code, errorMessage);
+                }
+            });
+        }
+    }
+
+    private void setCosSaveRegion(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setUIPlatform(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is null");
+            return;
+        }
+
+        int numberUIPlatform = 0;
+        if (param instanceof Integer) {
+            numberUIPlatform = (Integer) param;
+        } else {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is invalid");
+        }
+
+        nativeCallExperimentalAPI(apiTitle, numberUIPlatform, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setBuildInfo(Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            String buildBrand = jsonObject.optString("buildBrand");
+            String buildManufacturer = jsonObject.optString("buildManufacturer");
+            String buildModel = jsonObject.optString("buildModel");
+            String buildVersionRelease = jsonObject.optString("buildVersionRelease");
+            int buildVersionSDKInt = jsonObject.optInt("buildVersionSDKInt");
+
+            SystemUtil.setBuildBrand(buildBrand);
+            SystemUtil.setBuildManufacturer(buildManufacturer);
+            SystemUtil.setBuildModel(buildModel);
+            SystemUtil.setBuildVersionRelease(buildVersionRelease);
+            SystemUtil.setBuildVersionSDKInt(buildVersionSDKInt);
+
+            callbackOnSuccess(_callback_, null);
+        } catch (JSONException e) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "convert param to json failed");
+            e.printStackTrace();
+        }
+    }
+
+    private void setDatabaseEncryptInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void isCommercialAbilityEnabled(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof Long)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not int");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+
+    }
+
+    private void setPacketRetryInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, null, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setOfflinePushState(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof Integer)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not int");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, null, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+
+    }
+
+    private void getOfflinePushState(String apiTitle,V2TIMValueCallback<Object> valueCallback) {
+        nativeCallExperimentalAPI(apiTitle, null, new IMCallback<Object>(valueCallback) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void getMessageRevoker(String apiTitle , Object param, final V2TIMValueCallback<Object> _callback_) {
+        if (!(param instanceof List)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not list");
+            return;
+        }
+        List messageIDList = (List) param;
+        for (Object messageID : messageIDList) {
+            if (!(messageID instanceof String)) {
+                callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "item is no String type");
+                return;
+            }
+            break;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void writeLog(String apiTitle , Object param, final V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void sendTRTCCustomData(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof byte[])) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not byte array");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void clearLocalHistoryMessage(String apiTitle , Object param, final V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void reportTUIComponentUsage(String apiTitle , Object param, final V2TIMValueCallback<Object> _callback_) {
+        if (null == param || !(param instanceof String)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+            return;
+        }
+
+        String json = (String) param;
+        if (TextUtils.isEmpty(json)) {
+            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+            return;
+        }
+
+        nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
+
+    private void setApplicationID(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
+        if (param != null && param instanceof Integer) {
+            nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
+                @Override
+                public void success(Object data) {
+                    super.success(data);
+                }
+
+                @Override
+                public void fail(int code, String errorMessage) {
+                    super.fail(code, errorMessage);
+                }
+            });
+        }
+
+    }
+
+    private void callbackOnSuccess(V2TIMValueCallback<Object> callback, Object result) {
+        if (callback != null) {
+            callback.onSuccess(result);
+        }
+    }
+
+    private void callbackOnError(V2TIMValueCallback<Object> callback, int code, String desc) {
+        if (callback != null) {
+            callback.onError(code, desc);
+        }
+    }
+
     private static void getFieldByReflection(final Class<?> clazz, final String fieldName, Object obj, Object value){
         try {
             Field path = clazz.getDeclaredField(fieldName);
@@ -430,21 +940,4 @@ public class V2TIMManagerImpl extends V2TIMManager {
             e.printStackTrace();
         }
     }
-
-//--------------------------------------------------  set c++ 层监听
-
-//    @Override
-//    protected void nativeSetCplusplusSDKListener() {
-//        super.nativeSetCplusplusSDKListener();
-//    }
-//
-//    @Override
-//    protected void nativeSetCplusplusSimpleMsgListener() {
-//        super.nativeSetCplusplusSimpleMsgListener();
-//    }
-//
-//    @Override
-//    protected void nativeSetCplusplusGroupListener() {
-//        super.nativeSetCplusplusGroupListener();
-//    }
 }

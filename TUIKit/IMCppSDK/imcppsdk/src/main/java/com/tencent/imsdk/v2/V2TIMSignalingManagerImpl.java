@@ -118,4 +118,19 @@ public class V2TIMSignalingManagerImpl extends V2TIMSignalingManager {
             }
         });
     }
+
+    @Override
+    public void modifyInvitation(String inviteID, String data, V2TIMCallback _callback_) {
+        nativeModifyInvitation(inviteID, data, new IMCallback(_callback_) {
+            @Override
+            public void success(Object data) {
+                super.success(data);
+            }
+
+            @Override
+            public void fail(int code, String errorMessage) {
+                super.fail(code, errorMessage);
+            }
+        });
+    }
 }

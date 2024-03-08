@@ -257,9 +257,9 @@ namespace v2im {
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
-                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
-                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsRead], v2TimMessage.IsRead());
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsPeerRead], v2TimMessage.IsPeerRead());
@@ -451,9 +451,9 @@ namespace v2im {
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
-                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
-                                StringJni::Cuint8_t2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsRead], v2TimMessage.IsRead());
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsPeerRead], v2TimMessage.IsPeerRead());

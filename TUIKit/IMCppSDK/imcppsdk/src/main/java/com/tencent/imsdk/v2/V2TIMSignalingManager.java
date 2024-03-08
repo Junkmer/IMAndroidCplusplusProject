@@ -28,6 +28,8 @@ public abstract class V2TIMSignalingManager {
 
     public abstract void addInvitedSignaling(final V2TIMSignalingInfo info, final V2TIMCallback callback);
 
+    public abstract void modifyInvitation(String inviteID, String data, V2TIMCallback callback);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //--------------------------------------------------  native层-本地接口
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,6 +51,8 @@ public abstract class V2TIMSignalingManager {
     native V2TIMSignalingInfo nativeGetSignalingInfo(V2TIMMessage msg);
 
     native void nativeAddInvitedSignaling(final V2TIMSignalingInfo info, final IMCallback callback);
+
+    native void nativeModifyInvitation(String inviteID, String data, IMCallback callback);
 
     //--------------------------------------------------  set c++ 层监听
     native void nativeInitCplusplusSignalingListener();

@@ -634,12 +634,6 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteFriendsFromFriendGroup, jstring group_name,
     v2im::V2IMEngine::GetInstance()->DeleteFriendsFromFriendGroup(groupName, userIDList, value_callback);
 }
 
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMFriendshipManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls,"nativeInitCplusplusFriendListener", "()V");
-//}
-
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
         {"nativeInitCplusplusFriendListener", "()V",                                 (void *) NativeInitCplusplusFriendListener},

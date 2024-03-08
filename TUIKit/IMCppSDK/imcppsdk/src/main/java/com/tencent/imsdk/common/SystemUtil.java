@@ -18,6 +18,11 @@ public class SystemUtil {
         return loadLibrarySuccess;
     }
 
+    private static String buildBrand = "";
+    private static String buildManufacturer = "";
+    private static String buildModel = "";
+    private static String buildVersionRelease = "";
+    private static int buildVersionSDKInt = 0;
     private static String currentProcessName = "";
 
     public static boolean loadIMLibrary() {
@@ -25,9 +30,9 @@ public class SystemUtil {
             return true;
         }
         try {
-            System.loadLibrary("ImC++Demo");
+            System.loadLibrary("ImCxxSDKDemo");
             loadLibrarySuccess = true;
-            Log.i(TAG, "system load so library success, ImC++Demo.so");
+            Log.i(TAG, "system load so library success, ImCxxSDKDemo.so");
         } catch (UnsatisfiedLinkError e) {
             loadLibrarySuccess = false;
             Log.e(TAG, "system load so library failed, UnsatisfiedLinkError = " + e.getMessage());
@@ -36,6 +41,26 @@ public class SystemUtil {
             Log.e(TAG, "system load so library failed, Exception = " + e.getMessage());
         }
         return loadLibrarySuccess;
+    }
+
+    public static void setBuildModel(String model) {
+        buildModel = model;
+    }
+
+    public static void setBuildBrand(String brand) {
+        buildBrand = brand;
+    }
+
+    public static void setBuildManufacturer(String manufacturer) {
+        buildManufacturer = manufacturer;
+    }
+
+    public static void setBuildVersionRelease(String versionRelease) {
+        buildVersionRelease = versionRelease;
+    }
+
+    public static void setBuildVersionSDKInt(int versionSDKInt) {
+        buildVersionSDKInt = versionSDKInt;
     }
 
     public static String getSDKInitPath() {

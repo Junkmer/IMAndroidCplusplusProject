@@ -127,6 +127,12 @@ DEFINE_NATIVE_FUNC(void, NativeAddInvitedSignaling, jobject info, jobject callba
 
 }
 
+DEFINE_NATIVE_FUNC(void, NativeModifyInvitation, jstring invite_id, jstring data, jobject callback) {
+    std::string inviteIdStr = v2im::jni::StringJni::Jstring2Cstring(env,invite_id);
+    std::string dataStr = v2im::jni::StringJni::Jstring2Cstring(env,data);
+    v2im::V2IMEngine::GetInstance()->ModifyInvitation(inviteIdStr.c_str(),dataStr.c_str(),new v2im::CallbackIMpl(callback));
+}
+
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
         {"nativeInitCplusplusSignalingListener", "()V",                                                                                                             (void *) NativeInitCplusplusSignalingListener},
@@ -140,6 +146,7 @@ static JNINativeMethod gMethods[] = {
         {"nativeReject",                         "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                    (void *) NativeReject},
         {"nativeGetSignalingInfo",               "(Lcom/tencent/imsdk/v2/V2TIMMessage;)Lcom/tencent/imsdk/v2/V2TIMSignalingInfo;",                                  (jobject *) NativeGetSignalingInfo},
         {"nativeAddInvitedSignaling",            "(Lcom/tencent/imsdk/v2/V2TIMSignalingInfo;Lcom/tencent/imsdk/common/IMCallback;)V",                               (void *) NativeAddInvitedSignaling},
+        {"nativeModifyInvitation",        "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                    (void *) NativeModifyInvitation},
 };
 
 //注册 native 方法

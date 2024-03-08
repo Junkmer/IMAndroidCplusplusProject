@@ -25,8 +25,13 @@ namespace v2im{
                 FieldIDIOSSound,
                 FieldIDAndroidSound,
                 FieldIDIgnoreIOSBadge,
-                FieldIDAndroidOPPOChannelID,
-                FieldIDAndroidVIVOClassification,
+                FieldIDOppoChannelID,
+                FieldIDFcmChannelID,
+                FieldIDXiaomiChannelID,
+                FieldIDVivoClassification,
+                FieldIDVivoCategory,
+                FieldIDIOSPushType,
+                FieldIDHuaweiCategory,
 
                 FieldIDMax
             };

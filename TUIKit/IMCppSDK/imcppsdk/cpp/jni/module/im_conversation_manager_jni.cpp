@@ -489,12 +489,6 @@ DEFINE_NATIVE_FUNC(void, NativeDeleteConversationsFromGroup, jstring group_name,
     v2im::V2IMEngine::GetInstance()->DeleteConversationsFromGroup(groupName_str, conversation_vector, value_callback);
 }
 
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMConversationManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusConversationListener", "()V");
-//}
-
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
         {"nativeInitCplusplusConversationListener", "()V",                                                                                          (void *) NativeInitCplusplusConversationListener},

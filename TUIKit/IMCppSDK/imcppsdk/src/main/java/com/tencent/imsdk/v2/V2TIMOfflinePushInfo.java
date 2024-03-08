@@ -8,6 +8,8 @@ import java.io.Serializable;
 public class V2TIMOfflinePushInfo implements Serializable {
     public static final String IOS_OFFLINE_PUSH_NO_SOUND = "push.no_sound";
     public static final String IOS_OFFLINE_PUSH_DEFAULT_SOUND = "default";
+    public static final int IOS_OFFLINE_PUSH_TYPE_APNS = 0;
+    public static final int IOS_OFFLINE_PUSH_TYPE_VOIP = 1;
 
     public static final int OFFLINE_PUSH_FLAG_DEFAULT = 0;
     public static final int OFFLINE_PUSH_FLAG_NO_PUSH = 1;
@@ -22,13 +24,13 @@ public class V2TIMOfflinePushInfo implements Serializable {
     private String IOSSound;
     private String androidSound;
     private boolean ignoreIOSBadge;
-    private String androidOPPOChannelID;
-    private String androidFCMChannelID;
-    private String androidXiaoMiChannelID;
-    private int androidVIVOClassification;
-    private String androidVIVOCategory;
-    private int iOSPushType;
-    private String androidHuaWeiCategory;
+    private String oppoChannelID;
+    private String fcmChannelID;
+    private String xiaomiChannelID;
+    private int vivoClassification = 1;
+    private String vivoCategory;
+    private int iOSPushType = 0;
+    private String huaweiCategory;
 
     public String getTitle() {
         return title;
@@ -58,7 +60,7 @@ public class V2TIMOfflinePushInfo implements Serializable {
         return disable;
     }
 
-    public void setDisable(boolean disable) {
+    public void disablePush(boolean disable) {
         this.disable = disable;
     }
 
@@ -74,31 +76,33 @@ public class V2TIMOfflinePushInfo implements Serializable {
         this.ignoreIOSBadge = ignoreIOSBadge;
     }
 
-    public void setAndroidOPPOChannelID(String androidOPPOChannelID) {
-        this.androidOPPOChannelID = androidOPPOChannelID;
+    public void setAndroidOPPOChannelID(String channelID) {
+        this.oppoChannelID = channelID;
     }
 
-    public void setAndroidFCMChannelID(String androidFCMChannelID) {
-        this.androidFCMChannelID = androidFCMChannelID;
+    public void setAndroidFCMChannelID(String channelID) {
+        this.fcmChannelID = channelID;
     }
 
-    public void setAndroidXiaoMiChannelID(String androidXiaoMiChannelID) {
-        this.androidXiaoMiChannelID = androidXiaoMiChannelID;
+    public void setAndroidXiaoMiChannelID(String channelID) {
+        this.xiaomiChannelID = channelID;
     }
 
-    public void setAndroidVIVOClassification(int androidVIVOClassification) {
-        this.androidVIVOClassification = androidVIVOClassification;
+    /** @deprecated */
+    @Deprecated
+    public void setAndroidVIVOClassification(int classification) {
+        this.vivoClassification = classification;
     }
 
-    public void setAndroidVIVOCategory(String androidVIVOCategory) {
-        this.androidVIVOCategory = androidVIVOCategory;
+    public void setAndroidVIVOCategory(String category) {
+        this.vivoCategory = category;
     }
 
-    public void setiOSPushType(int iOSPushType) {
-        this.iOSPushType = iOSPushType;
+    public void setIOSPushType(int iosPushType) {
+        this.iOSPushType = iosPushType;
     }
 
-    public void setAndroidHuaWeiCategory(String androidHuaWeiCategory) {
-        this.androidHuaWeiCategory = androidHuaWeiCategory;
+    public void setAndroidHuaWeiCategory(String category) {
+        this.huaweiCategory = category;
     }
 }

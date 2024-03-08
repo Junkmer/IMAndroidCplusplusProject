@@ -920,7 +920,7 @@ namespace v2im {
                 V2TIMElem *elem = value.elemList[0];
                 if (elem->elemType == V2TIM_ELEM_TYPE_SOUND) {
                     auto *soundElem = dynamic_cast<V2TIMSoundElem *>(elem);
-                    soundElem->ConvertVoiceToText(language,callback);
+                    soundElem->ConvertVoiceToText(language, callback);
                 }
             } else {
                 callback->OnError(error_code, error_message);
@@ -1076,6 +1076,10 @@ namespace v2im {
 
     void V2IMEngine::AddInvitedSignaling(const V2TIMSignalingInfo &info, V2TIMCallback *callback) {
         GetSignalingManager()->AddInvitedSignaling(info, callback);
+    }
+
+    void V2IMEngine::ModifyInvitation(const V2TIMString &inviteID, const V2TIMString &data, V2TIMCallback *callback) {
+        GetSignalingManager()->ModifyInvitation(inviteID, data, callback);
     }
 
 }

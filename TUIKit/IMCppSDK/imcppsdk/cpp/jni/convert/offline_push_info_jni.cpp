@@ -76,17 +76,48 @@ namespace v2im {
             }
             j_field_array_[FieldIDIgnoreIOSBadge] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "androidOPPOChannelID", "Ljava/lang/String;");
+            jfield = env->GetFieldID(j_cls_, "oppoChannelID", "Ljava/lang/String;");
             if (jfield == nullptr) {
                 return false;
             }
-            j_field_array_[FieldIDAndroidOPPOChannelID] = jfield;
+            j_field_array_[FieldIDOppoChannelID] = jfield;
 
-            jfield = env->GetFieldID(j_cls_, "androidVIVOClassification", "I");
+
+            jfield = env->GetFieldID(j_cls_, "fcmChannelID", "Ljava/lang/String;");
             if (jfield == nullptr) {
                 return false;
             }
-            j_field_array_[FieldIDAndroidVIVOClassification] = jfield;
+            j_field_array_[FieldIDFcmChannelID] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "xiaomiChannelID", "Ljava/lang/String;");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_array_[FieldIDXiaomiChannelID] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "vivoClassification", "I");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_array_[FieldIDVivoClassification] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "vivoCategory", "Ljava/lang/String;");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_array_[FieldIDVivoCategory] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "iOSPushType", "I");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_array_[FieldIDIOSPushType] = jfield;
+
+            jfield = env->GetFieldID(j_cls_, "huaweiCategory", "Ljava/lang/String;");
+            if (jfield == nullptr) {
+                return false;
+            }
+            j_field_array_[FieldIDHuaweiCategory] = jfield;
 
             return true;
         }
@@ -131,11 +162,37 @@ namespace v2im {
 
             jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidOPPOChannelID.CString());
             if (jStr){
-                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDAndroidOPPOChannelID], jStr);
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDOppoChannelID], jStr);
                 env->DeleteLocalRef(jStr);
             }
 
-            env->SetIntField(j_pushInfoObj, j_field_array_[FieldIDAndroidVIVOClassification], (jint) offlinePushInfo.AndroidVIVOClassification);
+            jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidFCMChannelID.CString());
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDFcmChannelID], jStr);
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidXiaoMiChannelID.CString());
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDXiaomiChannelID], jStr);
+                env->DeleteLocalRef(jStr);
+            }
+
+            env->SetIntField(j_pushInfoObj, j_field_array_[FieldIDVivoClassification], offlinePushInfo.AndroidVIVOClassification);
+
+            jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidVIVOCategory.CString());
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDVivoCategory], jStr);
+                env->DeleteLocalRef(jStr);
+            }
+
+            env->SetIntField(j_pushInfoObj, j_field_array_[FieldIDIOSPushType], offlinePushInfo.iOSPushType);
+
+            jStr = StringJni::Cstring2Jstring(env, offlinePushInfo.AndroidHuaWeiCategory.CString());
+            if (jStr){
+                env->SetObjectField(j_pushInfoObj, j_field_array_[FieldIDHuaweiCategory], jStr);
+                env->DeleteLocalRef(jStr);
+            }
 
             return j_pushInfoObj;
         }
@@ -184,13 +241,39 @@ namespace v2im {
 
             offlinePushInfo.ignoreIOSBadge = env->GetBooleanField(object, j_field_array_[FieldIDIgnoreIOSBadge]);
 
-            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDAndroidOPPOChannelID]);
+            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDOppoChannelID]);
             if (jStr) {
                 offlinePushInfo.AndroidOPPOChannelID = StringJni::Jstring2Cstring(env, jStr).c_str();
                 env->DeleteLocalRef(jStr);
             }
 
-            offlinePushInfo.AndroidVIVOClassification = env->GetIntField(object, j_field_array_[FieldIDAndroidVIVOClassification]);
+            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDFcmChannelID]);
+            if (jStr) {
+                offlinePushInfo.AndroidFCMChannelID = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDXiaomiChannelID]);
+            if (jStr) {
+                offlinePushInfo.AndroidXiaoMiChannelID = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            offlinePushInfo.AndroidVIVOClassification = env->GetIntField(object, j_field_array_[FieldIDVivoClassification]);
+
+            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDVivoCategory]);
+            if (jStr) {
+                offlinePushInfo.AndroidVIVOCategory = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
+
+            offlinePushInfo.iOSPushType = V2TIMIOSOfflinePushType(env->GetIntField(object, j_field_array_[FieldIDIOSPushType]));
+
+            jStr = (jstring) env->GetObjectField(object, j_field_array_[FieldIDHuaweiCategory]);
+            if (jStr) {
+                offlinePushInfo.AndroidHuaWeiCategory = StringJni::Jstring2Cstring(env, jStr).c_str();
+                env->DeleteLocalRef(jStr);
+            }
 
             return true;
         }

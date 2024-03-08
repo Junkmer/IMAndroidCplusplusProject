@@ -267,7 +267,7 @@ namespace v2im {
                 env->CallVoidMethod(conversationObj, j_method_id_array_[MethodIDAddMark], (jlong) conversation.markList[i]);
             }
 
-            jStr = StringJni::Cuint8_t2Jstring(env, conversation.customData.Data(), conversation.customData.Size());
+            jStr = StringJni::V2TIMBuffer2Jstring(env, conversation.customData.Data(), conversation.customData.Size());
             if (jStr) {
                 env->SetObjectField(conversationObj, j_field_id_array_[FieldIDCustomData], jStr);
                 env->DeleteLocalRef(jStr);

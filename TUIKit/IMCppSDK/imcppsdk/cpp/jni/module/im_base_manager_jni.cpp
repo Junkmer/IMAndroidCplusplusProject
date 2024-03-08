@@ -27,6 +27,9 @@
 #include "user_full_info_jni.h"
 #include "user_status_jni.h"
 #include "V2TIMErrorCode.h"
+#include "jni_helper.h"
+#include "call_experimental_api_jni.h"
+#include "LogUtil.h"
 //监听
 #include "conversation_listener_jni.h"
 
@@ -305,7 +308,7 @@ DEFINE_NATIVE_FUNC(void, NativeSubscribeUserInfo, jobject user_id_list, jobject 
             env->DeleteLocalRef(userID);
         }
     }
-    v2im::V2IMEngine::GetInstance()->SubscribeUserInfo(stringVector,new v2im::CallbackIMpl(callback));
+    v2im::V2IMEngine::GetInstance()->SubscribeUserInfo(stringVector, new v2im::CallbackIMpl(callback));
 }
 
 
@@ -323,7 +326,7 @@ DEFINE_NATIVE_FUNC(void, NativeUnsubscribeUserInfo, jobject user_id_list, jobjec
             env->DeleteLocalRef(userID);
         }
     }
-    v2im::V2IMEngine::GetInstance()->UnsubscribeUserInfo(stringVector,new v2im::CallbackIMpl(callback));
+    v2im::V2IMEngine::GetInstance()->UnsubscribeUserInfo(stringVector, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeGetUserStatus, jobject user_id_list, jobject callback) {
@@ -421,6 +424,7 @@ DEFINE_NATIVE_FUNC(void, NativeCallExperimentalAPI, jstring api, jobject param, 
 
     V2TIMString apiStr = v2im::jni::StringJni::Jstring2Cstring(env, api).c_str();
 
+    const void *param_cxx = v2im::jni::CallExperimentalAPIJni::ConvertToCoreObject(env, apiStr, param);
 
     jobject jni_callback = env->NewGlobalRef(callback);
 
@@ -431,7 +435,11 @@ DEFINE_NATIVE_FUNC(void, NativeCallExperimentalAPI, jstring api, jobject param, 
 
                 if (V2TIMErrorCode::ERR_SUCC == error_code) {
                     if (baseObject.obj_ptr) {
-                        v2im::jni::IMCallbackJNI::Success(jni_callback, (jobject const &) baseObject);
+                        if (apiStr == "isCommercialAbilityEnabled"){
+                            bool isEnabled = (bool) baseObject.obj_ptr;
+                            v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::IntegerJni::NewIntegerObj(isEnabled));
+                        }
+//                        v2im::jni::IMCallbackJNI::Success(jni_callback, (jobject const &) baseObject);
                     }
                 } else {
                     v2im::jni::IMCallbackJNI::Fail(jni_callback, error_code, error_message.CString());
@@ -441,53 +449,45 @@ DEFINE_NATIVE_FUNC(void, NativeCallExperimentalAPI, jstring api, jobject param, 
                 delete value_callback;
             });
 
-    v2im::V2IMEngine::GetInstance()->CallExperimentalAPI(apiStr, param, value_callback);
+    v2im::V2IMEngine::GetInstance()->CallExperimentalAPI(apiStr, param_cxx, value_callback);
 }
-
-//void test(JNIEnv *env) {
-//    jclass cls = env->FindClass("com/tencent/imsdk/v2/V2TIMManager");
-//    jmethodID jmethod = nullptr;
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusSDKListener", "()V");
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusSimpleMsgListener", "()V");
-//    jmethod = env->GetMethodID(cls, "nativeInitCplusplusGroupListener", "()V");
-//}
 
 // java 和 native 方法映射
 static JNINativeMethod gMethods[] = {
         {"nativeInitCplusplusSDKListener",       "()V",                                                                                            (void *) NativeInitCplusplusSDKListener},
         {"nativeInitCplusplusSimpleMsgListener", "()V",                                                                                            (void *) NativeInitCplusplusSimpleMsgListener},
         {"nativeInitCplusplusGroupListener",     "()V",                                                                                            (void *) NativeInitCplusplusGroupListener},
-        {"nativeAddSDKListener",                "(Lcom/tencent/imsdk/v2/V2TIMSDKListener;Ljava/lang/String;)V",                                   (void *) NativeAddSDKListener},
-        {"nativeRemoveSDKListener",             "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveSDKListener},
-        {"nativeInitSDK",                       "(ILcom/tencent/imsdk/v2/V2TIMSDKConfig;)Z",                                                      (bool *) NativeInitSDK},
-        {"nativeUninitSDK",                     "()V",                                                                                            (void *) NativeUninitSDK},
-        {"nativeLogin",                         "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeLogin},
-        {"nativeLogout",                        "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                       (void *) NativeLogout},
-        {"nativeGetVersion",                    "()Ljava/lang/String;",                                                                           (jstring *) NativeGetVersion},
-        {"nativeGetServerTime",                 "()J",                                                                                            (jlong *) NativeGetServerTime},
-        {"nativeGetLoginUser",                  "()Ljava/lang/String;",                                                                           (jstring *) NativeGetLoginUser},
-        {"nativeGetLoginStatus",                "()I",                                                                                            (jint *) NativeGetLoginStatus},
-        {"nativeAddSimpleMsgListener",          "(Lcom/tencent/imsdk/v2/V2TIMSimpleMsgListener;Ljava/lang/String;)V",                             (void *) NativeAddSimpleMsgListener},
-        {"nativeRemoveSimpleMsgListener",       "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveSimpleMsgListener},
-        {"nativeSendC2CTextMessage",            "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",  (jstring *) NativeSendC2CTextMessage},
-        {"nativeSendC2CCustomMessage",          "([BLjava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                  (jstring *) NativeSendC2CCustomMessage},
-        {"nativeSendGroupTextMessage",          "(Ljava/lang/String;Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;", (jstring *) NativeSendGroupTextMessage},
-        {"nativeSendGroupCustomMessage",        "([BLjava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                 (jstring *) NativeSendGroupCustomMessage},
-        {"nativeAddGroupListener",              "(Lcom/tencent/imsdk/v2/V2TIMGroupListener;Ljava/lang/String;)V",                                 (void *) NativeAddGroupListener},
-        {"nativeRemoveGroupListener",           "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveGroupListener},
-        {"nativeCreateGroup",                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeCreateGroup},
-        {"nativeJoinGroup",                     "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeJoinGroup},
-        {"nativeQuitGroup",                     "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeQuitGroup},
-        {"nativeDismissGroup",                  "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeDismissGroup},
-        {"nativeGetUsersInfo",                  "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUsersInfo},
-        {"nativeSetSelfInfo",                   "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;Lcom/tencent/imsdk/common/IMCallback;)V",               (void *) NativeSetSelfInfo},
-        {"nativeSubscribeUserInfo",       "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserInfo},
-        {"nativeUnsubscribeUserInfo",     "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserInfo},
-        {"nativeGetUserStatus",                 "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUserStatus},
-        {"nativeSetSelfStatus",                 "(Lcom/tencent/imsdk/v2/V2TIMUserStatus;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeSetSelfStatus},
-        {"nativeSubscribeUserStatus",           "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserStatus},
-        {"nativeUnsubscribeUserStatus",         "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserStatus},
-        {"nativeCallExperimentalAPI",           "(Ljava/lang/String;Ljava/lang/Object;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeCallExperimentalAPI},
+        {"nativeAddSDKListener",                 "(Lcom/tencent/imsdk/v2/V2TIMSDKListener;Ljava/lang/String;)V",                                   (void *) NativeAddSDKListener},
+        {"nativeRemoveSDKListener",              "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveSDKListener},
+        {"nativeInitSDK",                        "(ILcom/tencent/imsdk/v2/V2TIMSDKConfig;)Z",                                                      (bool *) NativeInitSDK},
+        {"nativeUninitSDK",                      "()V",                                                                                            (void *) NativeUninitSDK},
+        {"nativeLogin",                          "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeLogin},
+        {"nativeLogout",                         "(Lcom/tencent/imsdk/common/IMCallback;)V",                                                       (void *) NativeLogout},
+        {"nativeGetVersion",                     "()Ljava/lang/String;",                                                                           (jstring *) NativeGetVersion},
+        {"nativeGetServerTime",                  "()J",                                                                                            (jlong *) NativeGetServerTime},
+        {"nativeGetLoginUser",                   "()Ljava/lang/String;",                                                                           (jstring *) NativeGetLoginUser},
+        {"nativeGetLoginStatus",                 "()I",                                                                                            (jint *) NativeGetLoginStatus},
+        {"nativeAddSimpleMsgListener",           "(Lcom/tencent/imsdk/v2/V2TIMSimpleMsgListener;Ljava/lang/String;)V",                             (void *) NativeAddSimpleMsgListener},
+        {"nativeRemoveSimpleMsgListener",        "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveSimpleMsgListener},
+        {"nativeSendC2CTextMessage",             "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",  (jstring *) NativeSendC2CTextMessage},
+        {"nativeSendC2CCustomMessage",           "([BLjava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                  (jstring *) NativeSendC2CCustomMessage},
+        {"nativeSendGroupTextMessage",           "(Ljava/lang/String;Ljava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;", (jstring *) NativeSendGroupTextMessage},
+        {"nativeSendGroupCustomMessage",         "([BLjava/lang/String;ILcom/tencent/imsdk/common/IMCallback;)Ljava/lang/String;",                 (jstring *) NativeSendGroupCustomMessage},
+        {"nativeAddGroupListener",               "(Lcom/tencent/imsdk/v2/V2TIMGroupListener;Ljava/lang/String;)V",                                 (void *) NativeAddGroupListener},
+        {"nativeRemoveGroupListener",            "(Ljava/lang/String;)V",                                                                          (void *) NativeRemoveGroupListener},
+        {"nativeCreateGroup",                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V", (void *) NativeCreateGroup},
+        {"nativeJoinGroup",                      "(Ljava/lang/String;Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeJoinGroup},
+        {"nativeQuitGroup",                      "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeQuitGroup},
+        {"nativeDismissGroup",                   "(Ljava/lang/String;Lcom/tencent/imsdk/common/IMCallback;)V",                                     (void *) NativeDismissGroup},
+        {"nativeGetUsersInfo",                   "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUsersInfo},
+        {"nativeSetSelfInfo",                    "(Lcom/tencent/imsdk/v2/V2TIMUserFullInfo;Lcom/tencent/imsdk/common/IMCallback;)V",               (void *) NativeSetSelfInfo},
+        {"nativeSubscribeUserInfo",              "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserInfo},
+        {"nativeUnsubscribeUserInfo",            "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserInfo},
+        {"nativeGetUserStatus",                  "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeGetUserStatus},
+        {"nativeSetSelfStatus",                  "(Lcom/tencent/imsdk/v2/V2TIMUserStatus;Lcom/tencent/imsdk/common/IMCallback;)V",                 (void *) NativeSetSelfStatus},
+        {"nativeSubscribeUserStatus",            "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeSubscribeUserStatus},
+        {"nativeUnsubscribeUserStatus",          "(Ljava/util/List;Lcom/tencent/imsdk/common/IMCallback;)V",                                       (void *) NativeUnsubscribeUserStatus},
+        {"nativeCallExperimentalAPI",            "(Ljava/lang/String;Ljava/lang/Object;Lcom/tencent/imsdk/common/IMCallback;)V",                   (void *) NativeCallExperimentalAPI},
 };
 
 // 注册 native 方法

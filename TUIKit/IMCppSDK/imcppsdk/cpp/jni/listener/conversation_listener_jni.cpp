@@ -93,7 +93,7 @@ namespace v2im {
             if (nullptr == jmethod) {
                 return false;
             }
-            j_method_id_array_[MethodIDOnTotalUnreadMessageCountChanged] = jmethod;
+            j_method_id_array_[MethodIDOnConversationDeleted] = jmethod;
 
             jmethod = env->GetMethodID(j_cls_, "onTotalUnreadMessageCountChanged", "(J)V");
             if (nullptr == jmethod) {
@@ -105,7 +105,7 @@ namespace v2im {
             if (nullptr == jmethod) {
                 return false;
             }
-            j_method_id_array_[MethodIDOnTotalUnreadMessageCountChanged] = jmethod;
+            j_method_id_array_[MethodIDOnUnreadMessageCountChangedByFilter] = jmethod;
 
             jmethod = env->GetMethodID(j_cls_, "onConversationGroupCreated", "(Ljava/lang/String;Ljava/util/List;)V");
             if (nullptr == jmethod) {
