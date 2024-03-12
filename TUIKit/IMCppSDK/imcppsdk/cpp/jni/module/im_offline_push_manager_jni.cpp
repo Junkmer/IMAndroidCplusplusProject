@@ -24,11 +24,9 @@ extern "C" {
 DEFINE_NATIVE_FUNC(void, NativeSetOfflinePushConfig, jobject config, jobject callback) {
 
     V2TIMOfflinePushConfig pushConfig;
-    bool flag = v2im::jni::OfflinePushConfigJni::Convert2CoreObject(config, pushConfig);
-    if (flag) {
-        v2im::V2IMEngine::GetInstance()->SetOfflinePushConfig(pushConfig, new v2im::CallbackIMpl(callback));
-    }
+    v2im::jni::OfflinePushConfigJni::Convert2CoreObject(config, pushConfig);
 
+    v2im::V2IMEngine::GetInstance()->SetOfflinePushConfig(pushConfig, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeDoBackground, jint unread_count, jobject callback) {

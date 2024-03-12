@@ -151,10 +151,7 @@ DEFINE_NATIVE_FUNC(void, NativeGetConversationListByFilter, jobject filter, jlon
 
     V2TIMConversationListFilter listFilter;
 
-    bool flag = v2im::jni::ConversationListFilterJni::Convert2CoreObject(filter, listFilter);
-    if (flag) {
-        return;
-    }
+    v2im::jni::ConversationListFilterJni::Convert2CoreObject(filter, listFilter);
 
     auto value_callback = new v2im::ValueCallbackImpl<V2TIMConversationResult>{};
     value_callback->setCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMConversationResult &value) {

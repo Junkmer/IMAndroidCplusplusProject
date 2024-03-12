@@ -247,7 +247,7 @@ public class V2TIMConversationManagerImpl extends V2TIMConversationManager {
 
     @Override
     public void deleteConversationGroup(String groupName, V2TIMCallback _callback_) {
-        nativeDeleteConversation(groupName, new IMCallback(_callback_) {
+        nativeDeleteConversationGroup(groupName, new IMCallback(_callback_) {
             @Override
             public void success(Object data) {
                 super.success(data);

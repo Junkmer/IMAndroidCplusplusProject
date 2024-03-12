@@ -120,11 +120,8 @@ DEFINE_NATIVE_FUNC(jobject, NativeGetSignalingInfo, jobject msg) {
 DEFINE_NATIVE_FUNC(void, NativeAddInvitedSignaling, jobject info, jobject callback) {
 
     V2TIMSignalingInfo signalingInfo;
-    bool flag = v2im::jni::SignalingInfoJni::Convert2CoreObject(info, signalingInfo);
-    if (flag) {
-        v2im::V2IMEngine::GetInstance()->AddInvitedSignaling(signalingInfo, new v2im::CallbackIMpl(callback));
-    }
-
+    v2im::jni::SignalingInfoJni::Convert2CoreObject(info, signalingInfo);
+    v2im::V2IMEngine::GetInstance()->AddInvitedSignaling(signalingInfo, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeModifyInvitation, jstring invite_id, jstring data, jobject callback) {

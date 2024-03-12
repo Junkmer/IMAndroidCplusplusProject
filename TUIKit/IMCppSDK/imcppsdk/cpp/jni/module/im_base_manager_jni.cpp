@@ -288,10 +288,8 @@ DEFINE_NATIVE_FUNC(void, NativeSetSelfInfo, jobject info, jobject callback) {
     }
 
     V2TIMUserFullInfo userFullInfo;
-    bool flag = v2im::jni::UserFullInfoJni::Convert2CoreObject(info, userFullInfo);
-    if (flag) {
-        v2im::V2IMEngine::GetInstance()->SetSelfInfo(userFullInfo, new v2im::CallbackIMpl(callback));
-    }
+    v2im::jni::UserFullInfoJni::Convert2CoreObject(info, userFullInfo);
+    v2im::V2IMEngine::GetInstance()->SetSelfInfo(userFullInfo, new v2im::CallbackIMpl(callback));
 }
 
 DEFINE_NATIVE_FUNC(void, NativeSubscribeUserInfo, jobject user_id_list, jobject callback) {
