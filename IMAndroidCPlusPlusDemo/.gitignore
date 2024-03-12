@@ -39,3 +39,4 @@ gradlew.bat
 /app/build/
 gradle/wrapper/
 /gradle/wrapper/gradle-wrapper.properties
+/app/src/main/java/com/tencent/qcloud/tim/demo/signature/

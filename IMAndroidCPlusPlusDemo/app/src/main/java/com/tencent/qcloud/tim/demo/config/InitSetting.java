@@ -4,11 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
-import android.text.TextUtils;
 import android.util.Log;
 
-import com.tencent.imsdk.v2.V2TIMManager;
-import com.tencent.imsdk.v2.V2TIMValueCallback;
 import com.tencent.qcloud.tim.demo.R;
 import com.tencent.qcloud.tim.demo.custom.CustomConfigHelper;
 import com.tencent.qcloud.tim.demo.push.OfflinePushAPIDemo;
@@ -16,20 +13,12 @@ import com.tencent.qcloud.tim.demo.push.OfflinePushConfigs;
 import com.tencent.qcloud.tim.demo.push.OfflinePushLocalReceiver;
 import com.tencent.qcloud.tim.demo.signature.GenerateTestUserSig;
 import com.tencent.qcloud.tim.demo.utils.DemoLog;
-import com.tencent.qcloud.tim.tuiofflinepush.utils.BrandUtil;
-import com.tencent.qcloud.tuicore.TUIConstants;
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.TUIThemeManager;
-import com.tencent.qcloud.tuicore.interfaces.ITUIObjectFactory;
-import com.tencent.qcloud.tuicore.util.ErrorMessageConverter;
 import com.tencent.qcloud.tuicore.util.PermissionRequester;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatConstants;
 import com.tencent.qcloud.tuikit.tuichat.TUIChatService;
 import com.tencent.qcloud.tuikit.tuichat.config.TUIChatConfigs;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
