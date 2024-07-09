@@ -500,6 +500,13 @@ namespace v2im {
             }
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokeReason], StringJni::Cstring2Jstring(env, v2TimMessage.revokeReason.CString()));
         }
+
+        //发送的消息，需要将消息状态改成发送中
+        void MessageJni::UpdateJMessageStatus(jobject &j_obj_message) {
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], V2TIMMessageStatus::V2TIM_MSG_STATUS_SENDING);
+        }
     }
 }
 
