@@ -9,6 +9,7 @@
 #include "jni.h"
 #include "v2_im_common.h"
 #include "value_callback_impl.h"
+#include "value_varable_callback_impl.h"
 #include "message_jni.h"
 #include "IMC++ErrorCode.h"
 
@@ -80,6 +81,35 @@ namespace v2im {
             v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
         } else {
             callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", {});
+        }
+    }
+
+    void GetRetryMessage(const V2TIMMessage &message, const VariableCallback &callback) {
+        if (message.msgID.Length() > 0) {
+            V2TIMStringVector stringVector;
+            stringVector.PushBack(message.msgID);
+
+            auto findMessage_callback = new v2im::ValueVariableCallbackImpl<V2TIMMessageVector>{};
+            findMessage_callback->setVariableCallback([=](const int &error_code, const V2TIMString &error_message,const V2TIMMessageVector &value) {
+                if (V2TIMErrorCode::ERR_SUCC == error_code) {
+                    for (int i = 0; i < value.Size(); ++i) {
+                        if (message.msgID == value[i].msgID && message.seq == value[i].seq && message.status ==
+                        V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL ) {
+                            auto newValue = new V2TIMMessage(value[0]);
+                            callback(V2TIMErrorCode::ERR_SUCC, "", *newValue);
+                            break;
+                        }
+                    }
+                } else {
+                    V2TIMMessage messageNew;
+                    callback(V2TIMErrorCode::ERR_SUCC, error_message, messageNew);
+                }
+                delete findMessage_callback;
+            });
+            v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
+        } else {
+            V2TIMMessage messageNew;
+            callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", messageNew);
         }
     }
 
@@ -696,7 +726,14 @@ namespace v2im {
 
     V2TIMString V2IMEngine::SendMessage(V2TIMMessage &message, const V2TIMString &receiver, const V2TIMString &groupID, V2TIMMessagePriority priority,
                                         bool onlineUserOnly, const V2TIMOfflinePushInfo &offlinePushInfo, V2TIMSendCallback *callback) {
-        return GetMessageManager()->SendMessage(message, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, callback);
+        if (message.status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL){
+            GetRetryMessage(message, [=](const int &error_code, const V2TIMString &error_message, V2TIMMessage &value) {
+                GetMessageManager()->SendMessage(value, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, callback);
+            });
+            return message.msgID;
+        } else{
+            return GetMessageManager()->SendMessage(message, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, callback);
+        }
     }
 
     void V2IMEngine::SetC2CReceiveMessageOpt(const V2TIMStringVector &userIDList, V2TIMReceiveMessageOpt opt, V2TIMCallback *callback) {

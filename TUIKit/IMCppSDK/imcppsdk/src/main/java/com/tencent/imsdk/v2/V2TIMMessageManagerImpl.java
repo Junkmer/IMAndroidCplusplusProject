@@ -115,7 +115,6 @@ public class V2TIMMessageManagerImpl extends V2TIMMessageManager {
         if (message != null){
             message.setRead(true);
             message.setSelf(true);
-            message.setStatus(V2TIMMessage.V2TIM_MSG_STATUS_SENDING);
         }
 
         return nativeSendMessage(message, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, new IMCallback<V2TIMMessage>(_callback_) {
