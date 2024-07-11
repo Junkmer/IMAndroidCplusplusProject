@@ -21,7 +21,9 @@ namespace v2im {
 
             static void UpdateJMessageObject(jobject &messageObj, V2TIMMessage &v2TimMessage);
 
-            static void UpdateJMessageStatus(jobject &messageObj);
+            static void UpdateJMessageStatus(jobject &messageObj,const V2TIMMessage &v2TimMessage,const bool &isRetry);
+
+            static void UpdateJMessageStatus2Fail(jobject &messageObj);
 
         private:
             enum FieldID {

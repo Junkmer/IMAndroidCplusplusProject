@@ -12,7 +12,7 @@ namespace v2im {
     // 公共可变参数回调定义
     template<typename... Args>
     using Callback = std::function<void(const int &error_code, const V2TIMString &error_message, Args...)>;
-    using VariableCallback = std::function<void(const int &error_code, const V2TIMString &error_message, V2TIMMessage &value)>;
+    using VariableCallback = std::function<void(V2TIMMessage &value)>;
 
 }  // namespace v2im
 

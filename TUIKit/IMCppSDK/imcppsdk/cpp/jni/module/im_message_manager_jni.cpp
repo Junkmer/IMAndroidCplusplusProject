@@ -209,12 +209,12 @@ DEFINE_NATIVE_FUNC(jstring, NativeSendMessage, jobject message, jstring receiver
         v2im::jni::OfflinePushInfoJni::Convert2CoreObject(offline_push_info, offlinePushInfo);
     }
 
-    if (message_c.status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL){
-        v2im::jni::MessageJni::UpdateJMessageStatus(message);
-    }
+    bool isRetry = message_c.status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL;
 
     V2TIMString msgIDStr = v2im::V2IMEngine::GetInstance()->SendMessage(message_c, receiverStr, groupIDStr, messagePriority, online_user_only,
-                                                                        offlinePushInfo, new v2im::SendCallbackImpl(callback));
+                                                                        offlinePushInfo, new v2im::SendCallbackImpl(message,callback));
+
+    v2im::jni::MessageJni::UpdateJMessageStatus(message,message_c,isRetry);
 
     return v2im::jni::StringJni::Cstring2Jstring(env, msgIDStr.CString());
 }
