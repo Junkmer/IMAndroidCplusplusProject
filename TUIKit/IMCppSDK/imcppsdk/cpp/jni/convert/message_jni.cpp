@@ -501,11 +501,28 @@ namespace v2im {
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDRevokeReason], StringJni::Cstring2Jstring(env, v2TimMessage.revokeReason.CString()));
         }
 
-        //发送的消息，需要将消息状态改成发送中
-        void MessageJni::UpdateJMessageStatus(jobject &j_obj_message) {
+        void MessageJni::UpdateJMessageStatus(jobject &j_obj_message, const V2TIMMessage &v2TimMessage,const bool &isRetry) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], V2TIMMessageStatus::V2TIM_MSG_STATUS_SENDING);
+            if (!isRetry){
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDMsgID], StringJni::Cstring2Jstring(env, v2TimMessage.msgID.CString()));
+                env->SetLongField(j_obj_message, j_filed_id_array[FieldIDTimestamp], (jlong) v2TimMessage.timestamp);
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDSender], StringJni::Cstring2Jstring(env, v2TimMessage.sender.CString()));
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDNickName], StringJni::Cstring2Jstring(env, v2TimMessage.nickName.CString()));
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDFaceUrl], StringJni::Cstring2Jstring(env, v2TimMessage.faceURL.CString()));
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDNameCard], StringJni::Cstring2Jstring(env, v2TimMessage.nameCard.CString()));
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
+                env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
+                env->SetLongField(j_obj_message, j_filed_id_array[FieldIDSeq], (jlong) v2TimMessage.seq);
+                env->SetLongField(j_obj_message, j_filed_id_array[FieldIDRandom], (jlong) v2TimMessage.random);
+            }
+        }
+
+        void MessageJni::UpdateJMessageStatus2Fail(jobject &j_obj_message) {
+            ScopedJEnv scopedJEnv;
+            auto *env = scopedJEnv.GetEnv();
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL);
         }
     }
 }

@@ -84,32 +84,34 @@ namespace v2im {
         }
     }
 
-    void GetRetryMessage(const V2TIMMessage &message, const VariableCallback &callback) {
+    void GetRetryMessage(V2TIMMessage &message, const VariableCallback &callback) {
         if (message.msgID.Length() > 0) {
             V2TIMStringVector stringVector;
             stringVector.PushBack(message.msgID);
 
             auto findMessage_callback = new v2im::ValueVariableCallbackImpl<V2TIMMessageVector>{};
-            findMessage_callback->setVariableCallback([=](const int &error_code, const V2TIMString &error_message,const V2TIMMessageVector &value) {
+            findMessage_callback->setVariableCallback([=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageVector &value) {
+                // 查找特定消息
+                bool found = false;
                 if (V2TIMErrorCode::ERR_SUCC == error_code) {
                     for (int i = 0; i < value.Size(); ++i) {
-                        if (message.msgID == value[i].msgID && message.seq == value[i].seq && message.status ==
-                        V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL ) {
-                            auto newValue = new V2TIMMessage(value[0]);
-                            callback(V2TIMErrorCode::ERR_SUCC, "", *newValue);
+                        if (message.timestamp == value[i].timestamp && value[i].status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL) {
+                            found = true;
+                            callback(*(new V2TIMMessage(value[i])));
                             break;
                         }
                     }
-                } else {
-                    V2TIMMessage messageNew;
-                    callback(V2TIMErrorCode::ERR_SUCC, error_message, messageNew);
+                }
+                // 如果没有找到特定消息，使用原始消息
+                if (!found) {
+                    callback(*(new V2TIMMessage(message)));
                 }
                 delete findMessage_callback;
             });
             v2im::V2IMEngine::GetInstance()->FindMessages(stringVector, findMessage_callback);
         } else {
-            V2TIMMessage messageNew;
-            callback(IMCPPErrorCode::ERR_NOT_MESSAGE, "not find message!", messageNew);
+            auto messageNew = new V2TIMMessage(message);
+            callback(*messageNew);
         }
     }
 
@@ -366,7 +368,8 @@ namespace v2im {
         GetConversationManager()->UnsubscribeUnreadMessageCountByFilter(filter);
     }
 
-    void V2IMEngine::CleanConversationUnreadMessageCount(const V2TIMString &conversationID, uint64_t cleanTimestamp, uint64_t cleanSequence, V2TIMCallback *callback) {
+    void V2IMEngine::CleanConversationUnreadMessageCount(const V2TIMString &conversationID, uint64_t cleanTimestamp, uint64_t cleanSequence,
+                                                         V2TIMCallback *callback) {
         GetConversationManager()->CleanConversationUnreadMessageCount(conversationID, cleanTimestamp, cleanSequence, callback);
     }
 
@@ -545,19 +548,23 @@ namespace v2im {
         GetGroupManager()->GetGroupOnlineMemberCount(groupID, callback);
     }
 
-    void V2IMEngine::SetGroupCounters(const V2TIMString &groupID, const V2TIMStringToInt64Map &counters, V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
+    void V2IMEngine::SetGroupCounters(const V2TIMString &groupID, const V2TIMStringToInt64Map &counters,
+                                      V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
         GetGroupManager()->SetGroupCounters(groupID, counters, callback);
     }
 
-    void V2IMEngine::GetGroupCounters(const V2TIMString &groupID, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
+    void
+    V2IMEngine::GetGroupCounters(const V2TIMString &groupID, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
         GetGroupManager()->GetGroupCounters(groupID, keys, callback);
     }
 
-    void V2IMEngine::IncreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value, V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
+    void V2IMEngine::IncreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value,
+                                          V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
         GetGroupManager()->IncreaseGroupCounter(groupID, key, value, callback);
     }
 
-    void V2IMEngine::DecreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value, V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
+    void V2IMEngine::DecreaseGroupCounter(const V2TIMString &groupID, const V2TIMString &key, int64_t value,
+                                          V2TIMValueCallback<V2TIMStringToInt64Map> *callback) {
         GetGroupManager()->DecreaseGroupCounter(groupID, key, value, callback);
     }
 
@@ -726,12 +733,13 @@ namespace v2im {
 
     V2TIMString V2IMEngine::SendMessage(V2TIMMessage &message, const V2TIMString &receiver, const V2TIMString &groupID, V2TIMMessagePriority priority,
                                         bool onlineUserOnly, const V2TIMOfflinePushInfo &offlinePushInfo, V2TIMSendCallback *callback) {
-        if (message.status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL){
-            GetRetryMessage(message, [=](const int &error_code, const V2TIMString &error_message, V2TIMMessage &value) {
+        if (message.status == V2TIMMessageStatus::V2TIM_MSG_STATUS_SEND_FAIL) {
+            GetRetryMessage(message, [=](V2TIMMessage &value) {
+                LOGE("message status = %u", value.status);
                 GetMessageManager()->SendMessage(value, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, callback);
             });
             return message.msgID;
-        } else{
+        } else {
             return GetMessageManager()->SendMessage(message, receiver, groupID, priority, onlineUserOnly, offlinePushInfo, callback);
         }
     }
@@ -748,8 +756,9 @@ namespace v2im {
         GetMessageManager()->SetGroupReceiveMessageOpt(groupID, opt, callback);
     }
 
-    void V2IMEngine::SetAllReceiveMessageOpt(V2TIMReceiveMessageOpt opt, int32_t startHour, int32_t startMinute, int32_t startSecond, uint32_t duration,
-                                             V2TIMCallback *callback) {
+    void
+    V2IMEngine::SetAllReceiveMessageOpt(V2TIMReceiveMessageOpt opt, int32_t startHour, int32_t startMinute, int32_t startSecond, uint32_t duration,
+                                        V2TIMCallback *callback) {
         GetMessageManager()->SetAllReceiveMessageOpt(opt, startHour, startMinute, startSecond, duration, callback);
     }
 
@@ -868,7 +877,8 @@ namespace v2im {
     }
 
     void
-    V2IMEngine::DeleteMessageExtensions(const V2TIMMessage &message, const V2TIMStringVector &keys, V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback) {
+    V2IMEngine::DeleteMessageExtensions(const V2TIMMessage &message, const V2TIMStringVector &keys,
+                                        V2TIMValueCallback<V2TIMMessageExtensionResultVector> *callback) {
         GetMessageManager()->DeleteMessageExtensions(message, keys, callback);
     }
 
