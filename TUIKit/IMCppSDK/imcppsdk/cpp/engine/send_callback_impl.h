@@ -14,6 +14,7 @@ namespace v2im {
     class SendCallbackImpl final : public V2TIMSendCallback {
     public:
         SendCallbackImpl(jobject callback_);
+        SendCallbackImpl(jobject message_, jobject callback_);
 
         ~SendCallbackImpl() override;
 
@@ -26,6 +27,7 @@ namespace v2im {
 
     private:
         jobject send_callback_;
+        jobject send_message_;
     };
 }
 
