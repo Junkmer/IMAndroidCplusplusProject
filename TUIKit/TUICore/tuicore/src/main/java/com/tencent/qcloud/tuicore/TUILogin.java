@@ -129,34 +129,8 @@ public class TUILogin {
      * @param callback  login callback
      */
     public static void login(@NonNull Context context, int sdkAppId, String userId, String userSig, TUILoginConfig config, TUICallback callback) {
-//        setProxyInfo();
         getInstance().internalLogin(context, sdkAppId, userId, userSig, config, callback);
     }
-
-    private static void setProxyInfo(){
-        try {
-            JSONObject param = new JSONObject();
-            param.put("proxyType", 2);
-            param.put("proxyHost", "ofcnet-proxy-va.futuoa.com");
-            param.put("proxyPort", 63128);
-            param.put("proxyUsername", "ofc-ft");
-            param.put("proxyPassword", "EUk3Tw");
-
-            V2TIMManager.getInstance().callExperimentalAPI("setProxyInfo", param, new V2TIMValueCallback<Object>() {
-                @Override
-                public void onError(int code, String desc) {
-                    Log.i(TAG, "code:" + code + " desc:" + desc);
-                }
-                @Override
-                public void onSuccess(Object object) {
-                    Log.i(TAG, "success");
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * User Login
