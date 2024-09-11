@@ -512,16 +512,16 @@ public class V2TIMManagerImpl extends V2TIMManager {
     }
 
     private void setProxyInfo(String apiTitle , Object param, V2TIMValueCallback<Object> _callback_) {
-        if (null == param || !(param instanceof String)) {
-            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
-            return;
-        }
-
-        String json = (String) param;
-        if (TextUtils.isEmpty(json)) {
-            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
-            return;
-        }
+//        if (null == param || !(param instanceof String)) {
+//            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is not string");
+//            return;
+//        }
+//
+//        String json = (String) param;
+//        if (TextUtils.isEmpty(json)) {
+//            callbackOnError(_callback_, BaseConstants.ERR_INVALID_PARAMETERS, "param is empty");
+//            return;
+//        }
 
         nativeCallExperimentalAPI(apiTitle, param, new IMCallback<Object>(_callback_) {
             @Override

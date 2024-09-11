@@ -168,10 +168,10 @@ namespace v2im {
             jstring j_password = JSONObjectJNI::optJsonString(env, param, "proxyPassword");
 
             param_json["proxyType"] = j_type;
-            param_json["proxyHost"] = j_host;
+            param_json["proxyHost"] = StringJni::Jstring2Cstring(env, j_host);
             param_json["proxyPort"] = j_port;
-            param_json["proxyUsername"] = j_username;
-            param_json["proxyPassword"] = j_password;
+            param_json["proxyUsername"] = StringJni::Jstring2Cstring(env, j_username);
+            param_json["proxyPassword"] = StringJni::Jstring2Cstring(env, j_password);
 
             env->DeleteLocalRef(j_host);
             env->DeleteLocalRef(j_username);
