@@ -255,9 +255,9 @@ namespace v2im {
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
-            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.GetLocalCustomInt());
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
-                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.GetLocalCustomData().Data(), v2TimMessage.GetLocalCustomData().Size()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
                                 StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);
@@ -368,10 +368,10 @@ namespace v2im {
 
             message.status = V2TIMMessageStatus(env->GetIntField(messageObj, j_filed_id_array[FieldIDStatus]));
 
-            message.localCustomInt = env->GetIntField(messageObj, j_filed_id_array[FieldIDLocalCustomInt]);
+            message.SetLocalCustomInt(env->GetIntField(messageObj, j_filed_id_array[FieldIDLocalCustomInt]), nullptr);
             auto localCustomDataStr = (jstring) env->GetObjectField(messageObj, j_filed_id_array[FieldIDLocalCustomData]);
             if (nullptr != localCustomDataStr) {
-                message.localCustomData = StringJni::Jstring2V2TIMBuffer(env, localCustomDataStr);
+                message.SetLocalCustomData(StringJni::Jstring2V2TIMBuffer(env, localCustomDataStr), nullptr);
                 env->DeleteLocalRef(localCustomDataStr);
             }
 
@@ -382,8 +382,6 @@ namespace v2im {
             }
 
             message.isSelf = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsSelf]);
-            message.isRead = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsRead]);
-            message.isPeerRead = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsPeerRead]);
             message.needReadReceipt = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDNeedReadReceipt]);
             message.isBroadcastMessage = (bool) env->GetBooleanField(messageObj, j_filed_id_array[FieldIDIsBroadcastMessage]);
             message.priority = V2TIMMessagePriority(env->GetIntField(messageObj, j_filed_id_array[FieldIDPriority]));
@@ -449,9 +447,9 @@ namespace v2im {
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDGroupID], StringJni::Cstring2Jstring(env, v2TimMessage.groupID.CString()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDUserID], StringJni::Cstring2Jstring(env, v2TimMessage.userID.CString()));
             env->SetIntField(j_obj_message, j_filed_id_array[FieldIDStatus], (jint) v2TimMessage.status);
-            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.localCustomInt);
+            env->SetIntField(j_obj_message, j_filed_id_array[FieldIDLocalCustomInt], (jint) v2TimMessage.GetLocalCustomInt());
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDLocalCustomData],
-                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.localCustomData.Data(), v2TimMessage.localCustomData.Size()));
+                                StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.GetLocalCustomData().Data(), v2TimMessage.GetLocalCustomData().Size()));
             env->SetObjectField(j_obj_message, j_filed_id_array[FieldIDCloudCustomData],
                                 StringJni::V2TIMBuffer2Jstring(env, v2TimMessage.cloudCustomData.Data(), v2TimMessage.cloudCustomData.Size()));
             env->SetBooleanField(j_obj_message, j_filed_id_array[FieldIDIsSelf], v2TimMessage.isSelf);

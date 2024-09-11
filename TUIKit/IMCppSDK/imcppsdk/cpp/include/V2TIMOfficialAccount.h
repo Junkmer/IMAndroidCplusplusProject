@@ -5,7 +5,7 @@
 
 #include "V2TIMCommon.h"
 
-// 公众号资料
+/// 公众号资料
 struct TIM_API V2TIMOfficialAccountInfo {
     /// 公众号 ID
     V2TIMString officialAccountID;
@@ -33,7 +33,7 @@ struct TIM_API V2TIMOfficialAccountInfo {
     ~V2TIMOfficialAccountInfo();
 };
 
-// 公众号资料获取结果
+/// 公众号资料获取结果
 struct TIM_API V2TIMOfficialAccountInfoResult {
     /// 返回码
     int resultCode;

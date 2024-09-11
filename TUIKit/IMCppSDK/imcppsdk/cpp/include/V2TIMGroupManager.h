@@ -14,6 +14,7 @@
 #include "V2TIMCallback.h"
 #include "V2TIMDefine.h"
 #include "V2TIMGroup.h"
+#include "V2TIMCommunity.h"
 #include "V2TIMListener.h"
 
 /**
@@ -135,7 +136,7 @@ public:
     /**
      * 2.8 获取指定群在线人数
      *
-     * @note 请注意：
+     * @note
      * - IMSDK 7.3 以前的版本仅支持直播群（ AVChatRoom）；
      * - IMSDK 7.3 及其以后的版本支持所有群类型。
      */
@@ -311,14 +312,11 @@ public:
      * 3.9 切换群成员的角色。
      *
      * @note 请注意不同类型的群有如下限制：
-     *  -
-     * 公开群（Public）和会议群（Meeting）：只有群主才能对群成员进行普通成员和管理员之间的角色切换。
-     *  - 其他群不支持设置群成员角色。
+     *  - 工作群（Work）不支持设置群成员角色。
+     *  - 只有群主才能对群成员进行普通成员和管理员之间的角色切换。
      *  - 转让群组请调用 @ref TransferGroupOwner 接口。
-     *  - 会议群（Meeting）切换群成员角色之后，不会有 OnGrantAdministrator 和 OnRevokeAdministrator
-     * 通知回调
-     *  -
-     * 切换的角色支持普通群成员（V2TIM_GROUP_MEMBER_ROLE_MEMBER）和管理员（V2TIM_GROUP_MEMBER_ROLE_ADMIN）
+     *  - 会议群（Meeting）切换群成员角色之后，不会有 OnGrantAdministrator 和 OnRevokeAdministrator 通知回调。
+     *  - 切换的角色支持普通群成员（V2TIM_GROUP_MEMBER_ROLE_MEMBER）和管理员（V2TIM_GROUP_MEMBER_ROLE_ADMIN）。
      */
     virtual void SetGroupMemberRole(const V2TIMString& groupID, const V2TIMString& userID,
         uint32_t role, V2TIMCallback* callback) = 0;
@@ -331,7 +329,7 @@ public:
      *  @param markType 标记类型。数字类型，大于等于 1000，您可以自定义，一个群组里最多允许定义 10 个标记。
      *  @param enableMark true 表示添加标记，false 表示移除标记。
      *
-     *  @note 请注意
+     *  @note
      *  - 直播群从 6.6 版本开始支持。
      *  - 社群从 7.5 版本开始支持。
      *  - 只有群主才有权限标记群组中其他人。

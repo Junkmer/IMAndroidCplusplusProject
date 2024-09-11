@@ -39,12 +39,16 @@ enum V2TIMLogLevel {
 
 /// 消息接收选项
 enum V2TIMReceiveMessageOpt {
-    ///< 在线正常接收消息，离线时会进行 APNs 推送
+    /// 在线正常接收消息，离线时会进行 APNs 推送
     V2TIM_RECEIVE_MESSAGE = 0,
-    ///< 不会接收到消息，离线不会有推送通知
+    /// 不会接收到消息，离线不会有推送通知
     V2TIM_NOT_RECEIVE_MESSAGE = 1,
-    ///< 在线正常接收消息，离线不会有推送通知
+    /// 在线正常接收消息，离线不会有推送通知
     V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE = 2,
+    /// 在线接收消息，离线只接收 at 消息的推送
+    V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT = 3,
+    /// 在线和离线都只接收 at 消息
+    V2TIM_NOT_RECEIVE_MESSAGE_EXCEPT_AT = 4,
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +73,9 @@ typedef TXV2TIMStringToV2TIMStringMap V2TIMGroupAttributeMap;
 
 DEFINE_MAP(V2TIMString, int64_t)
 typedef TXV2TIMStringToint64_tMap V2TIMStringToInt64Map;
+
+DEFINE_MAP(V2TIMString, uint64_t)
+typedef TXV2TIMStringTouint64_tMap V2TIMStringToUint64Map;
 
 class V2TIMLogListener;
 

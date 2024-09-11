@@ -13,17 +13,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-// 操作类型
+/// 操作类型
 enum V2TIMSignalingActionType {
-    // 邀请方发起邀请
+    /// 邀请方发起邀请
     SignalingActionType_Invite = 1,
-    // 邀请方取消邀请
+    /// 邀请方取消邀请
     SignalingActionType_Cancel_Invite = 2,
-    // 被邀请方接受邀请
+    /// 被邀请方接受邀请
     SignalingActionType_Accept_Invite = 3,
-    // 被邀请方拒绝邀请
+    /// 被邀请方拒绝邀请
     SignalingActionType_Reject_Invite = 4,
-    // 邀请超时
+    /// 邀请超时
     SignalingActionType_Invite_Timeout = 5,
 };
 

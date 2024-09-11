@@ -15,24 +15,38 @@
 
 /// 会话类型
 enum V2TIMConversationType {
-    ///< 未知
+    /// 未知
     V2TIM_UNKNOWN = 0,
-    ///< 单聊
+    /// 单聊
     V2TIM_C2C = 1,
-    ///< 群聊
+    /// 群聊
     V2TIM_GROUP = 2,
 };
 
 /// 会话标记类型
 enum V2TIMConversationMarkType {
-    ///< 会话标星
+    /// 会话标星
     V2TIM_CONVERSATION_MARK_TYPE_STAR     = 0x1,
-    ///< 会话标记未读（重要会话）
+    /// 会话标记未读（重要会话）
     V2TIM_CONVERSATION_MARK_TYPE_UNREAD   = 0x1 << 1,
-    ///< 会话折叠
+    /// 会话折叠
     V2TIM_CONVERSATION_MARK_TYPE_FOLD     = 0x1 << 2,
-    ///< 会话隐藏
+    /// 会话隐藏
     V2TIM_CONVERSATION_MARK_TYPE_HIDE     = 0x1 << 3,
+};
+
+/// 会话过滤类型
+enum V2TIMConversationFilterType {
+    /// 不过滤
+    V2TIM_CONVERSATION_FILTER_TYPE_NONE  = 0,
+    /// 会话标记过滤
+    V2TIM_CONVERSATION_FILTER_TYPE_CONVERSATION_MARK  = 0x1,
+    /// 会话分组过滤
+    V2TIM_CONVERSATION_FILTER_TYPE_CONVERSATION_GROUP = 0x1 << 1,
+    /// 会话是否有未读数过滤
+    V2TIM_CONVERSATION_FILTER_TYPE_HAS_UNREAD_COUNT = 0x1 << 2,
+    /// 会话是否有群 @ 信息过滤
+    V2TIM_CONVERSATION_FILTER_TYPE_HAS_GROUP_AT_INFO = 0x1 << 3,
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -40,9 +54,6 @@ enum V2TIMConversationMarkType {
 //                     （二）结构体定义
 //
 /////////////////////////////////////////////////////////////////////////////////
-
-DEFINE_VECTOR(uint64_t)
-typedef TXuint64_tVector UInt64Vector;
 
 /// 会话对象
 struct TIM_API V2TIMConversation {
@@ -86,7 +97,7 @@ struct TIM_API V2TIMConversation {
     // 不会改变；如果想保持会话的排序位置不变，可以使用该字段对所有会话进行排序
     uint64_t orderKey;
     /// 会话标记列表，取值详见 @V2TIMConversationMarkType（从 6.5 版本开始支持）
-    TXV2TIMUInt64Vector markList;
+    V2TIMUInt64Vector markList;
     /// 会话自定义数据（从 6.5 版本开始支持）
     V2TIMBuffer customData;
     /// 会话所属分组列表（从 6.5 版本开始支持）
@@ -109,13 +120,23 @@ typedef TXV2TIMConversationVector V2TIMConversationVector;
 struct TIM_API V2TIMConversationListFilter {
     /// C2C 或群会话(填 0 代表不过滤此项)
     V2TIMConversationType type;
-    /// 会话分组名称(填空代表不过滤此项)
+    /// 会话过滤类型，取值详见 @V2TIMConversationFilterType
+    /// 如需会话分组过滤，则设置 filterType |= (uint32_t)V2TIM_CONVERSATION_FILTER_TYPE_CONVERSATION_GROUP
+    /// 如需会话标记过滤，则设置 filterType |= (uint32_t)V2TIM_CONVERSATION_FILTER_TYPE_CONVERSATION_MARK
+    /// 如需会话未读数过滤，则设置 filterType |= (uint32_t)V2TIM_CONVERSATION_FILTER_TYPE_HAS_UNREAD_COUNT
+    /// 如需会话群 @ 信息过滤，则设置 filterType |= (uint32_t)V2TIM_CONVERSATION_FILTER_TYPE_HAS_GROUP_AT_INFO
+    uint32_t filterType;
+    /// 会话分组名称
+    /// 当 filterType 设置为需要会话分组过滤时，该字段才生效，字段设置为 "" 代表过滤不属于任何分组的会话
     V2TIMString conversationGroup;
-    /// 标记类型，取值详见 @V2TIMConversationMarkType(填 0 代表不过滤此项)
+    /// 会话标记类型，取值详见 @V2TIMConversationMarkType
+    /// 当 filterType 设置为需要会话标记过滤时，该字段才生效，字段设置为 0 代表过滤不含任何标记的会话
     uint64_t markType;
-    /// 设置为 true 时返回包含未读数的会话；设置为 false 时返回所有会话（默认值是 false）
+    /// 会话未读数
+    /// 当 filterType 设置为需要会话未读数过滤时，该字段才生效，设置为 true 代表过滤含未读数的会话；设置为 false 代表过滤不含未读数的会话
     bool hasUnreadCount;
-    /// 设置为 true 时返回包含群 @ 消息的会话；设置为 false 时返回所有会话（默认值是 false）
+    /// 会话群 @ 信息
+    /// 当 filterType 设置为需要会话 @ 信息过滤时，该字段才生效，设置为 true 代表过滤含群 @ 消息的会话；设置为 false 代表过滤不含群 @ 消息的会话
     bool hasGroupAtInfo;
     
     V2TIMConversationListFilter();

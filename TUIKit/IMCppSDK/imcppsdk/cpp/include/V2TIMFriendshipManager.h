@@ -106,7 +106,7 @@ public:
      * 两种情况
      *  - checkType 如果传入
      * V2TIM_FRIEND_TYPE_BOTH，结果返回：V2TIM_FRIEND_RELATION_TYPE_NONE、V2TIM_FRIEND_RELATION_TYPE_IN_MY_FRIEND_LIST、
-     *                                                      V2TIM_FRIEND_RELATION_TYPE_IN_OTHER_FRIEND_LIST、V2TIM_FRIEND_RELATION_TYPE_BOTH_WAY
+     *                                 V2TIM_FRIEND_RELATION_TYPE_IN_OTHER_FRIEND_LIST、V2TIM_FRIEND_RELATION_TYPE_BOTH_WAY
      * 四种情况
      */
     virtual void CheckFriend(const V2TIMStringVector& userIDList, V2TIMFriendType checkType,
@@ -137,9 +137,20 @@ public:
     virtual void AcceptFriendApplication(
         const V2TIMFriendApplication& application, V2TIMFriendAcceptType acceptType,
         V2TIMValueCallback<V2TIMFriendOperationResult>* callback) = 0;
+    
+    /**
+     * 3.3 同意好友申请，并设置备注
+     *
+     * @param application  好友申请信息，GetFriendApplicationList 成功后会返回
+     * @param responseType 建立单向/双向好友关系
+     * @param remark  好友备注，最长 96 个字节
+     */
+    virtual void AcceptFriendApplication(
+        const V2TIMFriendApplication& application, V2TIMFriendAcceptType acceptType, const V2TIMString& remark,
+        V2TIMValueCallback<V2TIMFriendOperationResult>* callback) = 0;
 
     /**
-     * 3.3 拒绝好友申请
+     * 3.4 拒绝好友申请
      *
      * @param application 好友申请信息，@ref GetFriendApplicationList 成功后会返回
      */
@@ -148,7 +159,7 @@ public:
         V2TIMValueCallback<V2TIMFriendOperationResult>* callback) = 0;
 
     /**
-     * 3.4 删除好友申请
+     * 3.5 删除好友申请
      *
      * @param application 好友申请信息，@ref GetFriendApplicationList 成功后会返回
      */
@@ -156,7 +167,7 @@ public:
                                          V2TIMCallback* callback) = 0;
 
     /**
-     * 3.5 设置好友申请已读
+     * 3.6 设置好友申请已读
      */
     virtual void SetFriendApplicationRead(V2TIMCallback* callback) = 0;
 
@@ -203,7 +214,7 @@ public:
     /**
      * 5.2 获取分组信息
      *
-     * @param groupNameList 要获取信息的好友分组名称列表,传入 传入空的 V2TIMStringVector 获得所有分组信息
+     * @param groupNameList 要获取信息的好友分组名称列表, 传入空的 V2TIMStringVector 获得所有分组信息
      */
     virtual void GetFriendGroups(const V2TIMStringVector& groupNameList,
                                  V2TIMValueCallback<V2TIMFriendGroupVector>* callback) = 0;
@@ -245,21 +256,92 @@ public:
     /////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * 6.1 订阅公众号
+     * 6.1 订阅公众号（7.6 及其以上版本支持）
      */
     virtual void SubscribeOfficialAccount(const V2TIMString& officialAccountID, V2TIMCallback* callback) = 0;
 
     /**
-     * 6.2 取消订阅公众号
+     * 6.2 取消订阅公众号（7.6 及其以上版本支持）
      */
     virtual void UnsubscribeOfficialAccount(const V2TIMString& officialAccountID, V2TIMCallback* callback) = 0;
 
     /**
-     * 6.3 获取公众号列表
+     * 6.3 获取公众号列表（7.6 及其以上版本支持）
      * @note officialAccountIDList 传空时，获取订阅的公众号列表
      */
     virtual void GetOfficialAccountsInfo(const V2TIMStringVector& officialAccountIDList,
                                          V2TIMValueCallback<V2TIMOfficialAccountInfoResultVector>* callback) = 0;
+
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    //                         关注/粉丝功能接口函数
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     *  7.1 关注用户（从 7.8 版本开始支持）
+     * 
+     *  @note
+     *   - 一次最多支持关注 20 个用户。
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void FollowUser(const V2TIMStringVector& userIDList, V2TIMValueCallback<V2TIMFollowOperationResultVector>* callback) = 0;
+
+    /**
+     *  7.2 取消关注用户（从 7.8 版本开始支持）
+     * 
+     *  @note
+     *   - 一次最多支持取消关注 20 个用户。
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void UnfollowUser(const V2TIMStringVector& userIDList, V2TIMValueCallback<V2TIMFollowOperationResultVector>* callback) = 0;
+
+    /**
+     *  7.3 获取我的关注列表（从 7.8 版本开始支持）
+     * 
+     *  @param nextCursor  分页拉取标志，第一次拉取填 ""，回调成功如果 nextCursor 不为 ""，需要分页，可以传入该值再次拉取，直至 nextCursor 返回为 @""
+     * 
+     *  @note
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void GetMyFollowingList(const V2TIMString& nextCursor, V2TIMValueCallback<V2TIMUserInfoResult>* callback) = 0;
+
+    /**
+     *  7.4 获取我的粉丝列表（从 7.8 版本开始支持）
+     * 
+     *  @param nextCursor  分页拉取标志，第一次拉取填 ""，回调成功如果 nextCursor 不为 ""，需要分页，可以传入该值再次拉取，直至 nextCursor 返回为 ""
+     * 
+     *  @note
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void GetMyFollowersList(const V2TIMString& nextCursor, V2TIMValueCallback<V2TIMUserInfoResult>* callback) = 0;
+
+    /**
+     *  7.5 获取我的互关列表（从 7.8 版本开始支持）
+     * 
+     *  @param nextCursor  分页拉取标志，第一次拉取填 ""，回调成功如果 nextCursor 不为 ""，需要分页，可以传入该值再次拉取，直至 nextCursor 返回为 ""
+     * 
+     *  @note
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void GetMutualFollowersList(const V2TIMString& nextCursor, V2TIMValueCallback<V2TIMUserInfoResult>* callback) = 0;
+
+    /**
+     *  7.6 获取指定用户的 关注/粉丝/互关 数量信息（从 7.8 版本开始支持）
+     * 
+     *  @note
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void GetUserFollowInfo(const V2TIMStringVector& userIDList, V2TIMValueCallback<V2TIMFollowInfoVector>* callback) = 0;
+
+    /**
+     *  7.7 检查指定用户的关注类型（从 7.8 版本开始支持）
+     * 
+     *  @note
+     *   - 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
+     */
+    virtual void CheckFollowType(const V2TIMStringVector& userIDList, V2TIMValueCallback<V2TIMFollowTypeCheckResultVector>* callback) = 0;
+
 };
 
 #endif  // __V2TIM_FRIENDSHIP_MANAGER_H__

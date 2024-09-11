@@ -11,6 +11,7 @@
 
 #include "V2TIMCallback.h"
 #include "V2TIMCommon.h"
+#include "V2TIMCommunity.h"
 #include "V2TIMFriendship.h"
 #include "V2TIMGroup.h"
 #include "V2TIMListener.h"
@@ -22,6 +23,7 @@ class V2TIMConversationManager;
 class V2TIMFriendshipManager;
 class V2TIMOfflinePushManager;
 class V2TIMSignalingManager;
+class V2TIMCommunityManager;
 
 class TIM_API V2TIMManager {
 public:
@@ -46,7 +48,7 @@ public:
     /**
      * 1.3 移除 SDK 监听
      */
-    virtual void RemoveSDKListener(V2TIMSDKListener* listener) = 0;
+    virtual void RemoveSDKListener(V2TIMSDKListener *listener) = 0;
 
     /**
      * 1.4 初始化 SDK
@@ -100,8 +102,7 @@ public:
      * - 在线时被踢下线：用户在线情况下被踢，SDK 会通过 V2TIMSDKListener::OnKickedOffline 回调通知给您，此时可以 UI 提示用户，并再次调用 Login() 重新登录。
      * - 同平台多设备在线：该功能为IM旗舰版功能，购买[旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17487)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17224#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
      */
-    virtual void Login(const V2TIMString &userID, const V2TIMString &userSig,
-                       V2TIMCallback *callback) = 0;
+    virtual void Login(const V2TIMString &userID, const V2TIMString &userSig, V2TIMCallback *callback) = 0;
 
     /**
      *
@@ -164,8 +165,7 @@ public:
      * @note 该接口发送的消息默认不会推送，如果需要推送，请调用 @ref
      * V2TIMMessageManager::SendMessage 接口。
      */
-    virtual V2TIMString SendC2CCustomMessage(const V2TIMBuffer &customData,
-                                             const V2TIMString &userID,
+    virtual V2TIMString SendC2CCustomMessage(const V2TIMBuffer &customData, const V2TIMString &userID,
                                              V2TIMSendCallback *callback) = 0;
 
     /**
@@ -180,8 +180,7 @@ public:
      * @return 返回消息的唯一标识 ID
      */
     virtual V2TIMString SendGroupTextMessage(const V2TIMString &text, const V2TIMString &groupID,
-                                             V2TIMMessagePriority priority,
-                                             V2TIMSendCallback *callback) = 0;
+                                             V2TIMMessagePriority priority, V2TIMSendCallback *callback) = 0;
 
     /**
      * 3.6 发送群聊自定义（信令）消息（最大支持 12KB）
@@ -196,10 +195,8 @@ public:
      * @note 该接口发送的消息默认不会推送，如果需要推送，请调用 @ref
      * V2TIMMessageManager::SendMessage 接口。
      */
-    virtual V2TIMString SendGroupCustomMessage(const V2TIMBuffer &customData,
-                                               const V2TIMString &groupID,
-                                               V2TIMMessagePriority priority,
-                                               V2TIMSendCallback *callback) = 0;
+    virtual V2TIMString SendGroupCustomMessage(const V2TIMBuffer &customData, const V2TIMString &groupID,
+                                               V2TIMMessagePriority priority, V2TIMSendCallback *callback) = 0;
 
     /////////////////////////////////////////////////////////////////////////////////
     //
@@ -230,15 +227,14 @@ public:
      *
      * @param groupID   自定义群组 ID，可以传空字符串，此时系统会自动分配 groupID，并通过 callback 返回。
      *                  "Community" 类型自定义群组 ID 必须以 "@TGS#_" 作为前缀。
-     * @param groupName 群名称，不能为空字符串。
+     * @param groupName 群名称，不能为空字符串，最长 100 字节，使用 UTF-8 编码，1 个汉字占 3 个字节。
      *
      * @note 请注意如下特殊逻辑:
      *  - 不支持在同一个 SDKAPPID 下创建两个相同 groupID 的群。
      *  - 社群（Community）功能仅 5.8.1668 增强版及以上版本支持，需[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17213)并[申请开通](https://cloud.tencent.com/document/product/269/3916?from=17215)后方可使用。
      *  - 直播群（AVChatRoom）：在进程重启或重新登录之后，如果想继续接收直播群的消息，请您调用 joinGroup 重新加入直播群。
      */
-    virtual void CreateGroup(const V2TIMString &groupType, const V2TIMString &groupID,
-                             const V2TIMString &groupName,
+    virtual void CreateGroup(const V2TIMString &groupType, const V2TIMString &groupID, const V2TIMString &groupName,
                              V2TIMValueCallback<V2TIMString> *callback) = 0;
 
     /**
@@ -252,8 +248,7 @@ public:
      *  - 直播群（AVChatRoom）：在进程重启或重新登录之后，如果想继续接收直播群的消息，请您调用 joinGroup 重新加入直播群。
      *  - 直播群（AVChatRoom）：直播群新成员可以查看入群前消息，该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17484)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17179#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
      */
-    virtual void JoinGroup(const V2TIMString &groupID, const V2TIMString &message,
-                           V2TIMCallback *callback) = 0;
+    virtual void JoinGroup(const V2TIMString &groupID, const V2TIMString &message, V2TIMCallback *callback) = 0;
 
     /**
      * 4.5 退出群组
@@ -279,7 +274,7 @@ public:
     /**
      * 5.1 获取用户资料
      *
-     *  @note 请注意:
+     *  @note
      *   - 获取自己的资料，传入自己的 ID 即可。
      *   - userIDList 建议一次最大 100 个，因为数量过多可能会导致数据包太大被后台拒绝，后台限制数据包最大为 1MB。
      */
@@ -291,12 +286,12 @@ public:
      */
     virtual void SetSelfInfo(const V2TIMUserFullInfo &info, V2TIMCallback *callback) = 0;
 
-     /**
+    /**
      *  5.3 订阅用户资料，从 7.4 版本开始支持
      *
      *  @param userIDList 待订阅的用户 ID
      *
-     *  @note 请注意
+     *  @note
      *   - 该接口用于订阅陌生人的资料变更事件，订阅成功后，当订阅用户资料发生变更，您可以通过监听 OnUserInfoChanged 回调来感知
      *   - 订阅列表最多允许订阅 200 个，超过限制后，会自动淘汰最先订阅的用户
      *   - 自己的资料变更通知不需要订阅，默认会通过 OnSelfInfoUpdated 回调通知给您
@@ -321,7 +316,7 @@ public:
      *
      *  @param userIDList 需要获取的用户 ID
      *
-     *  @note 请注意：
+     *  @note
      *  - 如果您想查询自己的自定义状态，您只需要传入自己的 userID 即可
      *  - 当您批量查询时，接口只会返回查询成功的用户状态信息；当所有用户均查询失败时，接口会报错
      *  - 查询其他用户状态为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17491)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17472#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
@@ -334,7 +329,7 @@ public:
      *
      *  @param status 待设置的自定义状态
      *
-     *  @note 请注意，该接口只支持设置自己的自定义状态，即 V2TIMUserStatus.customStatus
+     *  @note 该接口只支持设置自己的自定义状态，即 V2TIMUserStatus.customStatus
      */
     virtual void SetSelfStatus(const V2TIMUserStatus &status, V2TIMCallback *callback) = 0;
 
@@ -343,7 +338,7 @@ public:
      *
      *  @param userIDList 待订阅的用户 ID
      *
-     *  @note 请注意
+     *  @note
      *   - 当成功订阅用户状态后，当对方的状态（包含在线状态、自定义状态）发生变更后，您可以监听 OnUserStatusChanged 回调来感知
      *   - 如果您需要订阅好友列表的状态，您只需要在控制台上打开开关即可，无需调用该接口
      *   - 该接口不支持订阅自己，您可以通过监听 OnUserStatusChanged 回调来感知自身的自定义状态的变更
@@ -380,6 +375,13 @@ public:
      * @return 高级群组管理类实例
      */
     virtual V2TIMGroupManager *GetGroupManager() = 0;
+
+    /**
+     * ## 社群功能入口
+     *
+     * @return 社群管理类实例
+     */
+    virtual V2TIMCommunityManager *GetCommunityManager() = 0;
 
     /**
      * ## 会话功能入口

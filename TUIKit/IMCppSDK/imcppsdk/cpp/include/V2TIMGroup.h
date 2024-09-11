@@ -38,14 +38,20 @@ enum V2TIMGroupInfoChangeType {
     V2TIM_GROUP_INFO_CHANGE_TYPE_OWNER = 0x05,
     /// 群自定义字段变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_CUSTOM = 0x06,
-    ///< 全员禁言字段变更
+    /// 全员禁言字段变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_SHUT_UP_ALL = 0x08,
-    ///< 消息接收选项变更
+    /// 话题自定义字段变更
+    V2TIM_GROUP_INFO_CHANGE_TYPE_TOPIC_CUSTOM_DATA = 0x09,
+    /// 消息接收选项变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_RECEIVE_MESSAGE_OPT = 0x0A,
-    ///< 申请加群方式下管理员审批选项变更
+    /// 申请加群方式下管理员审批选项变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_ADD_OPT = 0x0B,
-    ///< 邀请进群方式下管理员审批选项变更
+    /// 邀请进群方式下管理员审批选项变更
     V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_APPROVE_OPT = 0x0C,
+    /// 是否开启权限组功能变更
+    V2TIM_GROUP_INFO_CHANGE_TYPE_ENABLE_PERMISSION_GROUP = 0x0D,
+    /// 群默认权限变更
+    V2TIM_GROUP_INFO_CHANGE_TYPE_DEFAULT_PERMISSIONS = 0x0E,
 };
 
 /// 加群选项
@@ -60,28 +66,32 @@ enum V2TIMGroupAddOpt {
     V2TIM_GROUP_ADD_UNKNOWN = 3,
 };
 
-// 群资料修改标记位
+/// 群资料修改标记位
 enum V2TIMGroupInfoModifyFlag {
-    // 未定义
+    /// 未定义
     V2TIM_GROUP_INFO_MODIFY_FLAG_UNKNOWN = 0x00,
-    // 名称
+    /// 名称
     V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_NAME = 0x01,
-    // 公告
+    /// 公告
     V2TIM_GROUP_INFO_MODIFY_FLAG_NOTIFICATION = 0x01 << 1,
-    // 简介
+    /// 简介
     V2TIM_GROUP_INFO_MODIFY_FLAG_INTRODUCTION = 0x01 << 2,
-    // 头像
+    /// 头像
     V2TIM_GROUP_INFO_MODIFY_FLAG_FACE_URL = 0x01 << 3,
-    // 申请加群管理员审批选项
+    /// 申请加群管理员审批选项
     V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_ADD_OPTION = 0x01 << 4,
-    // 禁言
+    /// 禁言
     V2TIM_GROUP_INFO_MODIFY_FLAG_SHUTUP_ALL = 0x01 << 8,
-    // 群自定义数据
+    /// 群自定义数据
     V2TIM_GROUP_INFO_MODIFY_FLAG_CUSTOM_INFO = 0x01 << 9,
-    // 话题自定义字段
+    /// 话题自定义字段
     V2TIM_TOPIC_INFO_MODIFY_FLAG_CUSTOM_STRING = 0x1 << 11,
-    // 邀请进群管理员审批选项
+    /// 邀请进群管理员审批选项
     V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_APPROVE_OPTION = 0x1 << 12,
+    /// 开启权限组功能，仅支持社群，7.8 版本开始支持
+    V2TIM_GROUP_INFO_MODIFY_FLAG_ENABLE_PERMISSION_GROUP = 0x1 << 13,
+    /// 群默认权限，仅支持社群，7.8 版本开始支持
+    V2TIM_GROUP_INFO_MODIFY_FLAG_DEFAULT_PERMISSIONS = 0x1 << 14,
 };
 
 ///  群组操作结果
@@ -110,17 +120,17 @@ enum V2TIMGroupMemberFilter {
     V2TIM_GROUP_MEMBER_FILTER_COMMON = 0x04,
 };
 
-// 群成员资料修改标记位
+/// 群成员资料修改标记位
 enum V2TIMGroupMemberInfoModifyFlag {
-    // 未定义
+    /// 未定义
     V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_UNKNOWN = 0x00,
-    // 群内角色
+    /// 群内角色
     V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_MEMBER_ROLE = 0x01 << 1,
-    // 禁言时间
+    /// 禁言时间
     V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_SHUTUP_TIME = 0x01 << 2,
-    // 群名片
+    /// 群名片
     V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_NAME_CARD = 0x01 << 3,
-    // 群成员自定义数据
+    /// 群成员自定义数据
     V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_CUSTOM_INFO = 0x01 << 4,
 };
 
@@ -154,11 +164,11 @@ enum V2TIMGroupApplicationHandleResult {
 
 /// @ 类型
 enum V2TIMGroupAtType {
-    ///< @ 我
+    /// @ 我
     V2TIM_AT_ME = 1,
-    ///< @ 群里所有人
+    /// @ 群里所有人
     V2TIM_AT_ALL = 2,
-    ///< @ 群里所有人并且单独 @ 我
+    /// @ 群里所有人并且单独 @ 我
     V2TIM_AT_ALL_AT_ME = 3,
 };
 
@@ -249,7 +259,7 @@ struct TIM_API V2TIMGroupChangeInfo {
     V2TIMString key;
     
     /// 根据变更类型表示不同的值
-    /// 当前只有 type = V2TIM_GROUP_INFO_CHANGE_TYPE_SHUT_UP_ALL 时有效
+    /// 当前在 type = V2TIM_GROUP_INFO_CHANGE_TYPE_SHUT_UP_ALL 或者 V2TIM_GROUP_INFO_CHANGE_TYPE_ENABLE_PERMISSION_GROUP 时有效
     bool boolValue;
     
     /// 根据变更类型表示不同的值
@@ -258,6 +268,10 @@ struct TIM_API V2TIMGroupChangeInfo {
     /// - 从 6.5 版本开始，当 type 为 V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_ADD_OPT 时，该字段标识了申请加群审批选项发生了变化，其取值详见 @V2TIMGroupAddOpt;
     /// - 从 7.1 版本开始，当 type 为 V2TIM_GROUP_INFO_CHANGE_TYPE_GROUP_APPROVE_OPT 时，该字段标识了邀请进群审批选项发生了变化，取值类型详见 @V2TIMGroupAddOpt。
     uint32_t intValue;
+
+    /// 根据变更类型表示不同的值
+    /// 当前只有 type = V2TIM_GROUP_INFO_CHANGE_TYPE_DEFAULT_PERMISSIONS 时有效
+    uint64_t uint64Value;
 
     V2TIMGroupChangeInfo();
     V2TIMGroupChangeInfo(const V2TIMGroupChangeInfo& groupChangeInfo);
@@ -301,7 +315,7 @@ typedef TXV2TIMGroupAtInfoVector V2TIMGroupAtInfoVector;
 /// 群资料
 struct TIM_API V2TIMGroupInfo {
     /// 群组 ID
-    /// 自定义群组 ID 必须为可打印 ASCII 字符（0x20-0x7e），最长48个字节，且前缀不能为
+    /// 自定义群组 ID 必须为可打印 ASCII 字符（0x20-0x7e），最长 48 个字节，且前缀不能为
     /// @TGS#（避免与默认分配的群组 ID 混淆）
     V2TIMString groupID;
     /// 群类型
@@ -309,16 +323,16 @@ struct TIM_API V2TIMGroupInfo {
     /// 社群是否支持创建话题，只在群类型为 Community 时有效
     bool isSupportTopic;
     /// 群名称
-    /// 群名称最长30字节
+    /// 群名称最长 100 字节，使用 UTF-8 编码
     V2TIMString groupName;
     /// 群公告
-    /// 群公告最长300字节
+    /// 群公告最长 400 字节，使用 UTF-8 编码
     V2TIMString notification;
     /// 群简介
-    /// 群简介最长240字节
+    /// 群简介最长 400 字节，使用 UTF-8 编码
     V2TIMString introduction;
     /// 群头像
-    /// 群头像 URL 最长100字节
+    /// 群头像 URL 最长 500 字节，使用 UTF-8 编码
     V2TIMString faceURL;
     /// 是否全员禁言
     bool allMuted;
@@ -355,6 +369,12 @@ struct TIM_API V2TIMGroupInfo {
     V2TIMReceiveMessageOpt recvOpt;
     /// 当前用户加入此群的 UTC 时间戳，不支持设置，系统自动生成
     uint32_t joinTime;
+    /// 是否开启权限组功能，仅支持社群，7.8 版本开始支持
+    /// 开启后，管理员角色的权限失效，用群权限、话题权限和权限组能力来对社群、话题进行管理。
+    bool enablePermissionGroup;
+    /// 群默认权限，仅支持社群，7.8 版本开始支持
+    /// 群成员在没有加入任何权限组时的默认权限，仅在 enablePermissionGroup = true 打开权限组之后生效
+    uint64_t defaultPermissions;
     /// 群资料修改标记位
     /// 枚举 V2TIMGroupInfoModifyFlag 列出哪些字段支持修改，如果您修改群资料，请设置这个字段值
     /// 如果您同时修改多个字段，多个枚举值按位或 | 组合，例如，同时修改群名称和头像
@@ -388,100 +408,6 @@ struct TIM_API V2TIMGroupInfoResult {
 
 DEFINE_VECTOR(V2TIMGroupInfoResult)
 typedef TXV2TIMGroupInfoResultVector V2TIMGroupInfoResultVector;
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//             话题基本资料（可以通过 getTopics 获取，不支持由客户自行创建）
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-struct V2TIMMessage;
-
-struct TIM_API V2TIMTopicInfo {
-    /// 话题 ID，只能在创建话题或者修改话题信息的时候设置。组成方式为：社群 ID + @TOPIC#_xxx，例如社群 ID 为 @TGS#_123，则话题 ID 为 @TGS#_123@TOPIC#_xxx
-    V2TIMString topicID;
-    /// 话题名称
-    V2TIMString topicName;
-    /// 话题头像
-    V2TIMString topicFaceURL;
-    /// 话题介绍
-    V2TIMString introduction;
-    /// 话题公告
-    V2TIMString notification;
-    /// 话题全员禁言
-    bool isAllMuted;
-    /// 当前用户在话题中的禁言时间
-    uint32_t selfMuteTime;
-    /// 话题自定义字段
-    V2TIMString customString;
-    /// 话题消息接收选项，修改话题消息接收选项请调用 setGroupReceiveMessageOpt 接口
-    V2TIMReceiveMessageOpt recvOpt;
-    /// 话题草稿
-    V2TIMString draftText;
-    /// 话题消息未读数量
-    uint64_t unreadCount;
-    /// 话题 lastMessage
-    V2TIMMessage *lastMessage;
-    /// 话题 at 信息列表
-    V2TIMGroupAtInfoVector groupAtInfoList;
-    /// 话题资料修改标记位
-    /// 枚举 V2TIMGroupInfoModifyFlag 列出哪些字段支持修改，如果您修改群资料，请设置这个字段值
-    /// 如果您同时修改多个字段，多个枚举值按位或 | 组合，例如，同时修改群名称和头像
-    /// info.topicName = "new group name";
-    /// info.topicFaceURL = "new face url";
-    /// info.modifyFlag = V2TIM_GROUP_INFO_MODIFY_FLAG_GROUP_NAME |
-    /// V2TIM_GROUP_INFO_MODIFY_FLAG_FACE_URL;
-    uint32_t modifyFlag;
-
-    V2TIMTopicInfo();
-    V2TIMTopicInfo(const V2TIMTopicInfo& topicInfo);
-    V2TIMTopicInfo& operator =(const V2TIMTopicInfo& topicInfo);
-    ~V2TIMTopicInfo();
-};
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//             V2TIMTopicOperationResult
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-struct TIM_API V2TIMTopicOperationResult {
-    /// 结果 0：成功；非0：失败
-    int32_t errorCode;
-    /// 如果删除失败，会返回错误信息
-    V2TIMString errorMsg;
-    /// 如果删除成功，会返回对应的 topicID
-    V2TIMString topicID;
-
-    V2TIMTopicOperationResult();
-    V2TIMTopicOperationResult(const V2TIMTopicOperationResult& result);
-    ~V2TIMTopicOperationResult();
-};
-
-DEFINE_VECTOR(V2TIMTopicOperationResult)
-typedef TXV2TIMTopicOperationResultVector V2TIMTopicOperationResultVector;
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//             V2TIMTopicInfoResult
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-struct TIM_API V2TIMTopicInfoResult {
-    /// 结果 0：成功；非0：失败
-    int32_t errorCode;
-    /// 如果获取失败，会返回错误信息
-    V2TIMString errorMsg;
-    /// 如果获取成功，会返回对应的 info
-    V2TIMTopicInfo topicInfo;
-
-    V2TIMTopicInfoResult();
-    V2TIMTopicInfoResult(const V2TIMTopicInfoResult& result);
-    ~V2TIMTopicInfoResult();
-};
-
-DEFINE_VECTOR(V2TIMTopicInfoResult)
-typedef TXV2TIMTopicInfoResultVector V2TIMTopicInfoResultVector;
 
 /// 群申请信息
 struct TIM_API V2TIMGroupApplication : V2TIMBaseObject {

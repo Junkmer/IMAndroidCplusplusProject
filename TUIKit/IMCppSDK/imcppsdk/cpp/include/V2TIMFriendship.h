@@ -13,13 +13,13 @@
 
 /// 用户状态类型
 enum V2TIMUserStatusType {
-    ///< 未知状态
+    /// 未知状态
     V2TIM_USER_STATUS_UNKNOWN = 0,
-    ///< 在线状态
+    /// 在线状态
     V2TIM_USER_STATUS_ONLINE = 1,
-    ///< 离线状态
+    /// 离线状态
     V2TIM_USER_STATUS_OFFLINE = 2,
-    ///< 未登录（如主动调用 logout 接口，或者账号注册后还未登录）
+    /// 未登录（如主动调用 logout 接口，或者账号注册后还未登录）
     V2TIM_USER_STATUS_UNLOGINED = 3,
 };
 
@@ -81,38 +81,50 @@ enum V2TIMFriendAcceptType {
     V2TIM_FRIEND_ACCEPT_AGREE_AND_ADD = 1,
 };
 
-// 用户资料修改标记
+/// 用户资料修改标记
 enum V2TIMUserInfoModifyFlag {
-    // 未定义
+    /// 未定义
     V2TIM_USER_INFO_MODIFY_FLAG_UNKNOWN = 0,
-    // 昵称
+    /// 昵称
     V2TIM_USER_INFO_MODIFY_FLAG_NICK = 1,
-    // 头像
+    /// 头像
     V2TIM_USER_INFO_MODIFY_FLAG_FACE_URL = 2,
-    // 性别
+    /// 性别
     V2TIM_USER_INFO_MODIFY_FLAG_GENDER = 3,
-    // 生日
+    /// 生日
     V2TIM_USER_INFO_MODIFY_FLAG_BIRTHDAY = 4,
-    // 修改签名
+    /// 修改签名
     V2TIM_USER_INFO_MODIFY_FLAG_SELF_SIGNATURE = 7,
-    // 等级
+    /// 等级
     V2TIM_USER_INFO_MODIFY_FLAG_LEVEL = 8,
-    // 角色
+    /// 角色
     V2TIM_USER_INFO_MODIFY_FLAG_ROLE = 9,
-    // 好友验证方式
+    /// 好友验证方式
     V2TIM_USER_INFO_MODIFY_FLAG_ALLOW_TYPE = 10,
-    // 自定义字段
+    /// 自定义字段
     V2TIM_USER_INFO_MODIFY_FLAG_CUSTOM = 11,
 };
 
-// 好友资料修改标记
+/// 好友资料修改标记
 enum V2TIMFriendInfoModifyFlag {
-    // 未定义
+    /// 未定义
     V2TIM_FRIEND_INFO_MODIFY_FLAG_UNKNOWN = 0,
-    // 好友备注
+    /// 好友备注
     V2TIM_FRIEND_INFO_MODIFY_FLAG_REMARK = 1,
-    // 好友自定义字段
+    /// 好友自定义字段
     V2TIM_FRIEND_INFO_MODIFY_FLAG_CUSTOM = 2,
+};
+
+/// 关注类型
+enum V2TIMFollowType {
+    /// 无任何关注关系
+    V2TIM_FOLLOW_TYPE_NONE = 0,
+    /// 对方在我的关注列表中
+    V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST = 1,
+    /// 对方在我的粉丝列表中
+    V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWERS_LIST = 2,
+    /// 对方与我互相关注
+    V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST = 3,
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +192,7 @@ struct TIM_API V2TIMUserStatus {
     /// 用户的状态
     V2TIMUserStatusType statusType;
 
-    /// 用户的自定义状态, 最大 50 字节
+    /// 用户的自定义状态, 最大 100 字节
     V2TIMString customStatus;
     
     /// 在线终端列表
@@ -379,5 +391,76 @@ struct TIM_API V2TIMFriendSearchParam {
     V2TIMFriendSearchParam(const V2TIMFriendSearchParam& friendSearchParam);
     ~V2TIMFriendSearchParam();
 };
+
+/// 关注/取关用户的操作结果
+struct TIM_API V2TIMFollowOperationResult {
+    /// 用户 ID
+    V2TIMString userID;
+    /// 返回码
+    int32_t resultCode;
+    /// 返回信息
+    V2TIMString resultInfo;
+
+    V2TIMFollowOperationResult();
+    V2TIMFollowOperationResult(const V2TIMFollowOperationResult& followOperationResult);
+    ~V2TIMFollowOperationResult();
+};
+
+DEFINE_VECTOR(V2TIMFollowOperationResult)
+typedef TXV2TIMFollowOperationResultVector V2TIMFollowOperationResultVector;
+
+/// 获取 关注/粉丝/互关 列表的结果
+struct TIM_API V2TIMUserInfoResult {
+    /// 获取分页拉取的 cursor。如果为 "" 表示拉取结束
+    V2TIMString nextCursor;
+    /// 用户信息列表
+    V2TIMUserFullInfoVector userInfoList;
+
+    V2TIMUserInfoResult();
+    V2TIMUserInfoResult(const V2TIMUserInfoResult& userInfoResult);
+    ~V2TIMUserInfoResult();
+};
+
+/// 用户关注数量信息获取结果
+struct TIM_API V2TIMFollowInfo {
+    /// 返回码
+    int32_t resultCode;
+    /// 返回信息
+    V2TIMString resultInfo;
+    /// 用户 ID
+    V2TIMString userID;
+    /// 用户的关注数量
+    uint64_t followingCount;
+    /// 用户的粉丝数量
+    uint64_t followersCount;
+    /// 用户的互关数量
+    uint64_t mutualFollowersCount;
+
+    V2TIMFollowInfo();
+    V2TIMFollowInfo(const V2TIMFollowInfo& followInfo);
+    ~V2TIMFollowInfo();
+};
+
+DEFINE_VECTOR(V2TIMFollowInfo)
+typedef TXV2TIMFollowInfoVector V2TIMFollowInfoVector;
+
+/// 用户的关注类型检查结果
+struct TIM_API V2TIMFollowTypeCheckResult {
+    /// 用户 ID
+    V2TIMString userID;
+    /// 返回码
+    int32_t resultCode;
+    /// 返回信息
+    V2TIMString resultInfo;
+    /// 关注类型
+    V2TIMFollowType followType;
+
+    V2TIMFollowTypeCheckResult();
+    V2TIMFollowTypeCheckResult(const V2TIMFollowTypeCheckResult& followTypeCheckResult);
+    ~V2TIMFollowTypeCheckResult();
+};
+
+DEFINE_VECTOR(V2TIMFollowTypeCheckResult)
+typedef TXV2TIMFollowTypeCheckResultVector V2TIMFollowTypeCheckResultVector;
 
 #endif /* __V2TIM_FRIENDSHIP_H__ */

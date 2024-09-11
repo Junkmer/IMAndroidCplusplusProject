@@ -92,7 +92,7 @@ public:
      * @param conversationID 会话唯一 ID，C2C 单聊组成方式为: "c2c_userID"：
      * 群聊组成方式为: "group_groupID"
      *
-     * @note 请注意:
+     * @note
      * - 删除会话会在本地删除的同时，在服务器也会同步删除。
      * - 会话内的消息在本地删除的同时，在服务器也会同步删除。
      */
@@ -104,7 +104,7 @@ public:
      * @param conversationIDList 会话唯一 ID 列表，C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为: "group_groupID"
      * @param clearMessage 是否删除会话中的消息；设置为 false 时，保留会话消息；设置为 true 时，本地和服务器的消息会一起删除，并且不可恢复
      *
-     * @note 请注意: 每次最多支持删除 100 个会话
+     * @note 每次最多支持删除 100 个会话
      */
     virtual void DeleteConversationList(const V2TIMStringVector& conversationIDList, bool clearMessage,
                                         V2TIMValueCallback<V2TIMConversationOperationResultVector>* callback) = 0;
@@ -163,7 +163,7 @@ public:
      * @note
      *  - 调用该接口以后，任意会话的未读数发生变化时，SDK 都会给您抛 OnTotalUnreadMessageCountChanged 回调。
      *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为
-     *  V2TIM_NOT_RECEIVE_MESSAGE 或 V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 的会话。
+     *  V2TIM_NOT_RECEIVE_MESSAGE 或 V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 或 V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT 的会话。
      */
     virtual void GetTotalUnreadMessageCount(V2TIMValueCallback<uint64_t>* callback) = 0;
 
@@ -174,7 +174,7 @@ public:
      *
      * @note
      *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为
-     *  V2TIM_NOT_RECEIVE_MESSAGE 或 V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 的会话。
+     *  V2TIM_NOT_RECEIVE_MESSAGE 或 V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 或 V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT 的会话。
      */
     virtual void GetUnreadMessageCountByFilter(const V2TIMConversationListFilter &filter,
         V2TIMValueCallback<uint64_t>* callback) = 0;

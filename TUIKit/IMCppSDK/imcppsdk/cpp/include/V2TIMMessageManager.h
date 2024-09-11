@@ -178,7 +178,7 @@ public:
      *  @param receiverList 消息接收者列表
      *  @return 定向群消息对象
      *
-     * @note 请注意：
+     * @note
      * - 原始消息对象不支持群 @ 消息。
      * - 消息接收者列表最大支持 50 个。
      * - 社群（Community）和直播群（AVChatRoom）不支持发送定向群消息。
@@ -253,10 +253,10 @@ public:
      *  - 该接口调用频率被限制为1秒内最多调用5次。
      *
      *
-     *  @param opt    三种类型的消息接收选项：
-     *                V2TIMMessage.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知
-     *                V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE：不会接收到消息
-     *                V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知
+     *  @param opt    消息接收选项：
+     *                V2TIMReceiveMessageOpt.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知
+     *                V2TIMReceiveMessageOpt.V2TIM_NOT_RECEIVE_MESSAGE：不会接收到消息
+     *                V2TIMReceiveMessageOpt.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知
      *
      */
     virtual void SetC2CReceiveMessageOpt(const V2TIMStringVector &userIDList,
@@ -273,10 +273,12 @@ public:
     /**
      *  4.3 设置群消息的接收选项
      *
-     * @param opt      三种类型的消息接收选项：
-     *                 V2TIMMessage.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知
-     *                 V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE：不会接收到群消息
-     *                 V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知
+     * @param opt      消息接收选项：
+     *                 V2TIMReceiveMessageOpt.V2TIM_RECEIVE_MESSAGE：在线正常接收消息，离线时会有厂商的离线推送通知
+     *                 V2TIMReceiveMessageOpt.V2TIM_NOT_RECEIVE_MESSAGE：不会接收到群消息
+     *                 V2TIMReceiveMessageOpt.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE：在线正常接收消息，离线不会有推送通知
+     *                 V2TIMReceiveMessageOpt.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT：在线正常接收消息，离线只推送@消息
+     *                 V2TIMReceiveMessageOpt.V2TIM_NOT_RECEIVE_MESSAGE_EXCEPT_AT：在线和离线都只接收@消息
      */
     virtual void SetGroupReceiveMessageOpt(const V2TIMString &groupID, V2TIMReceiveMessageOpt opt,
                                            V2TIMCallback *callback) = 0;
@@ -329,10 +331,12 @@ public:
      *
      * @param option 拉取消息选项设置，可以设置从云端、本地拉取更老或更新的消息
      *
-     * @note 请注意：
-     * - 如果设置为拉取云端消息，当 SDK 检测到没有网络，默认会直接返回本地数据
-     * -
-     * 只有会议群（Meeting）才能拉取到进群前的历史消息，直播群（AVChatRoom）消息不存漫游和本地数据库，调用这个接口无效
+     * @note
+     *  - 如果没有触发登录，调用该接口不会返回历史消息
+     *  - 如果登录失败，调用该接口会返回本地历史消息
+     *  - 如果 SDK 检测到没有网络，调用该接口会返回本地历史消息
+     *  - 如果登录成功且网络正常，当 option 设置为拉取云端历史消息，调用该接口会先请求云端历史消息，然后再和本地历史消息合并后返回
+     *  - 只有会议群（Meeting）才能拉取到进群前的历史消息，直播群（AVChatRoom）消息不存漫游和本地数据库，调用这个接口无效
      */
     virtual void GetHistoryMessageList(const V2TIMMessageListGetOption &option,
                                        V2TIMValueCallback<V2TIMMessageVector> *callback) = 0;
@@ -340,7 +344,7 @@ public:
     /**
      * 5.2 撤回消息
      *
-     * @note 请注意：
+     * @note
      *  - 撤回消息的时间限制默认 2 minutes，超过 2 minutes 的消息不能撤回，您也可以在 [控制台](https://console.cloud.tencent.com/im)（功能配置 -> 登录与消息 ->
      * 消息撤回设置）自定义撤回时间限制。
      *  - 仅支持单聊和群组中发送的普通消息，无法撤销 onlineUserOnly 为 true 即仅在线用户才能收到的消息。
@@ -353,7 +357,7 @@ public:
     /**
      *  5.3 消息变更
      *
-     *  @note 请注意：
+     *  @note
      *  - 如果消息修改成功，自己和对端用户（C2C）或群组成员（Group）都会收到 OnRecvMessageModified 回调。
      *  - 如果在修改消息过程中，消息已经被其他人修改，callback 会返回 ERR_SDK_MSG_MODIFY_CONFLICT 错误。
      *  - 消息无论修改成功或则失败，callback 都会返回最新的消息对象。
@@ -376,7 +380,7 @@ public:
      * 5.5 清空单聊本地及云端的消息（不删除会话）
      * <p> 5.4.666 及以上版本支持
      *
-     * @note 请注意：
+     * @note
      * - 会话内的消息在本地删除的同时，在服务器也会同步删除。
      *
      */
@@ -386,7 +390,7 @@ public:
      * 5.6 清空群聊本地及云端的消息（不删除会话）
      * <p> 5.4.666 及以上版本支持
      *
-     * @note 请注意：
+     * @note
      * - 会话内的消息在本地删除的同时，在服务器也会同步删除。
      */
     virtual void ClearGroupHistoryMessage(const V2TIMString &groupID, V2TIMCallback *callback) = 0;
@@ -421,8 +425,9 @@ public:
         V2TIMValueCallback<V2TIMMessage> *callback) = 0;
 
     /**
-     * 5.9 根据 messageID 查询指定会话中的本地消息
+     * 5.9 根据 messageID 查询指定会话中的本地消息，包括状态 status 为 V2TIM_MSG_STATUS_LOCAL_REVOKED（已撤回）和 V2TIM_MSG_STATUS_HAS_DELETED（已删除）的消息
      * @param messageIDList 消息 ID 列表
+     * @note 通过 V2TIMMessage 的 status 来区分消息的状态
      */
     virtual void FindMessages(const V2TIMStringVector &messageIDList,
                               V2TIMValueCallback<V2TIMMessageVector> *callback) = 0;
@@ -430,7 +435,7 @@ public:
     /**
      * 5.10 搜索本地消息（5.4.666 及以上版本支持，需要您购买旗舰版套餐）
      * @param searchParam 消息搜索参数，详见 V2TIMMessageSearchParam 的定义
-     * @note 该功能为 IM 旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17474)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17176#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
+     * @note 返回的列表不包含消息状态 status 为 V2TIM_MSG_STATUS_LOCAL_REVOKED（已撤回）和 V2TIM_MSG_STATUS_HAS_DELETED（已删除）的消息
      */
     virtual void SearchLocalMessages(const V2TIMMessageSearchParam &searchParam,
                                      V2TIMValueCallback<V2TIMMessageSearchResult> *callback) = 0;
@@ -441,6 +446,7 @@ public:
      * @note
      * - 该功能为 IM 增值功能，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17176#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)
      * - 如果您没有开通该服务，调用接口会返回 60020 错误码
+     * - 返回的列表不包含消息状态 status 为 V2TIM_MSG_STATUS_LOCAL_REVOKED（已撤回）和 V2TIM_MSG_STATUS_HAS_DELETED（已删除）的消息
      */
     virtual void SearchCloudMessages(const V2TIMMessageSearchParam &searchParam,
                                      V2TIMValueCallback<V2TIMMessageSearchResult> *callback) = 0;
@@ -448,7 +454,7 @@ public:
     /**
      *  5.12 发送消息已读回执（6.1 及其以上版本支持）
      * 
-     * @note 请注意：
+     * @note
      * - 该功能为旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17485)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17221#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
      * - 向群消息发送已读回执，需要您先到控制台打开对应的开关，详情参考文档 [群消息已读回执](https://cloud.tencent.com/document/product/269/75343#.E8.AE.BE.E7.BD.AE.E6.94.AF.E6.8C.81.E5.B7.B2.E8.AF.BB.E5.9B.9E.E6.89.A7.E7.9A.84.E7.BE.A4.E7.B1.BB.E5.9E.8B) 。
      * - messageList 里的消息必须在同一个会话中。
@@ -460,7 +466,7 @@ public:
      *  5.13 获取消息已读回执（6.1 及其以上版本支持）
      * @param messageList 消息列表
      *
-     * @note 请注意：
+     * @note
      * - 该功能为旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17485)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17221#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
      * - 获取群消息已读回执，需要您先到控制台打开对应的开关，详情参考文档 [群消息已读回执](https://cloud.tencent.com/document/product/269/75343#.E8.AE.BE.E7.BD.AE.E6.94.AF.E6.8C.81.E5.B7.B2.E8.AF.BB.E5.9B.9E.E6.89.A7.E7.9A.84.E7.BE.A4.E7.B1.BB.E5.9E.8B) 。
      * - messageList 里的消息必须在同一个会话中。
@@ -474,7 +480,7 @@ public:
      * @param nextSeq 分页拉取的游标，第一次默认取传 0，后续分页拉取时，传上一次分页拉取成功回调里的 nextSeq。
      * @param count   分页拉取的个数，最多支持 100 个。
      *
-     * @note 请注意：
+     * @note
      * - 该功能为旗舰版功能，[购买旗舰版套餐包](https://buy.cloud.tencent.com/avc?from=17485)后可使用，详见[价格说明](https://cloud.tencent.com/document/product/269/11673?from=17221#.E5.9F.BA.E7.A1.80.E6.9C.8D.E5.8A.A1.E8.AF.A6.E6.83.85)。
      * - 使用该功能之前，请您先到控制台打开对应的开关，详情参考文档 [群消息已读回执](https://cloud.tencent.com/document/product/269/75343#.E8.AE.BE.E7.BD.AE.E6.94.AF.E6.8C.81.E5.B7.B2.E8.AF.BB.E5.9B.9E.E6.89.A7.E7.9A.84.E7.BE.A4.E7.B1.BB.E5.9E.8B) 。
      */
@@ -596,23 +602,45 @@ public:
                                V2TIMValueCallback<V2TIMStringToV2TIMStringMap> *callback) = 0;
 
     /**
-     * 5.23 标记单聊会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
-     * @note 请注意：
+     * 5.23 设置群消息置顶（7.9 及以上版本支持，需要您购买旗舰版套餐）
+     * @param groupID 群 ID
+     * @param isPinned 是否置顶
+     *
+     * @note
+     * - 最多支持置顶10条消息。
+     * - 此接口用于置顶和取消置顶对应的群消息，如果置顶消息数量超出限制sdk会返回错误码10070。
+     */
+    virtual void PinGroupMessage(const V2TIMString &groupID, const V2TIMMessage &message,
+                                 bool isPinned, V2TIMCallback *callback) = 0;
+
+    /**
+     * 5.24 获取已置顶的群消息列表（7.9 及以上版本支持，需要您购买旗舰版套餐）
+     * @param groupID 群 ID
+     *
+     * @note
+     * - 此接口用于获取置顶消息列表，如果置顶消息已过期不会返回
+     */
+    virtual void GetPinnedGroupMessageList(const V2TIMString &groupID,
+                                           V2TIMValueCallback<V2TIMMessageVector> *callback) = 0;
+
+    /**
+     * 5.25 标记单聊会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+     * @note
      *  - 该接口调用成功后，自己的未读数会清 0，对端用户会收到 OnRecvC2CReadReceipt 回调，回调里面会携带标记会话已读的时间。
      *  - 从 5.8 版本开始，当 userID 为 nil 时，标记所有单聊会话为已读状态。
      */
     virtual void MarkC2CMessageAsRead(const V2TIMString &userID, V2TIMCallback *callback) = 0;
 
     /**
-     * 5.24 标记群组会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
-      *  @note 请注意：
+     * 5.26 标记群组会话已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+      *  @note
       *  - 该接口调用成功后，自己的未读数会清 0。
       *  - 从 5.8 版本开始，当 groupID 为 nil 时，标记所有群组会话为已读状态。
      */
     virtual void MarkGroupMessageAsRead(const V2TIMString &groupID, V2TIMCallback *callback) = 0;
 
     /**
-     * 5.25 标记所有会话为已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
+     * 5.27 标记所有会话为已读（待废弃接口，请使用 CleanConversationUnreadMessageCount 接口）
      */
     virtual void MarkAllMessageAsRead(V2TIMCallback *callback) = 0;
 };

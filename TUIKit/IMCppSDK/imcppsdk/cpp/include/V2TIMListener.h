@@ -10,6 +10,7 @@
 #define __V2TIM_LISTENER_H__
 
 #include "V2TIMCommon.h"
+#include "V2TIMCommunity.h"
 #include "V2TIMConversation.h"
 #include "V2TIMFriendship.h"
 #include "V2TIMGroup.h"
@@ -72,22 +73,21 @@ public:
 
     /**
      * 用户资料变更通知
-     * 
+     *
      * @note
      * 仅当通过 SubscribeUserInfo 成功订阅的用户（仅限非好友用户）的资料发生变更时，才会激活此回调函数
      */
-    virtual void OnUserInfoChanged(const V2TIMUserFullInfoVector &infoList) {}
+    virtual void OnUserInfoChanged(const V2TIMUserFullInfoVector &userInfoList) {}
 
     /**
      * 全局消息接收选项变更通知
      */
     virtual void OnAllReceiveMessageOptChanged(const V2TIMReceiveMessageOptInfo &receiveMessageOptInfo) {}
-    
+
     /**
      * 实验性事件通知
      */
     virtual void onExperimentalNotify(const V2TIMString &key, const V2TIMString &param) {}
-
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -131,8 +131,7 @@ public:
      * @param text 发送内容
      */
     virtual void OnRecvGroupTextMessage(const V2TIMString &msgID, const V2TIMString &groupID,
-                                        const V2TIMGroupMemberFullInfo &sender,
-                                        const V2TIMString &text) {}
+                                        const V2TIMGroupMemberFullInfo &sender, const V2TIMString &text) {}
 
     /**
      * 收到群自定义（信令）消息
@@ -143,8 +142,7 @@ public:
      * @param customData 发送内容
      */
     virtual void OnRecvGroupCustomMessage(const V2TIMString &msgID, const V2TIMString &groupID,
-                                          const V2TIMGroupMemberFullInfo &sender,
-                                          const V2TIMBuffer &customData) {}
+                                          const V2TIMGroupMemberFullInfo &sender, const V2TIMBuffer &customData) {}
 };
 
 DEFINE_POINT_VECTOR(V2TIMSimpleMsgListener)
@@ -170,14 +168,14 @@ public:
     virtual void OnRecvNewMessage(const V2TIMMessage &message) {}
 
     /**
-     * C2C 对端用户会话已读通知（如果对端用户调用 MarkC2CMessageAsRead 接口，自己会收到该回调，回调只会携带对端 userID 和对端已读 timestamp 信息）
+     * 如果对端用户调用 cleanConversationUnreadMessageCount 接口清理 C2C 未读，自己会收到该回调，回调只会携带对端 userID 和对端清理 C2C 未读数的时间
      *
      * @param receiptList 已读回执列表
      */
     virtual void OnRecvC2CReadReceipt(const V2TIMMessageReceiptVector &receiptList) {}
 
     /**
-     * 消息已读回执通知
+     * 消息已读回执通知（如果自己发送的消息支持已读回执，消息接收端调用 sendMessageReadReceipts，自己会收到该通知）
      *
      * @param receiptList 已读回执列表
      */
@@ -190,7 +188,8 @@ public:
      * @param operateUser 撤回者信息
      * @param reason 撤回原因
      */
-    virtual void OnRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser, const V2TIMString &reason) {}
+    virtual void OnRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser,
+                                      const V2TIMString &reason) {}
 
     /**
      * 消息内容被修改
@@ -206,18 +205,30 @@ public:
     /**
      * 消息扩展信息被删除
      */
-    virtual void OnRecvMessageExtensionsDeleted(const V2TIMString &msgID,
-                                                const V2TIMStringVector &extensionKeys) {}
+    virtual void OnRecvMessageExtensionsDeleted(const V2TIMString &msgID, const V2TIMStringVector &extensionKeys) {}
 
     /**
      * 消息回应信息更新
-     * 该回调是消息 Reaction 的增量回调，只会携带变更的 Reaction 信息。
-     * 当变更的 Reaction 信息里的 totalUserCount 字段值为 0 时，表明该 Reaction 已经没有用户在使用，您可以在 UI 上移除该 Reaction 的展示。
+     * - 该回调是消息 Reaction 的增量回调，只会携带变更的 Reaction 信息。
+     * - 当变更的 Reaction 信息里的 totalUserCount 字段值为 0 时，表明该 Reaction 已经没有用户在使用，您可以在 UI 上移除该 Reaction 的展示。
      */
     virtual void OnRecvMessageReactionsChanged(const V2TIMMessageReactionChangeInfoVector &changeInfos) {}
 
     /**
-     * 收到消息撤回的通知（待废弃接口，请使用 onRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo &operateUser, const V2TIMString &reason) 接口）
+     * 置顶群消息列表变更 （7.9 及以上版本支持）
+     * @param groupID      群 ID
+     * @param message      变更的置顶消息
+     * @param opUser       处理人
+     *
+     * @note
+     *  - 如果变更类型为取消置顶，message 参数中只有消息的 key，不包含完整的消息体。
+     */
+    virtual void OnGroupMessagePinned(const V2TIMString &groupID, const V2TIMMessage &message,
+                                      bool isPinned, const V2TIMGroupMemberInfo &opUser) {}
+
+    /**
+     * 收到消息撤回的通知（待废弃接口，请使用 onRecvMessageRevoked(const V2TIMString &msgID, const V2TIMUserFullInfo
+     * &operateUser, const V2TIMString &reason) 接口）
      *
      * @param msgID 消息唯一标识
      */
@@ -238,18 +249,19 @@ public:
 
     /**
      * 有新成员加入群（该群所有的成员都能收到）
-     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im) 
+     * @note
+     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im)
      * (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员变更通知) 主动配置。
-     * 
+     *
      * @param groupID    群 ID
      * @param memberList 加入的成员
      */
-    virtual void OnMemberEnter(const V2TIMString &groupID,
-                               const V2TIMGroupMemberInfoVector &memberList) {}
+    virtual void OnMemberEnter(const V2TIMString &groupID, const V2TIMGroupMemberInfoVector &memberList) {}
 
     /**
      * 有成员离开群（该群所有的成员都能收到）
-     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im) 
+     * @note
+     * 会议群（Meeting）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im)
      * (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员变更通知) 主动配置。
      *
      * @param groupID 群 ID
@@ -279,29 +291,34 @@ public:
 
     /**
      * 某成员信息发生变更（该群所有的成员都能收到）。
-     * @note 会议群（Meeting）和直播群（AVChatRoom）默认无此回调，如需回调，请前往 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员资料变更通知) 主动配置。
+     * @note 会议群（Meeting）和直播群（AVChatRoom）默认无此回调，如需回调，请前往
+     * [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 群组配置 -> 群系统通知配置 -> 群成员资料变更通知)
+     * 主动配置。
      *
      * @param groupID 群 ID
      * @param v2TIMGroupMemberChangeInfoList 被修改的群成员信息
      */
-    virtual void OnMemberInfoChanged(
-        const V2TIMString &groupID,
-        const V2TIMGroupMemberChangeInfoVector &v2TIMGroupMemberChangeInfoList) {}
+    virtual void OnMemberInfoChanged(const V2TIMString &groupID,
+                                     const V2TIMGroupMemberChangeInfoVector &v2TIMGroupMemberChangeInfoList) {}
 
     /**
      * 群组全体成员被禁言/解除禁言了（该群所有的成员都能收到）
-     * 需要提前在 [控制台](https://console.cloud.tencent.com/im) 开启通知开关。开关路径：功能配置 -> 群组配置 -> 群系统通知配置 -> 群资料变更通知 -> 群禁言变更通知。
-     * 7.5 及以上版本支持。
+     * @note
+     *  - 需要提前在 [控制台](https://console.cloud.tencent.com/im) 开启通知开关。开关路径：功能配置 -> 群组配置 ->
+     * 群系统通知配置 -> 群资料变更通知 -> 群禁言变更通知。
+     *  - 7.5 及以上版本支持。
      */
     virtual void OnAllGroupMembersMuted(const V2TIMString &groupID, bool isMute) {}
-    
+
     /**
      * 有成员被标记（该群所有的成员都能收到）
-     * 仅社群（Community）支持该回调。
-     * 7.5 及以上版本支持，需要您购买旗舰版套餐。
+     * @note
+     *  - 仅社群（Community）支持该回调。
+     *  - 7.5 及以上版本支持，需要您购买旗舰版套餐。
      */
-    virtual void OnMemberMarkChanged(const V2TIMString &groupID, const V2TIMStringVector &memberIDList, uint32_t markType, bool enableMark) {}
-    
+    virtual void OnMemberMarkChanged(const V2TIMString &groupID, const V2TIMStringVector &memberIDList,
+                                     uint32_t markType, bool enableMark) {}
+
     /**
      * 创建群（主要用于多端同步）
      *
@@ -327,13 +344,14 @@ public:
 
     /**
      * 群信息被修改（全员能收到）
-     * 以下字段的修改可能会引发该通知 groupName & introduction & notification & faceUrl & owner & allMute & custom
-     * 控制指定字段 下发通知/存漫游 请前往 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 群组配置 -> 群系统通知配置 -> 群资料变更通知) 主动配置。
+     * @note
+     *  - 以下字段的修改可能会引发该通知 groupName & introduction & notification & faceUrl & owner & allMute & custom
+     *  - 控制指定字段 下发通知/存漫游 请前往 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 群组配置 ->
+     *  - 群系统通知配置 -> 群资料变更通知) 主动配置。
      *
      * @param changeInfos 修改的群信息
      */
-    virtual void OnGroupInfoChanged(const V2TIMString &groupID,
-                                    const V2TIMGroupChangeInfoVector &changeInfos) {}
+    virtual void OnGroupInfoChanged(const V2TIMString &groupID, const V2TIMGroupChangeInfoVector &changeInfos) {}
 
     /**
      * 收到群属性更新的回调
@@ -341,8 +359,7 @@ public:
      * @param groupID           群 ID
      * @param groupAttributeMap 群的所有属性
      */
-    virtual void OnGroupAttributeChanged(const V2TIMString &groupID,
-                                         const V2TIMGroupAttributeMap &groupAttributeMap) {}
+    virtual void OnGroupAttributeChanged(const V2TIMString &groupID, const V2TIMGroupAttributeMap &groupAttributeMap) {}
 
     /**
      * 某个已加入的群的计数器被修改了（全员能收到）
@@ -351,8 +368,7 @@ public:
      * @param key 当前变更的群计数器的 key
      * @param newValue 变更之后的 value
      */
-    virtual void OnGroupCounterChanged(const V2TIMString &groupID,
-                                       const V2TIMString &key, int64_t newValue) {}
+    virtual void OnGroupCounterChanged(const V2TIMString &groupID, const V2TIMString &key, int64_t newValue) {}
 
     /**
      * 有新的加群请求（只有群主或管理员会收到）
@@ -361,21 +377,19 @@ public:
      * @param member   申请人
      * @param opReason 申请原因
      */
-    virtual void OnReceiveJoinApplication(const V2TIMString &groupID,
-                                          const V2TIMGroupMemberInfo &member,
+    virtual void OnReceiveJoinApplication(const V2TIMString &groupID, const V2TIMGroupMemberInfo &member,
                                           const V2TIMString &opReason) {}
 
     /**
-     * 加群请求已经被群主或管理员处理了（只有申请人能够收到）
+     * 加群或者邀请加群请求已经被群主或管理员处理了（只有申请人能够收到）
      *
      * @param groupID     群 ID
      * @param opUser      处理人
      * @param isAgreeJoin 是否同意加群
      * @param opReason    处理原因
      */
-    virtual void OnApplicationProcessed(const V2TIMString &groupID,
-                                        const V2TIMGroupMemberInfo &opUser, bool isAgreeJoin,
-                                        const V2TIMString &opReason) {}
+    virtual void OnApplicationProcessed(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser,
+                                        bool isAgreeJoin, const V2TIMString &opReason) {}
 
     /**
      * 指定管理员身份
@@ -384,8 +398,7 @@ public:
      * @param opUser     处理人
      * @param memberList 被处理的群成员
      */
-    virtual void OnGrantAdministrator(const V2TIMString &groupID,
-                                      const V2TIMGroupMemberInfo &opUser,
+    virtual void OnGrantAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser,
                                       const V2TIMGroupMemberInfoVector &memberList) {}
 
     /**
@@ -395,8 +408,7 @@ public:
      * @param opUser     处理人
      * @param memberList 被处理的群成员
      */
-    virtual void OnRevokeAdministrator(const V2TIMString &groupID,
-                                       const V2TIMGroupMemberInfo &opUser,
+    virtual void OnRevokeAdministrator(const V2TIMString &groupID, const V2TIMGroupMemberInfo &opUser,
                                        const V2TIMGroupMemberInfoVector &memberList) {}
 
     /**
@@ -412,8 +424,7 @@ public:
      * @param groupID    群 ID
      * @param customData 自定义数据
      */
-    virtual void OnReceiveRESTCustomData(const V2TIMString &groupID,
-                                         const V2TIMBuffer &customData) {}
+    virtual void OnReceiveRESTCustomData(const V2TIMString &groupID, const V2TIMBuffer &customData) {}
 
     /**
      * 话题创建
@@ -430,15 +441,101 @@ public:
     virtual void OnTopicDeleted(const V2TIMString &groupID, const V2TIMStringVector &topicIDList) {}
 
     /**
-    * 话题更新
-    * @param topicInfo 话题信息
-    */
+     * 话题更新
+     * @param topicInfo 话题信息
+     */
     virtual void OnTopicChanged(const V2TIMString &groupID, const V2TIMTopicInfo &topicInfo) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//                      （五）日志监听类
+//                      （五）社群事件的监听类
+//
+/////////////////////////////////////////////////////////////////////////////////
+class TIM_API V2TIMCommunityListener {
+public:
+    V2TIMCommunityListener();
+
+    virtual ~V2TIMCommunityListener();
+    /**
+     * 话题创建
+     *
+     * @param topicID 话题 ID
+     */
+    virtual void OnCreateTopic(const V2TIMString &groupID, const V2TIMString &topicID) {}
+
+    /**
+     * 话题被删除
+     * @param groupID 话题所属的社群 ID
+     * @param topicIDList 话题列表
+     */
+    virtual void OnDeleteTopic(const V2TIMString &groupID, const V2TIMStringVector &topicIDList) {}
+
+    /**
+     * 话题更新
+     * @param topicInfo 话题信息
+     */
+    virtual void OnChangeTopicInfo(const V2TIMString &groupID, const V2TIMTopicInfo &topicInfo) {}
+
+    /**
+     * 收到 RESTAPI 下发的话题自定义系统消息
+     *
+     * @param topicID    话题 ID
+     * @param customData 自定义数据
+     */
+    virtual void OnReceiveTopicRESTCustomData(const V2TIMString &topicID, const V2TIMBuffer &customData) {}
+
+    /**
+     * 权限组创建通知
+     */
+    virtual void OnCreatePermissionGroup(const V2TIMString &groupID,
+                                         const V2TIMPermissionGroupInfo &permissionGroupInfo) {}
+
+    /**
+     * 权限组删除通知
+     */
+    virtual void OnDeletePermissionGroup(const V2TIMString &groupID, const V2TIMStringVector &permissionGroupIDList) {}
+
+    /**
+     * 权限组更新通知
+     */
+    virtual void OnChangePermissionGroupInfo(const V2TIMString &groupID,
+                                             const V2TIMPermissionGroupInfo &permissionGroupInfo) {}
+
+    /**
+     * 添加成员到权限组中
+     */
+    virtual void OnAddMembersToPermissionGroup(const V2TIMString &groupID, const V2TIMString &permissionGroupID,
+                                               const V2TIMStringVector &memberIDList) {}
+
+    /**
+     * 从权限组中删除成员
+     */
+    virtual void OnRemoveMembersFromPermissionGroup(const V2TIMString &groupID, const V2TIMString &permissionGroupID,
+                                                    const V2TIMStringVector &memberIDList) {}
+
+    /**
+     * 增加话题权限到权限组中通知
+     */
+    virtual void OnAddTopicPermission(const V2TIMString &groupID, const V2TIMString &permissionGroupID,
+                                      const V2TIMStringToUint64Map &topicPermissionMap) {}
+
+    /**
+     * 从权限组删除的话题权限通知
+     */
+    virtual void OnDeleteTopicPermission(const V2TIMString &groupID, const V2TIMString &permissionGroupID,
+                                         const V2TIMStringVector &topicIDList) {}
+
+    /**
+     * 权限组中的话题权限修改通知
+     */
+    virtual void OnModifyTopicPermission(const V2TIMString &groupID, const V2TIMString &permissionGroupID,
+                                         const V2TIMStringToUint64Map &topicPermissionMap) {}
+};
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                      （六）日志监听类
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -459,7 +556,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//                      （六）会话事件的监听类
+//                      （七）会话事件的监听类
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -488,7 +585,7 @@ public:
 
     /**
      * 有新的会话（比如收到一个新同事发来的单聊消息、或者被拉入了一个新的群组中），可以根据会话的
-     * lastMessage -> timestamp 重新对会话列表做排序
+     * orderKey 重新对会话列表做排序
      *
      * @param conversationList 会话列表
      */
@@ -496,7 +593,7 @@ public:
 
     /**
      * 某些会话的关键信息发生变化（未读计数发生变化、最后一条消息被更新等等），可以根据会话的
-     * lastMessage -> timestamp 重新对会话列表做排序
+     * orderKey 重新对会话列表做排序
      *
      * @param conversationList 会话列表
      */
@@ -506,7 +603,8 @@ public:
      * 会话被删除的通知（7.2 及以上版本支持）
      *
      * @note
-     * conversationIDList 表示被删除的会话唯一 ID 列表。C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为: "group_groupID"
+     * conversationIDList 表示被删除的会话唯一 ID 列表。C2C 单聊组成方式为: "c2c_userID"：群聊组成方式为:
+     * "group_groupID"
      */
     virtual void OnConversationDeleted(const V2TIMStringVector &conversationIDList) {}
 
@@ -514,21 +612,26 @@ public:
      * 全部会话未读总数变更的通知（5.3.425 及以上版本支持）
      *
      * @note
-     *  - 当您调用 GetTotalUnreadMessageCount 获取全部会话未读总数以后，任意会话的未读数发生变化时，SDK 都会通过该回调把最新的未读总数通知给您。
+     *  - 当您调用 GetTotalUnreadMessageCount 获取全部会话未读总数以后，任意会话的未读数发生变化时，SDK
+     * 都会通过该回调把最新的未读总数通知给您。
      *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为
-     *  V2TIM_NOT_RECEIVE_MESSAGE  or V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 的会话。
+     *  V2TIM_NOT_RECEIVE_MESSAGE  or V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE or V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT 的会话。
      */
     virtual void OnTotalUnreadMessageCountChanged(uint64_t totalUnreadCount) {}
 
     /**
      * 根据 filter 过滤的未读消息总数变更通知（7.0 及以上版本支持）
      * @note
-     *  - 您可以调用 SubscribeUnreadMessageCountByFilter 注册监听指定 filter 下的未读总数变化，SDK 通过这个回调把最新的未读总数通知给您。
-     *  - 您可以注册监听多个不同 filter 下的未读总数变化，这个回调的 filter 参数就是注册监听时指定的 filter，该 filter 携带了 conversationType、conversationGroup 和 markType 三个字段，通过判断这三字段是不是都相同，来区分出不同的 filter。
+     *  - 您可以调用 SubscribeUnreadMessageCountByFilter 注册监听指定 filter 下的未读总数变化，SDK
+     * 通过这个回调把最新的未读总数通知给您。
+     *  - 您可以注册监听多个不同 filter 下的未读总数变化，这个回调的 filter 参数就是注册监听时指定的 filter，该 filter
+     * 携带了 conversationType、conversationGroup 和 markType 三个字段，通过判断这三字段是不是都相同，来区分出不同的
+     * filter。
      *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为
-     *  V2TIM_NOT_RECEIVE_MESSAGE  or V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE 的会话。
+     *  V2TIM_NOT_RECEIVE_MESSAGE  or V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE or V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT 的会话。
      */
-    virtual void OnUnreadMessageCountChangedByFilter(const V2TIMConversationListFilter &filter, uint64_t totalUnreadCount) {}
+    virtual void OnUnreadMessageCountChangedByFilter(const V2TIMConversationListFilter &filter,
+                                                     uint64_t totalUnreadCount) {}
 
     /////////////////////////////////////////////////////////////////////////////////
     //
@@ -560,6 +663,16 @@ public:
 
     /**
      * 会话分组删除会话
+     * @note
+     * - reason 表示会话从所在分组删除的原因，其取值有：
+     * - 当 reason 为 0 时，表示由用户主动调用 deleteConversationsFromGroup 触发
+     * - 当 reason 为 1 时，表示添加到分组的会话数量超过 1000，最早添加进分组的会话被淘汰
+     */
+    virtual void OnConversationsDeletedFromGroup(const V2TIMString &groupName,
+                                                 const V2TIMConversationVector &conversationList, uint32_t reason) {}
+
+    /**
+     * 会话分组删除会话（待废弃接口，请使用 OnConversationsDeletedFromGroup(const V2TIMString &, const V2TIMConversationVector &, uint32_t) 接口）
      */
     virtual void OnConversationsDeletedFromGroup(const V2TIMString &groupName,
                                                  const V2TIMConversationVector &conversationList) {}
@@ -567,7 +680,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//                      （七）关系链事件的监听类
+//                      （八）关系链事件的监听类
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -627,6 +740,31 @@ public:
     virtual void OnFriendInfoChanged(const V2TIMFriendInfoVector &infoList) {}
 
     /**
+     * 好友分组被创建的通知
+     */
+    virtual void OnFriendGroupCreated(const V2TIMString &groupName, const V2TIMFriendInfoVector &friendInfoList) {}
+
+    /**
+     * 好友分组被删除的通知
+     */
+    virtual void OnFriendGroupDeleted(const V2TIMStringVector &groupNameList) {}
+
+    /**
+     * 好友分组名变更的通知
+     */
+    virtual void OnFriendGroupNameChanged(const V2TIMString &oldGroupName, const V2TIMString &newGroupName) {}
+
+    /**
+     * 好友分组新增好友的通知
+     */
+    virtual void OnFriendsAddedToGroup(const V2TIMString &groupName, const V2TIMFriendInfoVector &friendInfoList) {}
+
+    /**
+     * 好友分组删除好友的通知
+     */
+    virtual void OnFriendsDeletedFromGroup(const V2TIMString &groupName, const V2TIMStringVector &friendIDList) {}
+
+    /**
      * 订阅公众号通知
      */
     virtual void OnOfficialAccountSubscribed(const V2TIMOfficialAccountInfo &info) {}
@@ -645,11 +783,26 @@ public:
      * 订阅的公众号资料更新通知
      */
     virtual void OnOfficialAccountInfoChanged(const V2TIMOfficialAccountInfo &info) {}
+
+    /**
+     * 关注列表变更通知
+     */
+    virtual void OnMyFollowingListChanged(const V2TIMUserFullInfoVector &userInfoList, bool isAdd) {}
+
+    /**
+     * 粉丝列表变更通知
+     */
+    virtual void OnMyFollowersListChanged(const V2TIMUserFullInfoVector &userInfoList, bool isAdd) {}
+
+    /**
+     * 互关列表变更通知
+     */
+    virtual void OnMutualFollowersListChanged(const V2TIMUserFullInfoVector &userInfoList, bool isAdd) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//                      （八）信令事件监听类
+//                      （九）信令事件监听类
 //
 /////////////////////////////////////////////////////////////////////////////////
 

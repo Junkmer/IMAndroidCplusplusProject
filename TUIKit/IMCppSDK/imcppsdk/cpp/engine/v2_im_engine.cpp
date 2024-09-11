@@ -792,8 +792,8 @@ namespace v2im {
                 V2TIMMessage newMsg = value;
                 newMsg.elemList = message.elemList;
                 newMsg.cloudCustomData = message.cloudCustomData;
-                newMsg.localCustomData = message.localCustomData;
-                newMsg.localCustomInt = message.localCustomInt;
+                newMsg.SetLocalCustomData(message.GetLocalCustomData(), nullptr);
+                newMsg.SetLocalCustomInt(message.GetLocalCustomInt(), nullptr);
                 GetMessageManager()->ModifyMessage(newMsg, callback);
             }
         });

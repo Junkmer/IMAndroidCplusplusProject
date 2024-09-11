@@ -27,43 +27,43 @@ enum V2TIMMessagePriority {
 
 /// 消息状态
 enum V2TIMMessageStatus {
-    ///< 消息发送中
+    /// 消息发送中
     V2TIM_MSG_STATUS_SENDING = 1,
-    ///< 消息发送成功
+    /// 消息发送成功
     V2TIM_MSG_STATUS_SEND_SUCC = 2,
-    ///< 消息发送失败
+    /// 消息发送失败
     V2TIM_MSG_STATUS_SEND_FAIL = 3,
-    ///< 消息被删除
+    /// 消息被删除
     V2TIM_MSG_STATUS_HAS_DELETED = 4,
-    ///< 导入到本地的消息
+    /// 导入到本地的消息
     V2TIM_MSG_STATUS_LOCAL_IMPORTED = 5,
-    ///< 被撤销的消息
+    /// 被撤销的消息
     V2TIM_MSG_STATUS_LOCAL_REVOKED = 6,
 };
 
 /// 消息类型
 enum V2TIMElemType {
-    ///< 未知消息
+    /// 未知消息
     V2TIM_ELEM_TYPE_NONE = 0,
-    ///< 文本消息
+    /// 文本消息
     V2TIM_ELEM_TYPE_TEXT = 1,
-    ///< 自定义消息
+    /// 自定义消息
     V2TIM_ELEM_TYPE_CUSTOM = 2,
-    ///< 图片消息
+    /// 图片消息
     V2TIM_ELEM_TYPE_IMAGE = 3,
-    ///< 语音消息
+    /// 语音消息
     V2TIM_ELEM_TYPE_SOUND = 4,
-    ///< 视频消息
+    /// 视频消息
     V2TIM_ELEM_TYPE_VIDEO = 5,
-    ///< 文件消息
+    /// 文件消息
     V2TIM_ELEM_TYPE_FILE = 6,
-    ///< 地理位置消息
+    /// 地理位置消息
     V2TIM_ELEM_TYPE_LOCATION = 7,
-    ///< 表情消息
+    /// 表情消息
     V2TIM_ELEM_TYPE_FACE = 8,
-    ///< 群 Tips 消息
+    /// 群 Tips 消息
     V2TIM_ELEM_TYPE_GROUP_TIPS = 9,
-    ///< 合并消息
+    /// 合并消息
     V2TIM_ELEM_TYPE_MERGER = 10,
 };
 
@@ -72,19 +72,19 @@ typedef TXV2TIMElemTypeVector V2TIMElemTypeVector;
 
 /// 推送规则
 enum V2TIMOfflinePushFlag {
-    ///< 按照默认规则进行推送
+    /// 按照默认规则进行推送
     V2TIM_OFFLINE_PUSH_DEFAULT = 0,
-    ///< 不进行推送
+    /// 不进行推送
     V2TIM_OFFLINE_PUSH_NO_PUSH = 1,
 };
 
 /// 图片类型
 enum V2TIMImageType {
-    ///< 原图
+    /// 原图
     V2TIM_IMAGE_TYPE_ORIGIN = 0x01,
-    ///< 缩略图
+    /// 缩略图
     V2TIM_IMAGE_TYPE_THUMB = 0x02,
-    ///< 大图
+    /// 大图
     V2TIM_IMAGE_TYPE_LARGE = 0x04,
 };
 
@@ -92,33 +92,39 @@ enum V2TIMImageType {
 enum V2TIMGroupTipsType {
     /// 未定义
     V2TIM_GROUP_TIPS_TYPE_NONE = 0x00,
-    ///< 主动入群（memberList 加入群组，非 Work 群有效）
+    /// 主动入群（memberList 加入群组，非 Work 群有效）
     V2TIM_GROUP_TIPS_TYPE_JOIN = 0x01,
-    ///< 被邀请入群（opMember 邀请 memberList 入群，Work 群有效）
+    /// 被邀请入群（opMember 邀请 memberList 入群，从 8.0 版本开始支持除 AVChatRoom 之外的所有群类型）
     V2TIM_GROUP_TIPS_TYPE_INVITE = 0x02,
-    ///< 退出群 (opMember 退出群组)
+    /// 退出群 (opMember 退出群组)
     V2TIM_GROUP_TIPS_TYPE_QUIT = 0x03,
-    ///< 踢出群 (opMember 把 memberList 踢出群组)
+    /// 踢出群 (opMember 把 memberList 踢出群组)
     V2TIM_GROUP_TIPS_TYPE_KICKED = 0x04,
-    ///< 设置管理员 (opMember 把 memberList 设置为管理员)
+    /// 设置管理员 (opMember 把 memberList 设置为管理员)
     V2TIM_GROUP_TIPS_TYPE_SET_ADMIN = 0x05,
-    ///< 取消管理员 (opMember 取消 memberList 管理员身份)
+    /// 取消管理员 (opMember 取消 memberList 管理员身份)
     V2TIM_GROUP_TIPS_TYPE_CANCEL_ADMIN = 0x06,
-    ///< 群资料变更 (opMember 修改群资料： groupName & introduction & notification & faceUrl & owner & allMute & custom)
+    /// 群资料变更 (opMember 修改群资料： groupName & introduction & notification & faceUrl & owner & allMute & custom)
     V2TIM_GROUP_TIPS_TYPE_GROUP_INFO_CHANGE = 0x07,
-    ///< 群成员资料变更 (opMember 修改群成员资料：muteTime)
+    /// 群成员资料变更 (opMember 修改群成员资料：muteTime)
     V2TIM_GROUP_TIPS_TYPE_MEMBER_INFO_CHANGE = 0x08,
+    /// 话题资料变更 (opMember 修改话题资料：topicName & introduction & notification & faceUrl & allMute & topicCustomData)
+    V2TIM_GROUP_TIPS_TYPE_TOPIC_INFO_CHANGE = 0x09,
+    /// 置顶群消息
+    V2TIM_GROUP_TIPS_TYPE_PINNED_MESSAGE_ADDED = 0x0A,
+    /// 取消置顶群消息
+    V2TIM_GROUP_TIPS_TYPE_PINNED_MESSAGE_DELETED = 0x0B,
 };
 
 /// 消息拉取方式
 enum V2TIMMessageGetType {
-    ///< 获取云端更老的消息
+    /// 获取云端更老的消息
     V2TIM_GET_CLOUD_OLDER_MSG = 1,
-    ///< 获取云端更新的消息
+    /// 获取云端更新的消息
     V2TIM_GET_CLOUD_NEWER_MSG = 2,
-    ///< 获取本地更老的消息
+    /// 获取本地更老的消息
     V2TIM_GET_LOCAL_OLDER_MSG = 3,
-    ///< 获取本地更新的消息
+    /// 获取本地更新的消息
     V2TIM_GET_LOCAL_NEWER_MSG = 4,
 };
 
@@ -131,27 +137,27 @@ enum V2TIMKeywordListMatchType {
 
 /// 群消息已读成员列表过滤类型
 enum V2TIMGroupMessageReadMembersFilter {
-    ///< 群消息已读成员列表
+    /// 群消息已读成员列表
     V2TIM_GROUP_MESSAGE_READ_MEMBERS_FILTER_READ   = 0,
-    ///< 群消息未读成员列表
+    /// 群消息未读成员列表
     V2TIM_GROUP_MESSAGE_READ_MEMBERS_FILTER_UNREAD = 1,
 };
 
 /// iOS 离线推送的类型
 enum V2TIMIOSOfflinePushType {
-    ///< 普通的 APNs 推送
+    /// 普通的 APNs 推送
     V2TIM_IOS_OFFLINE_PUSH_TYPE_APNS = 0,
-    ///< VoIP 推送
+    /// VoIP 推送
     V2TIM_IOS_OFFLINE_PUSH_TYPE_VOIP = 1,
 };
 
 /// 配置离线推送时，注册的设备 token 类型
 enum V2TIMOfflinePushTokenType {
-    ///< 默认是厂商 token: APNS/小米 push/Huawei push 等
+    /// 默认是厂商 token: APNS/小米 push/Huawei push 等
     V2TIM_OFFLINE_PUSH_TOKEN_TYPE_DEFAULT = 0,
-    ///< TPNS
+    /// TPNS
     V2TIM_OFFLINE_PUSH_TOKEN_TYPE_TPNS    = 1,
-    ///< VoIP push，目前仅支持 iOS
+    /// VoIP push，目前仅支持 iOS
     V2TIM_OFFLINE_PUSH_TOKEN_TYPE_VOIP    = 2,
 };
 
@@ -227,6 +233,30 @@ struct TIM_API V2TIMOfflinePushInfo {
     V2TIMString AndroidVIVOCategory;
     /// 离线推送设置华为推送消息分类，详见：https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Guides/message-classification-0000001149358835
     V2TIMString AndroidHuaWeiCategory;
+    /// 设置华为设备离线推送的通知图片, url 使用的协议必须是 HTTPS 协议，取值样例：https://example.com/image.png
+    /// 图片文件须小于 512KB，规格建议为 40dp x 40dp，弧角大小为 8dp。超出建议规格的图片会存在图片压缩或图片显示不全的情况。图片格式建议使用 JPG/JPEG/PNG。
+    V2TIMString AndroidHuaWeiImage;
+    /// 设置荣耀设备离线推送的通知图片, url 使用的协议必须是 HTTPS 协议，取值样例：https://example.com/image.png
+    /// 图标文件大小须小于 100KB，图标建议规格大小：160px x 160px，弧角大小为 32px，超出规格大小的图标会存在图片压缩或显示不全的情况。
+    V2TIMString AndroidHonorImage;
+    /// 设置 Google FCM 设备离线推送的通知图片，未展开消息时显示为大图标，展开消息后展示为大图片. url 使用的协议必须是 HTTPS 协议，取值样例：https://example.com/image.png
+    /// 图标文件大小须小于 1 MB，超出规格大小的图标会存在图片压缩或显示不全的情况。
+    V2TIMString AndroidFCMImage;
+    /// 设置 APNs 离线推送的通知图片, 借助 iOS 10 Service Extension 特性，可以下载并展示在弹窗上.iOSImage 使用的协议必须是 HTTPS 协议，取值样例：https://example.com/image.png
+    /// 限制说明：
+    /// - 图片：支持 JPEG、GIF、PNG，大小不超过 10 MB
+    /// 使用说明：
+    /// - 需要在 IM 控制台打开 mutable-content 属性，支持 iOS 10 Service Extension 特性
+    /// - 获取 iOSImage 资源的 key 值是 "image"
+    V2TIMString iOSImage;
+    /// 设置鸿蒙设备离线推送的通知图片，URL使用的协议必须是HTTPS协议，取值样例：https://example.com/image.png。
+    /// 支持图片格式为png、jpg、jpeg、heif、gif、bmp，图片长*宽 < 25000像素。
+    V2TIMString HarmonyImage;
+    /// 设置鸿蒙设备离线推送通知消息类别，详见：https://developer.huawei.com/consumer/cn/doc/HMSCore-Guides/message-classification-0000001149358835
+    V2TIMString HarmonyCategory;
+    /// 离线推送忽略 badge 计数（仅对 Harmony 生效），
+    /// 如果设置为 YES，在 Harmony 接收端，这条消息不会使 APP 的应用图标未读计数增加。
+    bool ignoreHarmonyBadge;
 
     V2TIMOfflinePushInfo();
     V2TIMOfflinePushInfo(const V2TIMOfflinePushInfo &);
@@ -247,6 +277,8 @@ struct V2TIMGroupTipsElem;
 
 DEFINE_POINT_VECTOR(V2TIMElem)
 typedef TXPV2TIMElemVector V2TIMElemVector;
+
+class V2TIMCallback;
 
 class V2TIMDownloadCallback;
 
@@ -362,10 +394,14 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     /// V2TIMMessage message = messageManager.CreateTextMessage("text");
     /// message.elemList.PushBack(customElem);
     V2TIMElemVector elemList;
-    /// 消息自定义数据（本地保存，不会发送到对端，程序卸载重装后失效）
-    V2TIMBuffer localCustomData;
-    /// 消息自定义数据,可以用来标记语音、视频消息是否已经播放（本地保存，不会发送到对端，程序卸载重装后失效）
-    int localCustomInt;
+    /// 获取消息自定义数据（本地保存，不会发送到对端，程序卸载重装后失效）
+    V2TIMBuffer GetLocalCustomData() const;
+    /// 设置消息自定义数据（本地保存，不会发送到对端，程序卸载重装后失效）
+    void SetLocalCustomData(const V2TIMBuffer &localCustomData, V2TIMCallback *callback);
+    /// 获取消息自定义数据,可以用来标记语音、视频消息是否已经播放（本地保存，不会发送到对端，程序卸载重装后失效）
+    int GetLocalCustomInt() const;
+    /// 设置消息自定义数据,可以用来标记语音、视频消息是否已经播放（本地保存，不会发送到对端，程序卸载重装后失效）
+    void SetLocalCustomInt(int localCustomInt, V2TIMCallback *callback);
     /// 消息自定义数据（云端保存，会发送到对端，程序卸载重装后还能拉取到）
     V2TIMBuffer cloudCustomData;
     /// 消息是否不计入会话未读数：默认为 false，表明需要计入会话未读数，设置为
@@ -375,16 +411,24 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     /// 消息是否不计入会话 lastMsg：默认为 false，表明需要计入会话 lastMsg，设置为
     /// true，表明不需要计入会话 lastMsg
     bool isExcludedFromLastMessage;
-    /// 消息是否不过内容审核（包含【本地审核】和【云端审核】）
-    /// 只有在开通【本地审核】或【云端审核】功能后，isExcludedFromContentModeration 设置才有效，设置为 true，表明不过内容审核，设置为 false：表明过内容审核。
-    ///【本地审核】开通流程请参考 [本地审核功能](https://cloud.tencent.com/document/product/269/83795#.E6.9C.AC.E5.9C.B0.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)
+    /// 消息是否不过内容审核（【云端审核】）
+    /// 只有在开通【云端审核】功能后，isExcludedFromContentModeration 设置才有效，设置为 true，表明不过内容审核，设置为 false：表明过内容审核。
     ///【云端审核】开通流程请参考 [云端审核功能](https://cloud.tencent.com/document/product/269/83795#.E4.BA.91.E7.AB.AF.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)
     bool isExcludedFromContentModeration;
+    /// 消息自定义审核配置 ID（从 7.8 版本开始支持）
+    /// 在开通【云端审核】功能后，您可以请前往 [控制台](https://console.cloud.tencent.com/im) (云端审核 -> 审核配置 -> 自定义配置 -> 添加自定义配置) 获取配置 ID。
+    ///【自定义审核】配置流程请参考 [云端审核功能]（https://cloud.tencent.com/document/product/269/78633#a5efc9e8-a7ec-40e3-9b18-8ed1910f589c）
+    /// @note 该字段需要发消息前设置，仅用于控制发消息时的消息审核策略，其值不会存储在漫游和本地
+    V2TIMString customModerationConfigurationID;
     /// 是否被标记为有安全风险的消息（从 7.4 版本开始支持）
     /// 暂时只支持语音和视频消息。
     /// 只有在开通【云端审核】功能后才生效，【云端审核】开通流程请参考 [云端审核功能](https://cloud.tencent.com/document/product/269/83795#.E4.BA.91.E7.AB.AF.E5.AE.A1.E6.A0.B8.E5.8A.9F.E8.83.BD)。
     /// 如果您发送的语音或视频消息内容不合规，云端异步审核后会触发 SDK 的 onRecvMessageModified 回调，回调里的 message 对象该字段值为 true。
     bool hasRiskContent;
+    /// 是否禁用消息发送前云端回调（从 8.1 版本开始支持）
+    bool disableCloudMessagePreHook;
+    /// 是否禁用消息发送后云端回调（从 8.1 版本开始支持）
+    bool disableCloudMessagePostHook;
 
     /// 消息的离线推送信息
     V2TIMOfflinePushInfo offlinePushInfo;
@@ -395,10 +439,9 @@ struct TIM_API V2TIMMessage : V2TIMBaseObject {
     /// 仅当消息为撤回状态时有效
     V2TIMString revokeReason;
 
-    /// 仅供 SDK 内部使用，如果您想判断消息自己是否已读，请使用 IsRead()
-    bool isRead;
-    /// 仅供 SDK 内部使用，如果您想判断消息对方是否已读，请使用 IsPeerRead()
-    bool isPeerRead;
+    /// 消息置顶者 （从 8.0 版本开始支持）
+    /// 只有通过 GetPinnedGroupMessageList 获取到的置顶消息才包含该字段
+    V2TIMGroupMemberInfo pinnerInfo;
 
     V2TIMMessage();
     V2TIMMessage(const V2TIMMessage &);
@@ -776,7 +819,9 @@ struct TIM_API V2TIMMessageReceipt {
     V2TIMString userID;
     /// C2C 对端消息是否已读
     bool isPeerRead;
-    /// C2C 对端用户标记会话已读的时间
+    /// C2C 对端已读的时间
+    /// 如果 msgID 为空，该字段表示对端用户标记会话已读的时间
+    /// 如果 msgID 不为空，该字段表示对端用户发送消息已读回执的时间（8.1 及以上版本支持）
     int64_t timestamp;
     /// 群 ID
     V2TIMString groupID;

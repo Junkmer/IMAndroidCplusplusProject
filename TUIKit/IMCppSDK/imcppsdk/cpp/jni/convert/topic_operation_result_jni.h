@@ -6,6 +6,7 @@
 #define IMCPLUSPLUSDEMO_TOPIC_OPERATION_RESULT_JNI_H
 
 #include <jni.h>
+#include <V2TIMCommunity.h>
 #include "V2TIMGroup.h"
 
 namespace v2im {
