@@ -14,6 +14,8 @@ namespace v2im {
     namespace jni {
             class JSONObjectJNI {
             public:
+                static jobject optNewJObject(JNIEnv *env, const jobject &obj);
+
                 static jobject optJObject(JNIEnv *env, const jobject &obj, const std::string &key);
 
                 static int optJsonInt(JNIEnv *env, const jobject &obj, const std::string &key);

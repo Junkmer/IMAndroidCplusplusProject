@@ -7,14 +7,13 @@
 #include "java_basic_jni.h"
 #include "jni_util.h"
 #include "jni_json_objarr_util.h"
-#include "jni_json_objarr_util.h"
 #include "json.h"
 #include "LogUtil.h"
 
 namespace v2im {
     namespace jni {
 
-        std::string CallExperimentalAPIJni::value_str;
+        V2TIMString CallExperimentalAPIJni::value_str;
         bool CallExperimentalAPIJni::value_bool;
         int CallExperimentalAPIJni::value_int;
         long CallExperimentalAPIJni::value_long;
@@ -83,7 +82,7 @@ namespace v2im {
             return nullptr;
         }
 
-        std::string CallExperimentalAPIJni::setCustomServerInfo(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setCustomServerInfo(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -140,10 +139,10 @@ namespace v2im {
                 param_json["shortconnectionAddressList"] = short_server_address_array;
             }
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
-        std::string CallExperimentalAPIJni::setQuicChannelInfo(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setQuicChannelInfo(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -152,39 +151,41 @@ namespace v2im {
             bool j_isUseQuicChannel = JSONObjectJNI::optJsonBoolean(env, param, "forceUseQuicChannel");
             // bool, 只写(选填), true 表示设置 Quic 通道信息, 当 kTIMRequestInternalOperation 为 kTIMInternalOperationSetQuicChannelInfo 时需要设置
             param_json["forceUseQuicChannel"] = j_isUseQuicChannel;
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
-        std::string CallExperimentalAPIJni::setProxyInfo(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setProxyInfo(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
+            jobject json_obj = JSONObjectJNI::optNewJObject(env,param);
+
             json::Object param_json;
 
-            int j_type = JSONObjectJNI::optJsonInt(env, param, "proxyType");// 代理类型 proxyType: 0 无代理，1 Http 代理，2 Socks5 代理
-            jstring j_host = JSONObjectJNI::optJsonString(env, param, "proxyHost");
-            int j_port = JSONObjectJNI::optJsonInt(env, param, "proxyPort");
-            jstring j_username = JSONObjectJNI::optJsonString(env, param, "proxyUsername");
-            jstring j_password = JSONObjectJNI::optJsonString(env, param, "proxyPassword");
+            int j_type = JSONObjectJNI::optJsonInt(env, json_obj, "proxyType");// 代理类型 proxyType: 0 无代理，1 Http 代理，2 Socks5 代理
+            jstring j_host = JSONObjectJNI::optJsonString(env, json_obj, "proxyHost");
+            int j_port = JSONObjectJNI::optJsonInt(env, json_obj, "proxyPort");
+            jstring j_username = JSONObjectJNI::optJsonString(env, json_obj, "proxyUsername");
+            jstring j_password = JSONObjectJNI::optJsonString(env, json_obj, "proxyPassword");
 
             param_json["proxyType"] = j_type;
-            param_json["proxyHost"] = j_host;
+            param_json["proxyHost"] = StringJni::Jstring2Cstring(env, j_host);
             param_json["proxyPort"] = j_port;
-            param_json["proxyUsername"] = j_username;
-            param_json["proxyPassword"] = j_password;
+            param_json["proxyUsername"] = StringJni::Jstring2Cstring(env, j_username);
+            param_json["proxyPassword"] = StringJni::Jstring2Cstring(env, j_password);
 
             env->DeleteLocalRef(j_host);
             env->DeleteLocalRef(j_username);
             env->DeleteLocalRef(j_password);
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
-        std::string CallExperimentalAPIJni::initLocalStorage(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::initLocalStorage(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
-            return StringJni::Jstring2Cstring(env, (jstring) param);
+            return StringJni::Jstring2Cstring(env, (jstring) param).c_str();
         }
 
         bool CallExperimentalAPIJni::setTestEnvironment(jobject const &param) {
@@ -195,7 +196,7 @@ namespace v2im {
             return (bool) param;
         }
 
-        std::string CallExperimentalAPIJni::setCosSaveRegion(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setCosSaveRegion(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -210,10 +211,10 @@ namespace v2im {
             env->DeleteLocalRef(j_convId);
             env->DeleteLocalRef(j_cosRegion);
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
-        std::string CallExperimentalAPIJni::setDatabaseEncryptInfo(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setDatabaseEncryptInfo(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -226,7 +227,7 @@ namespace v2im {
 
             env->DeleteLocalRef(j_key);
 
-            return json::Serialize(encrypt_info);
+            return json::Serialize(encrypt_info).c_str();
         }
 
         int CallExperimentalAPIJni::setUIPlatform(jobject const &param) {
@@ -242,7 +243,7 @@ namespace v2im {
             return LongJni::LongValue(param);
         }
 
-        std::string CallExperimentalAPIJni::setPacketRetryInfo(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::setPacketRetryInfo(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -253,7 +254,7 @@ namespace v2im {
 
             param_json["maxRetryCount"] = j_maxCount;
             param_json["packetRequestTimeout"] = j_timeout;
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
         int CallExperimentalAPIJni::setOfflinePushState(jobject const &param) {
@@ -276,7 +277,7 @@ namespace v2im {
             return messageIDList;
         }
 
-        std::string CallExperimentalAPIJni::writeLog(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::writeLog(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -299,7 +300,7 @@ namespace v2im {
             env->DeleteLocalRef(j_funcName);
             env->DeleteLocalRef(j_logContent);
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
         V2TIMBuffer CallExperimentalAPIJni::sendTRTCCustomData(jobject const &param) {
@@ -310,7 +311,7 @@ namespace v2im {
             return V2TIMBuffer{reinterpret_cast<const uint8_t*>(data.c_str()), data.size()};
         }
 
-        std::string CallExperimentalAPIJni::clearLocalHistoryMessage(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::clearLocalHistoryMessage(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -327,10 +328,10 @@ namespace v2im {
 
             env->DeleteLocalRef(j_convId);
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
-        std::string CallExperimentalAPIJni::reportTUIComponentUsage(jobject const &param) {
+        V2TIMString CallExperimentalAPIJni::reportTUIComponentUsage(jobject const &param) {
             ScopedJEnv scopedJEnv;
             auto *env = scopedJEnv.GetEnv();
 
@@ -342,7 +343,7 @@ namespace v2im {
             param_json["UIComponentType"] = j_componentType;// uint32, 只写(选填), Tuikit 上报类型
             param_json["UIStyleType"] = j_styleType;// uint32, 只写(选填), Tuikit 风格，经典版、简约版
 
-            return json::Serialize(param_json);
+            return json::Serialize(param_json).c_str();
         }
 
         int CallExperimentalAPIJni::setApplicationID(jobject const &param) {

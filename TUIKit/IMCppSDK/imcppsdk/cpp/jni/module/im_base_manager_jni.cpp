@@ -30,6 +30,10 @@
 #include "jni_helper.h"
 #include "call_experimental_api_jni.h"
 #include "LogUtil.h"
+#include "json.h"
+
+#include "jni_json_objarr_util.h"
+
 //监听
 #include "conversation_listener_jni.h"
 
@@ -433,7 +437,7 @@ DEFINE_NATIVE_FUNC(void, NativeCallExperimentalAPI, jstring api, jobject param, 
 
                 if (V2TIMErrorCode::ERR_SUCC == error_code) {
                     if (baseObject.obj_ptr) {
-                        if (apiStr == "isCommercialAbilityEnabled"){
+                        if (apiStr == "isCommercialAbilityEnabled") {
                             bool isEnabled = (bool) baseObject.obj_ptr;
                             v2im::jni::IMCallbackJNI::Success(jni_callback, v2im::jni::IntegerJni::NewIntegerObj(isEnabled));
                         }

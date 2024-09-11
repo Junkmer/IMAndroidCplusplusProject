@@ -18,27 +18,27 @@ namespace v2im {
             static const void *ConvertToCoreObject(JNIEnv *env, const V2TIMString &api, const jobject &param);
 
         private:
-            static std::string setCustomServerInfo(const jobject &param);
+            static V2TIMString setCustomServerInfo(const jobject &param);
 
-            static std::string setQuicChannelInfo(const jobject &param);
+            static V2TIMString setQuicChannelInfo(const jobject &param);
 
-            static std::string setProxyInfo(const jobject &param);
+            static V2TIMString setProxyInfo(const jobject &param);
 
-            static std::string initLocalStorage(const jobject &param);
+            static V2TIMString initLocalStorage(const jobject &param);
 
             static bool setTestEnvironment(const jobject &param);
 
             static bool setIPv6Prior(const jobject &param);
 
-            static std::string setCosSaveRegion(const jobject &param);
+            static V2TIMString setCosSaveRegion(const jobject &param);
 
             static int setUIPlatform(const jobject &param);
 
-            static std::string setDatabaseEncryptInfo(const jobject &param);
+            static V2TIMString setDatabaseEncryptInfo(const jobject &param);
 
             static long isCommercialAbilityEnabled(const jobject &param);
 
-            static std::string setPacketRetryInfo(const jobject &param);
+            static V2TIMString setPacketRetryInfo(const jobject &param);
 
             static int setOfflinePushState(const jobject &param);
 
@@ -46,18 +46,18 @@ namespace v2im {
 
             static V2TIMStringVector getMessageRevoker(const jobject &param);
 
-            static std::string writeLog(const jobject &param);
+            static V2TIMString writeLog(const jobject &param);
 
             static V2TIMBuffer sendTRTCCustomData(const jobject &param);
 
-            static std::string clearLocalHistoryMessage(const jobject &param);
+            static V2TIMString clearLocalHistoryMessage(const jobject &param);
 
-            static std::string reportTUIComponentUsage(const jobject &param);
+            static V2TIMString reportTUIComponentUsage(const jobject &param);
 
             static int setApplicationID(const jobject &param);
 
         public:
-            static std::string value_str;
+            static V2TIMString value_str;
             static bool value_bool;
             static int value_int;
             static long value_long;
