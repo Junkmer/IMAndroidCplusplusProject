@@ -233,6 +233,12 @@ struct TIM_API V2TIMOfflinePushInfo {
     V2TIMString AndroidVIVOCategory;
     /// 离线推送设置华为推送消息分类，详见：https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Guides/message-classification-0000001149358835
     V2TIMString AndroidHuaWeiCategory;
+    /// 离线推送设置 OPPO 推送消息分类，详见：https://open.oppomobile.com/new/developmentDoc/info?id=13189
+    /// 通讯与服务类型有："IM"，"ACCOUNT"等；内容与营销类型有："NEWS"，"CONTENT"等
+    V2TIMString AndroidOPPOCategory;
+    /// 离线推送设置 OPPO 推送通知栏消息提醒等级，详见：https://open.oppomobile.com/new/developmentDoc/info?id=13189
+    /// 使用生效前，需要先设置 AndroidOPPOCategory  指定 category 为 IM 类消息。消息提醒等级有：1，通知栏；2，通知栏 + 锁屏 （默认）；16，通知栏 + 锁屏 + 横幅 + 震动 + 铃声；
+    int AndroidOPPONotifyLevel;
     /// 设置华为设备离线推送的通知图片, url 使用的协议必须是 HTTPS 协议，取值样例：https://example.com/image.png
     /// 图片文件须小于 512KB，规格建议为 40dp x 40dp，弧角大小为 8dp。超出建议规格的图片会存在图片压缩或图片显示不全的情况。图片格式建议使用 JPG/JPEG/PNG。
     V2TIMString AndroidHuaWeiImage;

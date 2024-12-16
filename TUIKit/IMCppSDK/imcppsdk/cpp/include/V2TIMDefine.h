@@ -19,8 +19,18 @@
 
 #ifndef _STDINT_H
 
-// FreeBSD has these C99 int types defined in /sys/inttypes.h already
-#ifndef _SYS_TYPES_H
+#if defined(__PROSPERO__) || defined(__ORBIS__)
+#include <sys/_types/_int8_t.h>
+#include <sys/_types/_int16_t.h>
+#include <sys/_types/_int32_t.h>
+#include <sys/_types/_uint8_t.h>
+#include <sys/_types/_uint16_t.h>
+#include <sys/_types/_uint32_t.h>
+#include <sys/_types/_intptr_t.h>
+#include <sys/_types/_uintptr_t.h>
+#include <sys/_types/_int64_t.h>
+#include <sys/_types/_uint64_t.h>
+#elif !defined(_SYS_TYPES_H)
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;
@@ -30,11 +40,12 @@ typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 #else
+// FreeBSD has these C99 int types defined in /sys/inttypes.h already
 typedef u_int8_t uint8_t;
 typedef u_int16_t uint16_t;
 typedef u_int32_t uint32_t;
 typedef u_int64_t uint64_t;
-#endif  // _SYS_TYPES_H
+#endif  // defined(__PROSPERO__) || defined(__ORBIS__)
 
 #endif  // _STDINT_H
 
@@ -75,7 +86,7 @@ typedef unsigned int uintptr_t;
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__PROSPERO__) || defined(__ORBIS__)
 #if defined(TIM_EXPORT)
 #define TIM_API __declspec(dllexport)
 #else
