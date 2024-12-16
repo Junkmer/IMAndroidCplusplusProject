@@ -812,7 +812,9 @@ namespace v2im {
     }
 
     void V2IMEngine::DeleteMessages(const V2TIMMessageVector &messages, V2TIMCallback *callback) {
-        GetMessageManager()->DeleteMessages(messages, callback);
+        GetCppIMMessage(messages, [=](const int &error_code, const V2TIMString &error_message, const V2TIMMessageVector &value) {
+            GetMessageManager()->DeleteMessages(value, callback);
+        });
     }
 
     void V2IMEngine::ClearC2CHistoryMessage(const V2TIMString &userID, V2TIMCallback *callback) {
